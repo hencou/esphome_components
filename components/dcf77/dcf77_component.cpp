@@ -11,7 +11,7 @@ namespace esphome {
 
       DCF.Start();
       setSyncInterval(60);
-      setSyncProvider(DCF.getTime);
+      setSyncProvider(DCF.getUTCTime);
     }
     void DCF77Component::dump_config() {
       ESP_LOGCONFIG(TAG, "  Timezone: '%s'", this->timezone_.c_str());
