@@ -1,0 +1,44 @@
+substitutions:
+  device_name: buiten_voordeur
+  friendly_name: Voordeur
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+external_components:
+- source: github://hencou/esphome_components
+  components: dcf77
+  
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+ 
+ota:
+
+time:   
+- platform: dcf77
+  id: dcftime
+  pin: D3
+  on_time:
+    - hours: 7
+      then:
+        if:
+          condition:
+            sensor.in_range:
+              id: ldr
+              below: 210
+          then:
+            light.turn_on: light1
+    - hours: 0
+      then:
+        light.turn_off: light1
