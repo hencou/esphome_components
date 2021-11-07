@@ -31,6 +31,7 @@ namespace esphome {
       isSyncTime = false;
     }
     this->has_time_ = false;
+    ESP_LOGD(TAG, "DCF77 time: %d-%d-%d %d:%02d:%02d", year(), month(), day(), hour(), minute(), second());
   }
   void DCF77Component::loop() {
     if (this->has_time_)
@@ -47,8 +48,7 @@ namespace esphome {
     if (!time.is_valid())
       return;
 
-    ESP_LOGD(TAG, "Synchronized time: %d-%d-%d %d:%02d:%02d", time.year, time.month, time.day_of_month, time.hour,
-             time.minute, time.second);
+    ESP_LOGD(TAG, "Synchronized time: %d-%d-%d %d:%02d:%02d", time.year, time.month, time.day_of_month, time.hour, time.minute, time.second);
     this->time_sync_callback_.call();
     this->has_time_ = true;
   }
