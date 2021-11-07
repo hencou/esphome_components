@@ -113,28 +113,4 @@ The goal here is to flash your ESP with the firmware. This should be done with E
 
 If you need to pair some bulbs, how to do this is [described in the wiki](https://github.com/sidoh/esp8266_milight_hub/wiki/Pairing-new-bulbs).
 
-## Ready-Made Hub
 
-h4nc (h4nc.zigbee(a)gmail.com) created a PCB and 3D-printable case for espMH.  He's offering ready-made versions.  Please get in touch with him at the aforementioned email address for further information.
-
-Find more information from the [espmh_pcb](https://github.com/sidoh/espmh_pcb) repository.
-
-## Acknowledgements
-
-* @WoodsterDK added support for LT8900 radios.
-* @cmidgley contributed many substantial features to the 1.7 release.
-
-[info-license]:   https://github.com/sidoh/esp8266_milight_hub/blob/master/LICENSE
-[shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
-
-## Donating
-
-If the project brings you happiness or utility, it's more than enough for me to hear those words.
-
-If you're feeling especially generous, and are open to a charitable donation, that'd make me very happy.  Here are some whose mission I support (in no particular order):
-
-* [Water.org](https://www.water.org)
-* [Brain & Behavior Research Foundation](https://www.bbrfoundation.org/)
-* [Electronic Frontier Foundation](https://www.eff.org/)
-* [Girls Who Code](https://girlswhocode.com/)
-* [San Francisco Animal Care & Control](http://www.sfanimalcare.org/make-a-donation/)
