@@ -113,4 +113,5 @@ The goal here is to flash your ESP with the firmware. This should be done with E
 
 If you need to pair some bulbs, how to do this is [described in the wiki](https://github.com/sidoh/esp8266_milight_hub/wiki/Pairing-new-bulbs).
 
-
+# 2. DCF77 module ESPhome
+See the attached example "example_dcf77.yaml"
