@@ -134,6 +134,10 @@ namespace esphome {
               
             state->publish_state();
             state->get_output()->update_state(state);
+            
+            char buff[200];
+            serializeJson(result, buff);
+            ESP_LOGD(TAG, "Milight request: %s", buff);
           }
           break;
         }
