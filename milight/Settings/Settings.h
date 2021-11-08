@@ -123,7 +123,7 @@ public:
     rf24ListenChannel(RF24Channel::RF24_LOW),
     packetRepeatsPerLoop(10),
     wifiMode(WifiMode::N),
-    defaultTransitionPeriod(200),
+    defaultTransitionPeriod(500),
     _autoRestartPeriod(0)
   { }
 
