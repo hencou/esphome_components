@@ -74,9 +74,8 @@ namespace esphome {
               bulbId.groupId == miOutput.bulbId.groupId ||
               bulbId.groupId == 0
              )
-           ) {
-
-          light::LightState* state = App.get_light_by_key(miOutput.key);
+           )
+        {
           // update state to reflect changes from this packet
           groupState = stateStore->get(bulbId);
 
@@ -89,57 +88,18 @@ namespace esphome {
             // Copy state before setting it to avoid group 0 re-initialization clobbering it
             stateStore->set(bulbId, stateUpdates);
             
-            if (result.containsKey("state")) {
-              state->current_values.set_state(result["state"] == "ON");
-              state->remote_values.set_state(result["state"] == "ON");
-            }
-            if (result.containsKey("color_temp")) {
-              state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-              state->current_values.set_color_temperature((float)result["color_temp"]);
-              state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-              state->remote_values.set_color_temperature((float)result["color_temp"]);
-            }
-            if (result.containsKey("brightness")) {
-              state->current_values.set_brightness((float)result["brightness"]/255.00);
-              state->remote_values.set_brightness((float)result["brightness"]/255.00);
-            }
-            if (result.containsKey("command")) {
-              if(result["command"] == "night_mode"){
-                //TODO
+            light::LightState* state;
+            if (bulbId.groupId == 0) {
+              for (MiOutput miOutput : Mi::miOutputs) {
+                if (bulbId.deviceId == miOutput.bulbId.deviceId) {
+                  state = App.get_light_by_key(miOutput.key);
+                  Mi::updateOutput(state, result);
+                }
               }
+            } else {
+              state = App.get_light_by_key(miOutput.key);
+              Mi::updateOutput(state, result);
             }
-            
-            bool colorMode = false;
-            if (result.containsKey("hue")) {
-              colorMode = true;
-              hue = (int)result["hue"];
-            }
-            if (result.containsKey("saturation")) {
-              colorMode = true;
-              saturation = (int)result["saturation"];
-            }
-            
-            if (colorMode) {
-              float rgb[3];  
-              
-              /// Convert hue (0-360) & saturation/value percentage (0-1) to RGB floats (0-1)
-              //hsv_to_rgb(int hue, float saturation, float value, float &red, float &green, float &blue);   
-              hsv_to_rgb(hue, saturation/100.0, 1.0, rgb[0], rgb[1], rgb[2]);
-              
-              state->current_values.set_color_mode(light::ColorMode::RGB);
-              state->current_values.set_red(rgb[0]);
-              state->current_values.set_green(rgb[1]);
-              state->current_values.set_blue(rgb[2]);
-              state->remote_values.set_color_mode(light::ColorMode::RGB);
-              state->remote_values.set_red(rgb[0]);
-              state->remote_values.set_green(rgb[1]);
-              state->remote_values.set_blue(rgb[2]);
-              
-              colorMode = false;
-            }    
-              
-            state->publish_state();
-            state->get_output()->update_state(state);
             
             char buff[200];
             serializeJson(result, buff);
@@ -148,6 +108,70 @@ namespace esphome {
           break;
         }
       }
+    }
+
+    void Mi::updateOutput(light::LightState *state, JsonObject result) {
+      
+      if (result.containsKey("state")) {
+        state->current_values.set_state(result["state"] == "ON");
+        state->remote_values.set_state(result["state"] == "ON");
+      }
+      if (result.containsKey("color_temp")) {
+        state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
+        state->current_values.set_color_temperature((float)result["color_temp"]);
+        state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
+        state->remote_values.set_color_temperature((float)result["color_temp"]);
+      }
+      if (result.containsKey("brightness")) {
+        state->current_values.set_brightness((float)result["brightness"]/255.00);
+        state->remote_values.set_brightness((float)result["brightness"]/255.00);
+      }
+      if (result.containsKey("command")) {
+        if(result["command"] == "night_mode"){
+          //TODO
+        }
+      }
+      
+      bool colorMode = false;
+      if (result.containsKey("hue")) {
+        colorMode = true;
+        Mi::hue = (int)result["hue"];
+      }
+      if (result.containsKey("saturation")) {
+        colorMode = true;
+        Mi::saturation = (int)result["saturation"];
+      }
+      
+      if (colorMode) {
+        float rgb[3];  
+        
+        /// Convert hue (0-360) & saturation/value percentage (0-1) to RGB floats (0-1)
+        //hsv_to_rgb(int hue, float saturation, float value, float &red, float &green, float &blue);   
+        hsv_to_rgb(hue, saturation/100.0, 1.0, rgb[0], rgb[1], rgb[2]);
+        
+        state->current_values.set_color_mode(light::ColorMode::RGB);
+        state->current_values.set_red(rgb[0]);
+        state->current_values.set_green(rgb[1]);
+        state->current_values.set_blue(rgb[2]);
+        state->remote_values.set_color_mode(light::ColorMode::RGB);
+        state->remote_values.set_red(rgb[0]);
+        state->remote_values.set_green(rgb[1]);
+        state->remote_values.set_blue(rgb[2]);
+        
+        colorMode = false;
+      }     
+      state->publish_state();
+      state->get_output()->update_state(state);
+    }
+
+    void Mi::pair(BulbId bulbId) {
+      milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
+      milightClient->pair();
+    }
+
+    void Mi::unpair(BulbId bulbId) {
+      milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
+      milightClient->unpair();
     }
 
     /**
@@ -163,6 +187,7 @@ namespace esphome {
         return;
       }
 
+      milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
       std::shared_ptr<MiLightRadio> radio = radios->switchRadio(Mi::miOutputs[i].bulbId.deviceType);
       i++;
       if (i > miOutputs.size()-1) {i=0;}

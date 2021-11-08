@@ -68,6 +68,10 @@ namespace esphome {
     
     class Mi : public Component {
       public:
+
+        void pair(BulbId bulbId);
+        void unpair(BulbId bulbId);
+
         void setup() override;
         void loop() override;
         void dump_config() override;
@@ -107,6 +111,8 @@ namespace esphome {
         List<Command> commands;
         std::vector<MiOutput> miOutputs;
         int i = 0;
+
+        void updateOutput(light::LightState *state, JsonObject result);
     };
 
   }  // namespace mi
