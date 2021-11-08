@@ -67,8 +67,14 @@ namespace esphome {
       ESP_LOGD(TAG, "bulbId.groupId: %i", bulbId.groupId);
       
       for (MiOutput miOutput : Mi::miOutputs) {
-        //dont look to groupId to process groupId 0 too
-        if (bulbId.deviceId == miOutput.bulbId.deviceId) {
+        //also listen to groupId 0
+        if (
+            bulbId.deviceId == miOutput.bulbId.deviceId &&
+             (
+              bulbId.groupId == miOutput.bulbId.groupId ||
+              bulbId.groupId == 0
+             )
+           ) {
 
           light::LightState* state = App.get_light_by_key(miOutput.key);
           // update state to reflect changes from this packet
