@@ -20,6 +20,14 @@ namespace esphome {
       };
     }
 
+    void MiLight::pair() {
+      parent_->pair(bulbId);
+    }
+
+    void MiLight::unpair() {
+      parent_->unpair(bulbId);
+    }
+
     void MiLight::setup() {}
 
     void MiLight::dump_config() {

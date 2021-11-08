@@ -13,6 +13,9 @@ namespace esphome {
     MiLight();
     ~MiLight();
 
+    void pair();
+    void unpair();
+
     void set_bulb_id(uint16_t deviceId, uint8_t groupId, String remoteType);
     BulbId get_bulb_id() {return bulbId;}
 
