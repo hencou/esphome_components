@@ -93,7 +93,8 @@ namespace esphome {
         unsigned long lastCommandTime;
         unsigned int repeatTimer = 0;
         
-        int hue, saturation;
+        int hue = 0;
+        int saturation = 100;
         bool writeState = false;
 
         void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config);
