@@ -62,7 +62,7 @@ namespace esphome {
         return;
       }
         
-      ESP_LOGD(TAG, "bulbId.deviceType: %i", bulbId.deviceType);
+      ESP_LOGD(TAG, "bulbId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
       ESP_LOGD(TAG, "bulbId.deviceId: %4X", bulbId.deviceId);
       ESP_LOGD(TAG, "bulbId.groupId: %i", bulbId.groupId);
       
