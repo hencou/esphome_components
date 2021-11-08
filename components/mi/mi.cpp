@@ -68,7 +68,7 @@ namespace esphome {
       
       for (MiOutput miOutput : Mi::miOutputs) {
         //dont look to groupId to process groupId 0 too
-        if (bulbId.deviceType == miOutput.bulbId.deviceType && bulbId.deviceId == miOutput.bulbId.deviceId) {
+        if (bulbId.deviceId == miOutput.bulbId.deviceId) {
 
           light::LightState* state = App.get_light_by_key(miOutput.key);
           // update state to reflect changes from this packet
