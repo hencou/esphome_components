@@ -27,7 +27,7 @@ namespace esphome {
       ESP_LOGCONFIG(TAG, " ObjectId: %s", state_->get_object_id().c_str());
       ESP_LOGCONFIG(TAG, " bulbId.deviceId: %04X", bulbId.deviceId);
       ESP_LOGCONFIG(TAG, " bulbId.groupId: %i", bulbId.groupId);
-      ESP_LOGCONFIG(TAG, " bulbId.remoteType: %i", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
+      ESP_LOGCONFIG(TAG, " bulbId.remoteType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
     }
 
     light::LightTraits MiLight::get_traits() {
