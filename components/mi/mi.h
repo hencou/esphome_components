@@ -57,8 +57,8 @@
 namespace esphome {
   namespace mi {
  
-    struct Command {
-      char command[200];
+    struct Request {
+      char request[200];
     };
 
     struct MiOutput {
@@ -69,8 +69,7 @@ namespace esphome {
     class Mi : public Component {
       public:
 
-        void pair(BulbId bulbId);
-        void unpair(BulbId bulbId);
+        void handleCommand(BulbId bulbId, String command);
 
         void setup() override;
         void loop() override;
@@ -94,7 +93,7 @@ namespace esphome {
 
         TransitionController transitions;
         
-        unsigned long lastCommandTime;
+        unsigned long lastRequestTime;
         unsigned int repeatTimer = 0;
         
         int hue = 0;
@@ -108,7 +107,7 @@ namespace esphome {
         void applySettings();
 
         List<BulbId> bulbIds;
-        List<Command> commands;
+        List<Request> requests;
         std::vector<MiOutput> miOutputs;
         int i = 0;
 

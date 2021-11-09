@@ -164,14 +164,14 @@ namespace esphome {
       state->get_output()->update_state(state);
     }
 
-    void Mi::pair(BulbId bulbId) {
-      milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-      milightClient->pair();
-    }
+    void Mi::handleCommand(BulbId bulbId, String command) {
+      
+      StaticJsonDocument<200> buffer;
+      deserializeJson(buffer, command);
+      JsonVariant variant = buffer.as<JsonVariant>();
 
-    void Mi::unpair(BulbId bulbId) {
       milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-      milightClient->unpair();
+      milightClient->handleCommand(variant);
     }
 
     /**
@@ -288,7 +288,7 @@ namespace esphome {
       }
       
       StaticJsonDocument<200> root;
-      JsonObject request = root.to<JsonObject>();
+      JsonObject requestJson = root.to<JsonObject>();
       
       std::string effect;
       bool effectExist = false;
@@ -372,7 +372,7 @@ namespace esphome {
         }
       }
       
-      if (millis() - lastCommandTime < 2000) {
+      if (millis() - lastRequestTime < 2000) {
         ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
         milightClient->setRepeatsOverride(10);
       }
@@ -380,24 +380,24 @@ namespace esphome {
       //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
       if (millis() > 5000) {
         milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-        milightClient->update(request);
+        milightClient->update(requestJson);
       }
       
       milightClient->clearRepeatsOverride();
       
-      Command command = Command();
-      serializeJson(request, command.command);
-      ESP_LOGD(TAG, "Milight request: %s", command.command);
+      Request request = Request();
+      serializeJson(requestJson, request.request);
+      ESP_LOGD(TAG, "Milight request: %s", request.request);
 
       int pos = bulbIds.IndexOf(bulbId);
       if (pos > -1) {
-        commands.Replace(pos, command);
+        requests.Replace(pos, request);
       } else {
         bulbIds.Add(bulbId);
-        commands.Add(command);
+        requests.Add(request);
       }
       
-      lastCommandTime = millis();
+      lastRequestTime = millis();
       writeState = false;
     }
 
@@ -411,19 +411,19 @@ namespace esphome {
 
       transitions.loop();
       
-      while (millis() - lastCommandTime > repeatTimer && bulbIds.Count() > 0) {
+      while (millis() - lastRequestTime > repeatTimer && bulbIds.Count() > 0) {
     
         BulbId bulbId = bulbIds.First();
         bulbIds.RemoveFirst();
-        Command command = commands.First();
-        commands.RemoveFirst();
+        Request request = requests.First();
+        requests.RemoveFirst();
 
         StaticJsonDocument<400> buffer;
-        deserializeJson(buffer, command.command);
+        deserializeJson(buffer, request.request);
         JsonObject obj = buffer.as<JsonObject>();
 
         if (bulbIds.Count() == 0) {
-          commands.Clear();
+          requests.Clear();
         }
         
         //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
