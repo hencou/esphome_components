@@ -36,3 +36,19 @@ light:
   device_id: 0xAB01
   group_id: 1
   remote_type: rgb_cct
+
+switch:
+- platform: mi
+  id: pair
+  name: ${friendly_name} pair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: pair
+- platform: mi
+  id: unpair
+  name: ${friendly_name} unpair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: unpair
