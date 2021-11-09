@@ -9,10 +9,12 @@ namespace esphome {
     void MiSwitch::setup() {}
 
     void MiSwitch::write_state(bool state) {
-
-      this->turn_off();
-      parent_->handleCommand(bulbId, command_);
-      this->publish_state(state);
+      if (state != false) {
+        parent_->handleCommand(bulbId, command_);
+        
+        this->turn_off();
+        this->publish_state(false);
+      }
     }
 
     void MiSwitch::dump_config() {
@@ -27,6 +29,5 @@ namespace esphome {
       };
       command_ = command;
     }
-
   }  // namespace mi
 }  // namespace esphome
