@@ -18,19 +18,19 @@ REMOTE_TYPES = {
 }
 
 COMMANDS = {
-    "unpair" : "unpair",
-    "pair" : "pair",
-    "set_white" : "set_white",
-    "night_mode" : "night_mode",
-    "level_up" : "level_up",
-    "level_down" : "level_down",
-    "temperature_up" : "temperature_up",
-    "temperature_down" : "temperature_down",
-    "next_mode" : "next_mode",
-    "previous_mode" : "previous_mode",
-    "mode_speed_down" : "mode_speed_down",
-    "mode_speed_up" : "mode_speed_up",
-    "toggle" : "toggle",
+    'unpair' : '{"command":"unpair"}',
+    'pair' : '{"command":"pair"}',
+    'set_white' : '{"command":"set_white"}',
+    'night_mode' : '{"command":"night_mode"}',
+    'level_up' : '{"command":"level_up"}',
+    'level_down' : '{"command":"level_down"}',
+    'temperature_up' : '{"command":"temperature_up"}',
+    'temperature_down' : '{"command":"temperature_down"}',
+    'next_mode' : '{"command":"next_mode"}',
+    'previous_mode' : '{"command":"previous_mode"}',
+    'mode_speed_down' : '{"command":"mode_speed_down"}',
+    'mode_speed_up' : '{"command":"mode_speed_up"}',
+    'toggle' : '{"command":"toggle"}',
 }
 
 CODEOWNERS = ["@hencou"]
