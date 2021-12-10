@@ -41,6 +41,7 @@ switch:
 - platform: mi
   id: pair
   name: ${friendly_name} pair
+  entity_category: config
   device_id: 0xAB01
   group_id: 1
   remote_type: rgb_cct
@@ -48,6 +49,7 @@ switch:
 - platform: mi
   id: unpair
   name: ${friendly_name} unpair
+  entity_category: config
   device_id: 0xAB01
   group_id: 1
   remote_type: rgb_cct
