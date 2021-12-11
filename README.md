@@ -88,12 +88,13 @@ On a Wemos D1 mini:
 |-----------|-------|------|
 |GND        |GND    |Black |
 |3V3        |VCC    |Red   |
-|D0 GPIO16  |CE     |Orange|
+|**D0 GPIO16**  |CE     |Orange|
 |D5 GPIO14  |SCK    |Green |
 |D6 GPIO12  |MISO   |Violet|
 |D7 GPIO13  |MOSI   |Blue  |
 |D8 GPIO15  |CSN    |Yellow|
 
+* **CE pin is on D0 instead of D2**
 * Do not mount the NRF24 and ESP12 antennas against each other. This will cause bad performance and crashes
 
 _Image source: [MySensors.org](https://mysensors.org)_
