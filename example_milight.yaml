@@ -37,6 +37,7 @@ light:
   group_id: 1
   remote_type: rgb_cct
 
+#switch to HA version 2021.12
 switch:
 - platform: mi
   id: pair
@@ -54,3 +55,22 @@ switch:
   group_id: 1
   remote_type: rgb_cct
   command: unpair
+
+#button possbile since HA version 2021.12
+button:
+- platform: mi
+  id: pair
+  name: ${friendly_name} pair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: pair
+  entity_category: config
+- platform: mi
+  id: unpair
+  name: ${friendly_name} unpair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: unpair
+  entity_category: config
