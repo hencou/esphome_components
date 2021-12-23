@@ -7,8 +7,8 @@ esphome:
   includes:
   - milight
   libraries:
-   - SPIFFS
-   - FS
+  - FS
+  - SPIFFS
 
 esp32:
   board: esp32dev
