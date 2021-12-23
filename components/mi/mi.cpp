@@ -7,7 +7,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/util.h"
 
-#elif ESP32
+#ifdef ESP32
   #include <SPIFFS.h>
 #endif
 
