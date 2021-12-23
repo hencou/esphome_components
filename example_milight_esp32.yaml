@@ -1,0 +1,67 @@
+substitutions:
+  device_name: mitest
+  friendly_name: Test
+
+esphome:
+  name: $device_name
+  includes:
+  - milight
+  libraries:
+   - SPIFFS
+   - FS
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+external_components:
+- source: github://hencou/esphome_components
+  components: mi
+    
+# Enable logging
+logger:
+  level: WARN
+
+# Enable Home Assistant API
+api:
+ reboot_timeout: 24h
+ 
+time:
+- platform: homeassistant
+  id: homeassistant_time
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+
+button:
+- platform: mi
+  id: pair
+  name: ${friendly_name} pair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: pair
+  entity_category: config
+- platform: mi
+  id: unpair
+  name: ${friendly_name} unpair
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
+  command: unpair
+  entity_category: config
+
+mi:
+
+light:
+- platform: mi
+  id: light1
+  name: ${friendly_name}
+  device_id: 0xAB01
+  group_id: 1
+  remote_type: rgb_cct
