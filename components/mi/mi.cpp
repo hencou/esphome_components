@@ -255,7 +255,14 @@ namespace esphome {
 
     void Mi::setup() {
 
-      SPIFFS.begin();
+      #ifdef ESP8266
+        SPIFFS.begin();
+      #elif ESP32
+        if(!SPIFFS.begin(true)){
+          Serial.println(F("Error while mounting SPIFFS"));
+        }
+      #endif
+      
       Settings::load(settings);
       Mi::applySettings();
 
