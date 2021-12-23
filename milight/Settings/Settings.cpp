@@ -5,6 +5,10 @@
 #include <algorithm>
 #include "../Helpers/JsonHelpers.h"
 
+#ifdef ESP32
+  #include <SPIFFS.h>
+#endif
+
 #define PORT_POSITION(s) ( s.indexOf(':') )
 
 GatewayConfig::GatewayConfig(uint16_t deviceId, uint16_t port, uint8_t protocolVersion)
