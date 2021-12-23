@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include <CircularBuffer.h>
 #include "../Radio/MiLightRadioConfig.h"
 #include "../MiLight/MiLightRemoteConfig.h"
 
