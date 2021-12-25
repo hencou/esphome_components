@@ -37,6 +37,56 @@ light:
   group_id: 1
   remote_type: rgb_cct
 
+binary_sensor:
+- platform: gpio
+  id: d1
+  pin:
+    number: D1
+    mode: INPUT_PULLUP
+    inverted: True
+  on_multi_click:
+  - timing:
+    - ON for at most 0.5s
+    - OFF for at least 0.5s
+    then:
+      light.toggle: light1
+  - timing:
+    - ON for at least 1s
+    then:
+    - light.turn_on:
+        id: light1
+        brightness: 0.01
+        effect: 'None'
+    - while:
+        condition:
+          binary_sensor.is_on: d1
+        then:
+        - light.dim_relative:
+            id: light1
+            relative_brightness: 7%
+        - delay: 0.3s
+  - timing:
+    - ON for at most 0.5s
+    - OFF for at most 0.5s
+    - ON for at most 0.5s
+    - OFF for at least 0.5s
+    then:
+      light.turn_on:
+        id: light1
+        effect: night_mode 
+  - timing:
+    - ON for at most 0.5s
+    - OFF for at most 0.5s
+    - ON for at most 0.5s
+    - OFF for at most 0.5s
+    - ON for at most 0.5s
+    - OFF for at least 0.5s
+    then:
+      light.turn_on:
+        id: light1
+        color_mode: COLOR_TEMPERATURE
+        color_temperature: 370 mireds
+        
 #switch to HA version 2021.12
 switch:
 - platform: mi
