@@ -21,7 +21,7 @@ CONFIG_SCHEMA = (
     {
       cv.Required(CONF_CE_PIN, "ce_pin"): pins.gpio_output_pin_schema,
       cv.Required(CONF_CSN_PIN, "csn_pin"): pins.gpio_output_pin_schema,
-      cv.Required(CONF_RESET_PIN, "reset_pin"): pins.gpio_output_pin_schema,
+      cv.Optional(CONF_RESET_PIN, "reset_pin"): pins.gpio_output_pin_schema,
     }
   )
   .extend(cv.COMPONENT_SCHEMA)
