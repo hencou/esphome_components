@@ -77,7 +77,7 @@ Both modules are SPI devices and should be connected to the standard SPI pins on
 ##### NRF24L01+
 
 
-[This guide](https://www.mysensors.org/build/connect_radio#nrf24l01+-&-esp8266) details how to connect an NRF24 to an ESP8266. By default GPIO 16 for CE and GPIO 15 for CSN are used, but these can be configured late in the Web GUI under Settings -> Setup.
+[This guide](https://www.mysensors.org/build/connect_radio#nrf24l01+-&-esp8266) details how to connect an NRF24 to an ESP8266. By default GPIO 16 for CE and GPIO 15 for CSN are used.
 
 <img src="https://user-images.githubusercontent.com/40266/47967518-67556f00-e05e-11e8-857d-1173a9da955c.png" align="left" width="32%" />
 <img src="https://user-images.githubusercontent.com/40266/47967520-691f3280-e05e-11e8-838a-83706df2edb0.png" align="left" width="22%" />
