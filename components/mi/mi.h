@@ -28,7 +28,6 @@
 #include "milight/Transitions/ColorTransition.h"
 #include "milight/Transitions/ChangeFieldOnFinishTransition.h"
 #include "milight/Transitions/FieldTransition.h"
-#include "milight/MiLightState/GroupStatePersistence.h"
 #include "milight/MiLightState/GroupState.h"
 #include "milight/MiLightState/GroupStateStore.h"
 #include "milight/MiLightState/GroupStateCache.h"
