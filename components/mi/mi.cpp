@@ -255,6 +255,9 @@ namespace esphome {
     void Mi::setup() {
 
       Settings::load(settings);
+      settings.cePin = ce_pin_->get_pin();
+      settings.csnPin = csn_pin_->get_pin();
+      settings.resetPin = reset_pin_->get_pin();
       Mi::applySettings();
 
       transitions.addListener(
