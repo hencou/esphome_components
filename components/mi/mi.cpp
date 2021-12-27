@@ -1,4 +1,3 @@
-#include "FS.h"
 #include "mi.h"
 #include "esphome.h"
 #include "esphome/core/log.h"
@@ -6,10 +5,6 @@
 #include "esphome/components/light/light_output.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/util.h"
-
-#ifdef ESP32
-  #include <SPIFFS.h>
-#endif
 
 namespace esphome {
   namespace mi {
@@ -259,14 +254,6 @@ namespace esphome {
 
     void Mi::setup() {
 
-      #ifdef ESP8266
-        SPIFFS.begin();
-      #elif ESP32
-        if(!SPIFFS.begin(true)){
-          Serial.println(F("Error while mounting SPIFFS"));
-        }
-      #endif
-      
       Settings::load(settings);
       Mi::applySettings();
 
