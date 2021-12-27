@@ -23,8 +23,6 @@ async def to_code(config):
     
     cg.add_library("SPI", None)
     cg.add_library("RF24", None)
-    cg.add_library("https://github.com/ratkins/RGBConverter", None)
     cg.add_library("PathVariableHandlers", None)
     cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
     cg.add_library("bblanchon/ArduinoJson", None)
-    cg.add_library("ListLib", None)
