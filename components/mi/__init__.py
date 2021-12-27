@@ -14,13 +14,9 @@ CONF_MI_ID = "mi_id"
 CONFIG_SCHEMA = (
   cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(Mi),
-    }
-  )
-  .extend(
-    {
-      cv.Required(CONF_CE_PIN, "ce_pin"): pins.gpio_output_pin_schema,
-      cv.Required(CONF_CSN_PIN, "csn_pin"): pins.gpio_output_pin_schema,
+      cv.GenerateID(): cv.declare_id(Mi),
+      cv.Required(CONF_CE_PIN): pins.gpio_output_pin_schema,
+      cv.Required(CONF_CSN_PIN): pins.gpio_output_pin_schema,
       cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
     }
   )
@@ -39,8 +35,11 @@ async def to_code(config):
     cg.add_library("bblanchon/ArduinoJson", None)
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
-    csn_pin = await cg.gpio_pin_expression(config[CONF_CSN_PIN])
-    reset_pin = await cg.gpio_pin_expression(config[CONF_RESET_PIN])
     cg.add(var.set_ce_pin(ce_pin))
+    csn_pin = await cg.gpio_pin_expression(config[CONF_CSN_PIN])
     cg.add(var.set_csn_pin(csn_pin))
-    cg.add(var.set_reset_pin(reset_pin))
+    
+    if CONF_RESET_PIN in config:
+      reset_pin = await cg.gpio_pin_expression(config[CONF_RESET_PIN])
+      cg.add(var.set_reset_pin(reset_pin))
+
