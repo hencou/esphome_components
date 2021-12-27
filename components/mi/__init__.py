@@ -1,15 +1,14 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import (
-  CONF_ID,
-  CONF_CE_PIN,
-  CONF_CSN_PIN,
-  CONF_RESET_PIN,
-)
+from esphome.const import CONF_ID
 
 mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
 
+CONF_CE_PIN = "ce_pin"
+CONF_CSN_PIN = "csn_pin"
+CONF_RESET_PIN = "reset_pin"
+  
 CONF_MI_ID = "mi_id"
 CONFIG_SCHEMA = (
   cv.Schema(
