@@ -35,11 +35,11 @@ async def to_code(config):
     cg.add_library("bblanchon/ArduinoJson", None)
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
-    cg.add(var.set_ce_pin(ce_pin))
+    cg.add(var.set_ce_pin(ce_pin->get_pin()))
     csn_pin = await cg.gpio_pin_expression(config[CONF_CSN_PIN])
-    cg.add(var.set_csn_pin(csn_pin))
+    cg.add(var.set_csn_pin(csn_pin->get_pin()))
     
     if CONF_RESET_PIN in config:
       reset_pin = await cg.gpio_pin_expression(config[CONF_RESET_PIN])
-      cg.add(var.set_reset_pin(reset_pin))
+      cg.add(var.set_reset_pin(reset_pin->get_pin()))
 
