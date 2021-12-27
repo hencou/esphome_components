@@ -1,24 +1,26 @@
 #include "../Types/ParsedColor.h"
-#include <RGBConverter.h>
+//#include <RGBConverter.h>
+#include "esphome.h"
 #include <TokenIterator.h>
 #include "../Types/GroupStateField.h"
 #include "../Helpers/IntParsing.h"
 
 ParsedColor ParsedColor::fromRgb(uint16_t r, uint16_t g, uint16_t b) {
-  double hsv[3];
-  RGBConverter converter;
-  converter.rgbToHsv(r, g, b, hsv);
+  int hue;
+  float saturation;
+  float value;
 
-  uint16_t hue = round(hsv[0]*360);
-  uint8_t saturation = round(hsv[1]*100);
+  //rgb_to_hsv(float red, float green, float blue, int &hue, float &saturation, float &value)
+  esphome::rgb_to_hsv(r/255.00, g/255.00, b/255.00, hue, saturation, value);
+  uint8_t sat = saturation * 100;
 
   return ParsedColor{
     .success = true,
-    .hue = hue,
+    .hue = (uint16_t)hue,
     .r = r,
     .g = g,
     .b = b,
-    .saturation = saturation
+    .saturation = sat
   };
 }
 
