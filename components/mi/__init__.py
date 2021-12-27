@@ -1,7 +1,11 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import CONF_ID
-
+from esphome.const import (
+  CONF_ID,
+  CONF_CE_PIN,
+  CONF_CSN_PIN,
+  CONF_RESET_PIN,
+)
 
 mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
@@ -9,10 +13,16 @@ Mi = mi_ns.class_("Mi", cg.Component)
 CONF_MI_ID = "mi_id"
 CONFIG_SCHEMA = (
     cv.Schema(
-        {
-            cv.GenerateID(): cv.declare_id(Mi),
-        }
+      {
+          cv.GenerateID(): cv.declare_id(Mi),
+      }
     )
+    .extend(
+    {
+      cv.Required(CONF_CE_PIN, "ce_pin"): pins.gpio_output_pin_schema,
+      cv.Required(CONF_CSN_PIN, "csn_pin"): pins.gpio_output_pin_schema,
+      cv.Required(CONF_RESET_PIN, "reset_pin"): pins.gpio_output_pin_schema,
+    }
     .extend(cv.COMPONENT_SCHEMA)
 )
 
@@ -26,3 +36,10 @@ async def to_code(config):
     cg.add_library("PathVariableHandlers", None)
     cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
     cg.add_library("bblanchon/ArduinoJson", None)
+    
+    ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
+    csn_pin = await cg.gpio_pin_expression(config[CONF_CSN_PIN])
+    reset_pin = await cg.gpio_pin_expression(config[CONF_RESET_PIN])
+    cg.add(var.set_ce_pin(ce_pin))
+    cg.add(var.set_csn_pin(csn_pin))
+    cg.add(var.set_reset_pin(reset_pin))
