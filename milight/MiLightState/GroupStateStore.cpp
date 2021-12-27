@@ -28,7 +28,7 @@ GroupState* GroupStateStore::get(const BulbId& id) {
       return NULL;
     }
 
-    persistence.get(id, loadedState);
+    //persistence.get(id, loadedState);
     state = cache.set(id, loadedState);
   }
 
@@ -114,7 +114,7 @@ bool GroupStateStore::flush() {
   bool anythingFlushed = false;
 
   while (curr != NULL && curr->data->state.isDirty() && !anythingFlushed) {
-    persistence.set(curr->data->id, curr->data->state);
+    //persistence.set(curr->data->id, curr->data->state);
     curr->data->state.clearDirty();
 
 #ifdef STATE_DEBUG
@@ -132,7 +132,7 @@ bool GroupStateStore::flush() {
   }
 
   while (evictedIds.size() > 0 && !anythingFlushed) {
-    persistence.clear(evictedIds.shift());
+    //persistence.clear(evictedIds.shift());
     anythingFlushed = true;
   }
 
