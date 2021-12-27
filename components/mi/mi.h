@@ -77,9 +77,9 @@ namespace esphome {
         
         void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
 
-        void set_ce_pin(uint8_t pin) {settings.cePin = pin; }
-        void set_csn_pin(uint8_t pin) {settings.csnPin = pin; }
-        void set_reset_pin(uint8_t pin) {settings.resetPin = pin; }
+        void set_ce_pin(InternalGPIOPin *pin) {settings.cePin = pin->get_pin();}
+        void set_csn_pin(InternalGPIOPin *pin) {settings.csnPin = pin->get_pin();}
+        void set_reset_pin(InternalGPIOPin *pin) {settings.resetPin = pin->get_pin();}
       private:
 
         Settings settings;
