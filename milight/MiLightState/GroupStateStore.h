@@ -1,6 +1,5 @@
 #include "../MiLightState/GroupState.h"
 #include "../MiLightState/GroupStateCache.h"
-#include "../MiLightState/GroupStatePersistence.h"
 
 #ifndef _GROUP_STATE_STORE_H
 #define _GROUP_STATE_STORE_H
