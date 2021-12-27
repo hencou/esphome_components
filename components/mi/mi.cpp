@@ -9,8 +9,6 @@
 namespace esphome {
   namespace mi {
 
-    static const char *const TAG = "mi";
-
     void Mi::dump_config() { }
 
     /**
@@ -255,9 +253,12 @@ namespace esphome {
     void Mi::setup() {
 
       Settings::load(settings);
-      settings.cePin = ce_pin_->get_pin();
-      settings.csnPin = csn_pin_->get_pin();
-      settings.resetPin = reset_pin_->get_pin();
+      if (ce_pin_) {settings.cePin = ce_pin_->get_pin();}
+      if (csn_pin_) {settings.csnPin = csn_pin_->get_pin();}
+      if (reset_pin_) {settings.resetPin = reset_pin_->get_pin();}
+
+      ESP_LOGD(TAG, "Settings loaded"); 
+      
       Mi::applySettings();
 
       transitions.addListener(
