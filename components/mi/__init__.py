@@ -12,18 +12,19 @@ Mi = mi_ns.class_("Mi", cg.Component)
 
 CONF_MI_ID = "mi_id"
 CONFIG_SCHEMA = (
-    cv.Schema(
-      {
-          cv.GenerateID(): cv.declare_id(Mi),
-      }
-    )
-    .extend(
+  cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(Mi),
+    }
+  )
+  .extend(
     {
       cv.Required(CONF_CE_PIN, "ce_pin"): pins.gpio_output_pin_schema,
       cv.Required(CONF_CSN_PIN, "csn_pin"): pins.gpio_output_pin_schema,
       cv.Required(CONF_RESET_PIN, "reset_pin"): pins.gpio_output_pin_schema,
     }
-    .extend(cv.COMPONENT_SCHEMA)
+  )
+  .extend(cv.COMPONENT_SCHEMA)
 )
 
 
