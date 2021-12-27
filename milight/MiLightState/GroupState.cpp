@@ -1,7 +1,8 @@
 #include "../MiLightState/GroupState.h"
 #include "../Helpers/Units.h"
 #include "../MiLight/MiLightRemoteConfig.h"
-#include <RGBConverter.h>
+//#include <RGBConverter.h>
+#include "esphome.h"
 #include "../Types/BulbId.h"
 #include "../Types/MiLightCommands.h"
 
@@ -983,25 +984,32 @@ bool GroupState::isSetColor() const {
 }
 
 ParsedColor GroupState::getColor() const {
-  uint8_t rgb[3];
-  RGBConverter converter;
+  float rgb[3];
+  //RGBConverter converter;
   uint16_t hue = getHue();
   uint8_t sat = isSetSaturation() ? getSaturation() : 100;
 
-  converter.hsvToRgb(
-    hue / 360.0,
-    // Default to fully saturated
-    sat / 100.0,
-    1,
-    rgb
-  );
+  /// Convert hue (0-360) & saturation/value percentage (0-1) to RGB floats (0-1)
+  //hsv_to_rgb(int hue, float saturation, float value, float &red, float &green, float &blue);   
+  esphome::hsv_to_rgb(hue, sat/100.0, 1.0, rgb[0], rgb[1], rgb[2]);
+
+  // converter.hsvToRgb(
+  //   hue / 360.0,
+  //   // Default to fully saturated
+  //   sat / 100.0,
+  //   1,
+  //   rgb
+  // );
+  uint16_t r = rgb[0] * 255;
+  uint16_t g = rgb[1] * 255;
+  uint16_t b = rgb[2] * 255;
 
   return {
     .success = true,
     .hue = hue,
-    .r = rgb[0],
-    .g = rgb[1],
-    .b = rgb[2],
+    .r = r,
+    .g = g,
+    .b = b,
     .saturation = sat
   };
 }
