@@ -77,12 +77,15 @@ namespace esphome {
         
         void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
 
-        void set_ce_pin(InternalGPIOPin *pin) {settings.cePin = pin->get_pin();}
-        void set_csn_pin(InternalGPIOPin *pin) {settings.csnPin = pin->get_pin();}
-        void set_reset_pin(InternalGPIOPin *pin) {settings.resetPin = pin->get_pin();}
+        void set_ce_pin(InternalGPIOPin *ce_pin) {ce_pin_ = ce_pin;}
+        void set_csn_pin(InternalGPIOPin *csn_pin) {csn_pin_ = csn_pin;}
+        void set_reset_pin(InternalGPIOPin *reset_pin) {reset_pin_ = reset_pin;}
       private:
 
         Settings settings;
+        InternalGPIOPin *ce_pin_;
+        InternalGPIOPin *csn_pin_;
+        InternalGPIOPin *reset_pin_;
 
         MiLightClient* milightClient = NULL;
         RadioSwitchboard* radios = nullptr;
