@@ -76,6 +76,10 @@ namespace esphome {
         void write_state(BulbId bulbId, light::LightState *state);
         
         void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
+
+        void set_ce_pin(uint8_t pin) {settings.cePin = pin; }
+        void set_csn_pin(uint8_t pin) {settings.csnPin = pin; }
+        void set_reset_pin(uint8_t pin) {settings.resetPin = pin; }
       private:
 
         Settings settings;
