@@ -69,7 +69,7 @@ namespace esphome {
 
       parent_->add_child(state_->get_object_id_hash(), bulbId);
 
-      state_->set_default_transition_length(0);
+      //state_->set_default_transition_length(0);
       state_->add_effects({new light::LambdaLightEffect("night_mode", [=]() -> void {
         auto call = state_->make_call();
         call.set_effect("night_mode");
