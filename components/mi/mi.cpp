@@ -32,8 +32,6 @@ namespace esphome {
         return;
       }
 
-      ESP_LOGD(TAG, "onPacketSentHandler - update the status of group");
-
       // update state to reflect changes from this packet
       groupState = stateStore->get(bulbId);
 
@@ -64,10 +62,21 @@ namespace esphome {
         ESP_LOGD(TAG, "Skipping packet handler because packet was not decoded");
         return;
       }
-        
-      ESP_LOGD(TAG, "bulbId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
-      ESP_LOGD(TAG, "bulbId.deviceId: %4X", bulbId.deviceId);
-      ESP_LOGD(TAG, "bulbId.groupId: %i", bulbId.groupId);
+      
+      if (ESPHOME_LOG_LEVEL_DEBUG) {
+        char responseBody[200];
+        char* responseBuffer = responseBody;
+
+        responseBuffer += sprintf_P(
+          responseBuffer,
+          PSTR("\n%s packet received (%d bytes):\n"),
+          config.name.c_str(),
+          config.packetFormatter->getPacketLength()
+        );
+        config.packetFormatter->format(packet, responseBuffer);
+
+        ESP_LOGD(TAG, "Received packet: %s", responseBody);
+      }
       
       for (MiOutput miOutput : Mi::miOutputs) {
         //also listen to groupId 0
@@ -106,7 +115,7 @@ namespace esphome {
             
             char buff[200];
             serializeJson(result, buff);
-            ESP_LOGD(TAG, "Milight request: %s", buff);
+            ESP_LOGD(TAG, "Received Milight request: %s", buff);
           }
           break;
         }
@@ -360,7 +369,7 @@ namespace esphome {
       }
       
       if (millis() - lastRequestTime < 2000) {
-        ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
+        //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
         milightClient->setRepeatsOverride(10);
       }
 
@@ -374,7 +383,7 @@ namespace esphome {
       
       Request request = Request();
       serializeJson(requestJson, request.request);
-      ESP_LOGD(TAG, "Milight request: %s", request.request);
+      ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
       int pos = bulbIds.IndexOf(bulbId);
       if (pos > -1) {
