@@ -296,7 +296,7 @@ namespace esphome {
         }
       }
       
-      auto values = state->remote_values;
+      auto values = state->current_values;
       auto traits = state->get_traits();
         
       if (effectExist) {
