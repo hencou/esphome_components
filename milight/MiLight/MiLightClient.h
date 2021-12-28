@@ -6,7 +6,6 @@
 #include "../Settings/Settings.h"
 #include "../MiLightState/GroupStateStore.h"
 #include "../MiLight/PacketSender.h"
-#include "../Transitions/TransitionController.h"
 #include <cstring>
 #include <map>
 #include <set>
@@ -19,32 +18,18 @@
 
 #define FSH(str) (reinterpret_cast<const __FlashStringHelper*>(str))
 
-namespace RequestKeys {
-  static const char TRANSITION[] = "transition";
-};
-
-namespace TransitionParams {
-  static const char FIELD[] PROGMEM = "field";
-  static const char START_VALUE[] PROGMEM = "start_value";
-  static const char END_VALUE[] PROGMEM = "end_value";
-  static const char DURATION[] PROGMEM = "duration";
-  static const char PERIOD[] PROGMEM = "period";
-}
 
 // Used to determine RGB colros that are approximately white
 #define RGB_WHITE_THRESHOLD 10
 
 class MiLightClient {
 public:
-  // Used to indicate that the start value for a transition should be fetched from current state
-  static const int16_t FETCH_VALUE_FROM_STATE = -1;
 
   MiLightClient(
     RadioSwitchboard& radioSwitchboard,
     PacketSender& packetSender,
     GroupStateStore* stateStore,
-    Settings& settings,
-    TransitionController& transitions
+    Settings& settings
   );
 
   ~MiLightClient() { }
@@ -94,8 +79,6 @@ public:
   void update(JsonObject object);
   void handleCommand(JsonVariant command);
   void handleCommands(JsonArray commands);
-  bool handleTransition(JsonObject args, JsonDocument& responseObj);
-  void handleTransition(GroupStateField field, JsonVariant value, float duration, int16_t startValue = FETCH_VALUE_FROM_STATE);
   void handleEffect(const String& effect);
 
   void onUpdateBegin(EventHandler handler);
@@ -136,7 +119,6 @@ protected:
   const GroupState* currentState;
   Settings& settings;
   PacketSender& packetSender;
-  TransitionController& transitions;
 
   // If set, override the number of packet repeats used.
   size_t repeatsOverride;
