@@ -4,13 +4,6 @@
 #include <algorithm>
 #include "../Helpers/JsonHelpers.h"
 
-
-void Settings::load(Settings& settings) {
-
-    settings = Settings();
-}
-
-
 RadioInterfaceType Settings::typeFromString(const String& s) {
   if (s.equalsIgnoreCase("lt8900")) {
     return LT8900;
