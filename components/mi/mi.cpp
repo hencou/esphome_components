@@ -9,6 +9,10 @@
 namespace esphome {
   namespace mi {
 
+    Mi::Mi() {
+      settings = Settings();
+    }
+
     void Mi::dump_config() { }
 
     /**
@@ -227,7 +231,6 @@ namespace esphome {
         delete radios;
       }
 
-      transitions.setDefaultPeriod(settings.defaultTransitionPeriod);
       radioFactory = MiLightRadioFactory::fromSettings(settings);
 
       if (radioFactory == NULL) {
@@ -245,33 +248,13 @@ namespace esphome {
         *radios,
         *packetSender,
         stateStore,
-        settings,
-        transitions
+        settings
       );
     }
 
     void Mi::setup() {
 
-      Settings::load(settings);
-      if (ce_pin_) {settings.cePin = ce_pin_->get_pin();}
-      if (csn_pin_) {settings.csnPin = csn_pin_->get_pin();}
-      if (reset_pin_) {settings.resetPin = reset_pin_->get_pin();}
-
-      ESP_LOGD(TAG, "Settings loaded"); 
-      
       Mi::applySettings();
-
-      transitions.addListener(
-        [&](const BulbId& bulbId, GroupStateField field, uint16_t value) {
-          StaticJsonDocument<100> buffer;
-
-          const char* fieldName = GroupStateFieldHelpers::getFieldName(field);
-          buffer[fieldName] = value;
-
-          milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-          milightClient->update(buffer.as<JsonObject>());
-        }
-      );
 
       repeatTimer = random(2000, 3000);
 
@@ -410,8 +393,6 @@ namespace esphome {
 
       stateStore->limitedFlush();
       packetSender->loop();
-
-      transitions.loop();
       
       while (millis() - lastRequestTime > repeatTimer && bulbIds.Count() > 0) {
     
