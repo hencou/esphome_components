@@ -1,7 +1,6 @@
 #include "MiLightClient.h"
 #include "../Radio/MiLightRadioConfig.h"
 #include <Arduino.h>
-//#include <RGBConverter.h>
 #include "../Helpers/Units.h"
 #include <TokenIterator.h>
 #include "../Types/ParsedColor.h"
@@ -67,15 +66,13 @@ MiLightClient::MiLightClient(
   RadioSwitchboard& radioSwitchboard,
   PacketSender& packetSender,
   GroupStateStore* stateStore,
-  Settings& settings,
-  TransitionController& transitions
+  Settings& settings
 ) : radioSwitchboard(radioSwitchboard)
   , updateBeginHandler(NULL)
   , updateEndHandler(NULL)
   , stateStore(stateStore)
   , settings(settings)
   , packetSender(packetSender)
-  , transitions(transitions)
   , repeatsOverride(0)
 { }
 
@@ -347,18 +344,6 @@ void MiLightClient::update(JsonObject request) {
 
   const JsonVariant status = this->extractStatus(request);
   const uint8_t parsedStatus = this->parseStatus(status);
-  const JsonVariant jsonTransition = request[RequestKeys::TRANSITION];
-  float transition = 0;
-
-  if (!jsonTransition.isNull()) {
-    if (jsonTransition.is<float>()) {
-      transition = jsonTransition.as<float>();
-    } else if (jsonTransition.is<size_t>()) {
-      transition = jsonTransition.as<size_t>();
-    } else {
-      Serial.println(F("MiLightClient - WARN: unsupported transition type.  Must be float or int."));
-    }
-  }
 
   JsonVariant brightness = request[GroupStateFieldNames::BRIGHTNESS];
   JsonVariant level = request[GroupStateFieldNames::LEVEL];
@@ -366,33 +351,7 @@ void MiLightClient::update(JsonObject request) {
 
   // Always turn on first
   if (parsedStatus == ON) {
-    if (transition == 0) {
-      this->updateStatus(ON);
-    }
-    // Don't do an "On" transition if the bulb is already on.  The reasons for this are:
-    //   * Ambiguous what the behavior should be.  Should it ramp to full brightness?
-    //   * HomeAssistant is only capable of sending transitions via the `light.turn_on`
-    //     service call, which ends up sending `{"status":"ON"}`.  So transitions which
-    //     have nothing to do with the status will include an "ON" command.
-    // If the user wants to transition brightness, they can just specify a brightness in
-    // the same command.  This avoids the need to make arbitrary calls on what the
-    // behavior should be.
-    else if (!currentState->isSetState() || !currentState->isOn()) {
-      // If a brightness is defined, we'll want to transition to that.  Status
-      // transitions only ramp up/down to the max/min.  Otherwise, just turn the bulb on
-      // and let field transitions handle the rest.
-      if (!isBrightnessDefined) {
-        handleTransition(GroupStateField::STATUS, status, transition, 0);
-      } else {
-        this->updateStatus(ON);
-
-        if (! brightness.isUndefined()) {
-          handleTransition(GroupStateField::BRIGHTNESS, brightness, transition, 0);
-        } else if (! level.isUndefined()) {
-          handleTransition(GroupStateField::LEVEL, level, transition, 0);
-        }
-      }
-    }
+    this->updateStatus(ON);
   }
 
   for (const char* fieldName : FIELD_ORDERINGS) {
@@ -401,19 +360,7 @@ void MiLightClient::update(JsonObject request) {
       JsonVariant value = request[fieldName];
 
       if (handler != FIELD_SETTERS.end()) {
-        // No transition -- set field directly
-        if (transition == 0) {
-          handler->second(this, value);
-        } else {
-          GroupStateField field = GroupStateFieldHelpers::getFieldByName(fieldName);
-
-          if (   !GroupStateFieldHelpers::isBrightnessField(field)  // If field isn't brightness
-               || parsedStatus == STATUS_UNDEFINED                  // or if there was not a status field
-               || currentState->isOn()                              // or if bulb was already on
-          ) {
-            handleTransition(field, value, transition);
-          }
-        }
+        handler->second(this, value);
       }
     }
   }
@@ -425,11 +372,7 @@ void MiLightClient::update(JsonObject request) {
 
   // Always turn off last
   if (parsedStatus == OFF) {
-    if (transition == 0) {
-      this->updateStatus(OFF);
-    } else {
-      handleTransition(GroupStateField::STATUS, status, transition);
-    }
+    this->updateStatus(OFF);
   }
 
   if (this->updateEndHandler) {
@@ -487,171 +430,7 @@ void MiLightClient::handleCommand(JsonVariant command) {
     this->modeSpeedUp();
   } else if (cmdName == MiLightCommandNames::TOGGLE) {
     this->toggleStatus();
-  } else if (cmdName == MiLightCommandNames::TRANSITION) {
-    StaticJsonDocument<100> fakedoc;
-    this->handleTransition(args, fakedoc);
   }
-}
-
-void MiLightClient::handleTransition(GroupStateField field, JsonVariant value, float duration, int16_t startValue) {
-  BulbId bulbId = currentRemote->packetFormatter->currentBulbId();
-  std::shared_ptr<Transition::Builder> transitionBuilder = nullptr;
-
-  if (currentState == nullptr) {
-    Serial.println(F("Error planning transition: could not find current bulb state."));
-    return;
-  }
-
-  if (!currentState->isSetField(field)) {
-    Serial.println(F("Error planning transition: current state for field could not be determined"));
-    return;
-  }
-
-  if (field == GroupStateField::COLOR) {
-    ParsedColor currentColor = currentState->getColor();
-    ParsedColor endColor = ParsedColor::fromJson(value);
-
-    transitionBuilder = transitions.buildColorTransition(
-      bulbId,
-      currentColor,
-      endColor
-    );
-  } else if (field == GroupStateField::STATUS || field == GroupStateField::STATE) {
-    uint8_t startLevel;
-    MiLightStatus status = parseMilightStatus(value);
-
-    if (startValue == FETCH_VALUE_FROM_STATE || currentState->isOn()) {
-      startLevel = currentState->getBrightness();
-    } else {
-      startLevel = startValue;
-    }
-
-    transitionBuilder = transitions.buildStatusTransition(bulbId, status, startLevel);
-  } else {
-    uint16_t currentValue;
-    uint16_t endValue = value;
-
-    if (startValue == FETCH_VALUE_FROM_STATE || currentState->isOn()) {
-      currentValue = currentState->getParsedFieldValue(field);
-    } else {
-      currentValue = startValue;
-    }
-
-    transitionBuilder = transitions.buildFieldTransition(
-      bulbId,
-      field,
-      currentValue,
-      endValue
-    );
-  }
-
-  if (transitionBuilder == nullptr) {
-    Serial.printf_P(PSTR("Unsupported transition field: %s\n"), GroupStateFieldHelpers::getFieldName(field));
-    return;
-  }
-
-  transitionBuilder->setDuration(duration);
-  transitions.addTransition(transitionBuilder->build());
-}
-
-bool MiLightClient::handleTransition(JsonObject args, JsonDocument& responseObj) {
-  if (! args.containsKey(FSH(TransitionParams::FIELD))
-    || ! args.containsKey(FSH(TransitionParams::END_VALUE))) {
-    responseObj[F("error")] = F("Ignoring transition missing required arguments");
-    return false;
-  }
-
-  const BulbId& bulbId = currentRemote->packetFormatter->currentBulbId();
-  const char* fieldName = args[FSH(TransitionParams::FIELD)];
-  JsonVariant startValue = args[FSH(TransitionParams::START_VALUE)];
-  JsonVariant endValue = args[FSH(TransitionParams::END_VALUE)];
-  GroupStateField field = GroupStateFieldHelpers::getFieldByName(fieldName);
-  std::shared_ptr<Transition::Builder> transitionBuilder = nullptr;
-
-  if (field == GroupStateField::UNKNOWN) {
-    char errorMsg[30];
-    sprintf_P(errorMsg, PSTR("Unknown transition field: %s\n"), fieldName);
-    responseObj[F("error")] = errorMsg;
-    return false;
-  }
-
-  // These fields can be transitioned directly.
-  switch (field) {
-    case GroupStateField::HUE:
-    case GroupStateField::SATURATION:
-    case GroupStateField::BRIGHTNESS:
-    case GroupStateField::LEVEL:
-    case GroupStateField::KELVIN:
-    case GroupStateField::COLOR_TEMP:
-
-      transitionBuilder = transitions.buildFieldTransition(
-        bulbId,
-        field,
-        startValue.isUndefined()
-          ? currentState->getParsedFieldValue(field)
-          : startValue.as<uint16_t>(),
-        endValue
-      );
-      break;
-
-    default:
-      break;
-  }
-
-  // Color can be decomposed into hue/saturation and these can be transitioned separately
-  if (field == GroupStateField::COLOR) {
-    ParsedColor _startValue = startValue.isUndefined()
-      ? currentState->getColor()
-      : ParsedColor::fromJson(startValue);
-    ParsedColor endColor = ParsedColor::fromJson(endValue);
-
-    if (! _startValue.success) {
-      responseObj[F("error")] = F("Transition - error parsing start color");
-      return false;
-    }
-    if (! endColor.success) {
-      responseObj[F("error")] = F("Transition - error parsing end color");
-      return false;
-    }
-
-    transitionBuilder = transitions.buildColorTransition(
-      bulbId,
-      _startValue,
-      endColor
-    );
-  }
-
-  // Status is handled a little differently
-  if (field == GroupStateField::STATUS || field == GroupStateField::STATE) {
-    MiLightStatus toStatus = parseMilightStatus(endValue);
-    uint8_t startLevel;
-    if (currentState->isSetBrightness()) {
-      startLevel = currentState->getBrightness();
-    } else if (toStatus == ON) {
-      startLevel = 0;
-    } else {
-      startLevel = 100;
-    }
-
-    transitionBuilder = transitions.buildStatusTransition(bulbId, toStatus, startLevel);
-  }
-
-  if (transitionBuilder == nullptr) {
-    char errorMsg[30];
-    sprintf_P(errorMsg, PSTR("Recognized, but unsupported transition field: %s\n"), fieldName);
-    responseObj[F("error")] = errorMsg;
-    return false;
-  }
-
-  if (args.containsKey(FSH(TransitionParams::DURATION))) {
-    transitionBuilder->setDuration(args[FSH(TransitionParams::DURATION)]);
-  }
-  if (args.containsKey(FSH(TransitionParams::PERIOD))) {
-    transitionBuilder->setPeriod(args[FSH(TransitionParams::PERIOD)]);
-  }
-
-  transitions.addTransition(transitionBuilder->build());
-  return true;
 }
 
 void MiLightClient::handleEffect(const String& effect) {
