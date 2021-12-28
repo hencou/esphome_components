@@ -39,7 +39,7 @@ CONFIG_SCHEMA = cv.All(
             
             cv.Optional(CONF_GAMMA_CORRECT, default=1.0): cv.positive_float,
             cv.Optional(
-                CONF_DEFAULT_TRANSITION_LENGTH, default="0s"
+                CONF_DEFAULT_TRANSITION_LENGTH, default="200ms"
             ): cv.positive_time_period_milliseconds,
         }
     ).extend(cv.COMPONENT_SCHEMA),
