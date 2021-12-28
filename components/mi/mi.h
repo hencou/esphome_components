@@ -23,11 +23,6 @@
 #include "milight/Helpers/Size.h"
 #include "milight/Helpers/IntParsing.h"
 #include "milight/Helpers/JsonHelpers.h"
-#include "milight/Transitions/Transition.h"
-#include "milight/Transitions/TransitionController.h"
-#include "milight/Transitions/ColorTransition.h"
-#include "milight/Transitions/ChangeFieldOnFinishTransition.h"
-#include "milight/Transitions/FieldTransition.h"
 #include "milight/MiLightState/GroupState.h"
 #include "milight/MiLightState/GroupStateStore.h"
 #include "milight/MiLightState/GroupStateCache.h"
@@ -48,8 +43,6 @@
 #include "milight/MiLight/MiLightRemoteConfig.h"
 #include "milight/MiLight/FUT020PacketFormatter.h"
 #include "milight/Settings/Settings.h"
-#include "milight/Settings/AboutHelper.h"
-#include "milight/Settings/StringStream.h"
 
 #include "ListLib.h"
 
@@ -68,6 +61,9 @@ namespace esphome {
     class Mi : public Component {
       public:
 
+        Mi();
+        ~Mi();
+
         void handleCommand(BulbId bulbId, String command);
 
         void setup() override;
@@ -77,15 +73,12 @@ namespace esphome {
         
         void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
 
-        void set_ce_pin(InternalGPIOPin *ce_pin) {ce_pin_ = ce_pin;}
-        void set_csn_pin(InternalGPIOPin *csn_pin) {csn_pin_ = csn_pin;}
-        void set_reset_pin(InternalGPIOPin *reset_pin) {reset_pin_ = reset_pin;}
+        void set_ce_pin(InternalGPIOPin *pin) {settings.cePin = pin->get_pin();}
+        void set_csn_pin(InternalGPIOPin *pin) {settings.csnPin = pin->get_pin();}
+        void set_reset_pin(InternalGPIOPin *pin) {settings.resetPin = pin->get_pin();}
       private:
 
         Settings settings;
-        InternalGPIOPin *ce_pin_;
-        InternalGPIOPin *csn_pin_;
-        InternalGPIOPin *reset_pin_;
 
         MiLightClient* milightClient = NULL;
         RadioSwitchboard* radios = nullptr;
@@ -96,8 +89,6 @@ namespace esphome {
         // For tracking and managing group state
         GroupStateStore* stateStore = NULL;
         GroupState* groupState = NULL;
-
-        TransitionController transitions;
         
         unsigned long lastRequestTime;
         unsigned int repeatTimer = 0;
