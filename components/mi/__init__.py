@@ -56,7 +56,7 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_PACKET_REPEAT_THROTTLE_THRESHOLD) : cv.uint16_t,
       cv.Optional(CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY) : cv.uint16_t,
       cv.Optional(CONF_PACKET_REPEAT_MINIMUM) : cv.uint16_t,
-      cv.Optional(CONF_ENABLE_AUTOMATIC_MODE_SWITCHING) : cv.bool,
+      cv.Optional(CONF_ENABLE_AUTOMATIC_MODE_SWITCHING) : cv.boolean,
       cv.Optional(CONF_RF24_POWER_LEVEL) : cv.enum(POWER_LEVELS),
       ##cv.Optional(CONF_RF24_CHANNELS) : 
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
