@@ -30,6 +30,17 @@ wifi:
 mi:
   ce_pin: D0
   csn_pin: D8
+  radio_interface_type: nrf24
+  packet_repeats: 50
+  listen_repeats: 20
+  state_flush_interval: 10000
+  packet_repeat_throttle_threshold: 200
+  packet_repeat_throttle_sensitivity: 0
+  packet_repeat_minimum: 3
+  enable_automatic_mode_switching: false
+  rf24_power_level: MAX
+  rf24_listen_channel: LOW
+  packet_repeats_per_loop: 10
 
 light:
 - platform: mi
