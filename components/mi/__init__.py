@@ -50,17 +50,17 @@ CONFIG_SCHEMA = (
       cv.Required(CONF_CSN_PIN): pins.gpio_output_pin_schema,
       cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
       cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
-      cv.Optional(CONF_PACKET_REPEATS) : cv.size_t,
+      cv.Optional(CONF_PACKET_REPEATS) : cv.uint16_t,
       cv.Optional(CONF_LISTEN_REPEATS) : cv.uint8_t,
-      cv.Optional(CONF_STATE_FLUSH_INTERVAL) : cv.size_t,
-      cv.Optional(CONF_PACKET_REPEAT_THROTTLE_THRESHOLD) : cv.size_t,
-      cv.Optional(CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY) : cv.size_t,
-      cv.Optional(CONF_PACKET_REPEAT_MINIMUM) : cv.size_t,
+      cv.Optional(CONF_STATE_FLUSH_INTERVAL) : cv.uint16_t,
+      cv.Optional(CONF_PACKET_REPEAT_THROTTLE_THRESHOLD) : cv.uint16_t,
+      cv.Optional(CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY) : cv.uint16_t,
+      cv.Optional(CONF_PACKET_REPEAT_MINIMUM) : cv.uint16_t,
       cv.Optional(CONF_ENABLE_AUTOMATIC_MODE_SWITCHING) : cv.bool,
       cv.Optional(CONF_RF24_POWER_LEVEL) : cv.enum(POWER_LEVELS),
       ##cv.Optional(CONF_RF24_CHANNELS) : 
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
-      cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.size_t,
+      cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.uint16_t,
     }
   )
   .extend(cv.COMPONENT_SCHEMA)
