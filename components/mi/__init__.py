@@ -87,34 +87,34 @@ async def to_code(config):
       cg.add(var.set_reset_pin(reset_pin))
 
     if CONF_RADIO_INTERFACE_TYPE in config:
-      cg.add(var.set_radio_interface_type(radio_interface_type))
+      cg.add(var.set_radio_interface_type(config[CONF_RADIO_INTERFACE_TYPE]))
       
     if CONF_PACKET_REPEATS in config:
-      cg.add(var.set_packet_repeats(packet_repeats))
+      cg.add(var.set_packet_repeats(config[CONF_PACKET_REPEATS]))
       
     if CONF_LISTEN_REPEATS in config:
-      cg.add(var.set_listen_repeats(listen_repeats))
+      cg.add(var.set_listen_repeats(config[CONF_LISTEN_REPEATS]))
       
     if CONF_STATE_FLUSH_INTERVAL in config:
-      cg.add(var.set_state_flush_interval(state_flush_interval))
+      cg.add(var.set_state_flush_interval(config[CONF_STATE_FLUSH_INTERVAL]))
       
     if CONF_PACKET_REPEAT_THROTTLE_THRESHOLD in config:
-      cg.add(var.set_packet_repeat_throttle_threshold(packet_repeat_throttle_threshold))
+      cg.add(var.set_packet_repeat_throttle_threshold(config[CONF_PACKET_REPEAT_THROTTLE_THRESHOLD]))
     
     if CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY in config:
-      cg.add(var.set_packet_repeat_throttle_sensitivity(packet_repeat_throttle_sensitivity))
+      cg.add(var.set_packet_repeat_throttle_sensitivity(config[CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY]))
       
     if CONF_PACKET_REPEAT_MINIMUM in config:
-      cg.add(var.set_packet_repeat_minimum(packet_repeat_minimum))
+      cg.add(var.set_packet_repeat_minimum(config[CONF_PACKET_REPEAT_MINIMUM]))
       
     if CONF_ENABLE_AUTOMATIC_MODE_SWITCHING in config:
-      cg.add(var.set_enable_automatic_mode_switching(enable_automatic_mode_switching))
+      cg.add(var.set_enable_automatic_mode_switching(config[CONF_ENABLE_AUTOMATIC_MODE_SWITCHING]))
       
     if CONF_RF24_POWER_LEVEL in config:
-      cg.add(var.set_rf24_power_level(rf24_power_level))
+      cg.add(var.set_rf24_power_level(config[CONF_RF24_POWER_LEVEL]))
       
     if CONF_RF24_LISTEN_CHANNEL in config:
-      cg.add(var.set_rf24_listen_channel(rf24_listen_channel))
+      cg.add(var.set_rf24_listen_channel(config[CONF_RF24_LISTEN_CHANNEL]))
     
     if CONF_PACKET_REPEATS_PER_LOOP in config:
-      cg.add(var.set_packet_repeats_per_loop(packet_repeats_per_loop))
+      cg.add(var.set_packet_repeats_per_loop(config[CONF_PACKET_REPEATS_PER_LOOP]))
