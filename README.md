@@ -77,7 +77,7 @@ Both modules are SPI devices and should be connected to the standard SPI pins on
 ##### NRF24L01+
 
 
-[This guide](https://www.mysensors.org/build/connect_radio#nrf24l01+-&-esp8266) details how to connect an NRF24 to an ESP8266. By default GPIO 16 for CE and GPIO 15 for CSN are used.
+[This guide](https://www.mysensors.org/build/connect_radio#nrf24l01+-&-esp8266) details how to connect an NRF24 to an ESP8266. By default GPIO 4 for CE and GPIO 15 for CSN are used.
 
 <img src="https://user-images.githubusercontent.com/40266/47967518-67556f00-e05e-11e8-857d-1173a9da955c.png" align="left" width="32%" />
 <img src="https://user-images.githubusercontent.com/40266/47967520-691f3280-e05e-11e8-838a-83706df2edb0.png" align="left" width="22%" />
@@ -88,20 +88,19 @@ On a Wemos D1 mini:
 |-----------|-------|------|
 |GND        |GND    |Black |
 |3V3        |VCC    |Red   |
-|**D0 GPIO16**  |CE     |Orange|
+|D2 GPIO4   |CE     |Orange|
 |D5 GPIO14  |SCK    |Green |
 |D6 GPIO12  |MISO   |Violet|
 |D7 GPIO13  |MOSI   |Blue  |
 |D8 GPIO15  |CSN    |Yellow|
 
-* **CE pin is on D0 instead of D2**
 * Do not mount the NRF24 and ESP12 antennas against each other. This will cause bad performance and crashes
 
 _Image source: [MySensors.org](https://mysensors.org)_
 
 ##### LT8900
 
-Connect SPI pins (CE, SCK, MOSI, MISO) to appropriate SPI pins on the ESP8266. With default settings, connect RST to GPIO 0, PKT to GPIO 16, CE to GPIO 16, and CSN to GPIO 15.  Make sure to properly configure these if using non-default pinouts.
+Connect SPI pins (CE, SCK, MOSI, MISO) to appropriate SPI pins on the ESP8266. With default settings, connect RST to GPIO 0, PKT to GPIO 16, CE to GPIO 4, and CSN to GPIO 15.  Make sure to properly configure these if using non-default pinouts.
 
 #### Setting up the ESP
 
