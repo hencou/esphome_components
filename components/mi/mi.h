@@ -85,7 +85,8 @@ namespace esphome {
         void set_packet_repeat_minimum(size_t value) {settings.packetRepeatMinimum = value;}
         void set_enable_automatic_mode_switching(bool value) {settings.enableAutomaticModeSwitching = value;}
         void set_rf24_power_level(String value) {settings.rf24PowerLevel = RF24PowerLevelHelpers::valueFromName(value);}
-        //void set_rf24_channels(String value) {/*TODO: settings.rf24Channels =*/ }
+        void del_rf24_channels() {settings.rf24Channels.clear();}
+        void add_rf24_channel(String value) {settings.rf24Channels.push_back(RF24ChannelHelpers::valueFromName(value));}
         void set_rf24_listen_channel(String value) {settings.rf24ListenChannel = RF24ChannelHelpers::valueFromName(value);}
         void set_packet_repeats_per_loop(size_t value) {settings.packetRepeatsPerLoop = value;}
       private:
