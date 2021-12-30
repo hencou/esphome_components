@@ -58,7 +58,7 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_PACKET_REPEAT_MINIMUM) : cv.uint16_t,
       cv.Optional(CONF_ENABLE_AUTOMATIC_MODE_SWITCHING) : cv.boolean,
       cv.Optional(CONF_RF24_POWER_LEVEL) : cv.enum(POWER_LEVELS),
-      ##cv.Optional(CONF_RF24_CHANNELS) : 
+      cv.Optional(CONF_RF24_CHANNELS) : cv.All(cv.ensure_list(cv.enum(CHANNELS)), cv.Length(min=1, max=3)),
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
       cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.uint16_t,
     }
@@ -118,3 +118,8 @@ async def to_code(config):
     
     if CONF_PACKET_REPEATS_PER_LOOP in config:
       cg.add(var.set_packet_repeats_per_loop(config[CONF_PACKET_REPEATS_PER_LOOP]))
+
+    if CONF_RF24_CHANNELS in config:
+      cg.add(var.del_rf24_channels())
+      for channel in config.get(CONF_RF24_CHANNELS, []):
+        cg.add(var.add_rf24_channel(channel))
