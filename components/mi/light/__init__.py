@@ -33,9 +33,9 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(MiLight),
             cv.GenerateID(CONF_MI_ID): cv.use_id(Mi), 
-            cv.Required(CONF_DEVICEID, "device_id"): cv.uint16_t,
-            cv.Required(CONF_GROUPID, "group_id"): cv.uint8_t,
-            cv.Required(CONF_REMOTETYPE, "remote_type"): cv.enum(REMOTE_TYPES),
+            cv.Required(CONF_DEVICEID): cv.uint16_t,
+            cv.Required(CONF_GROUPID): cv.uint8_t,
+            cv.Required(CONF_REMOTETYPE): cv.enum(REMOTE_TYPES),
             
             cv.Optional(CONF_GAMMA_CORRECT, default=1.0): cv.positive_float,
             cv.Optional(
