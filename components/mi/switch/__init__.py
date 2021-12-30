@@ -45,10 +45,10 @@ CONFIG_SCHEMA = switch.SWITCH_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(MiSwitch),
         cv.GenerateID(CONF_MI_ID): cv.use_id(Mi),
-        cv.Required(CONF_DEVICEID, "device_id"): cv.uint16_t,
-        cv.Required(CONF_GROUPID, "group_id"): cv.uint8_t,
-        cv.Required(CONF_REMOTETYPE, "remote_type"): cv.enum(REMOTE_TYPES),
-        cv.Required(CONF_COMMAND, "command"): cv.enum(COMMANDS),
+        cv.Required(CONF_DEVICEID): cv.uint16_t,
+        cv.Required(CONF_GROUPID): cv.uint8_t,
+        cv.Required(CONF_REMOTETYPE): cv.enum(REMOTE_TYPES),
+        cv.Required(CONF_COMMAND): cv.enum(COMMANDS),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
