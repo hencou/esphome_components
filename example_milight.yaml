@@ -28,7 +28,7 @@ wifi:
   fast_connect: true
 
 mi:
-  ce_pin: D0
+  ce_pin: D2
   csn_pin: D8
   radio_interface_type: nrf24
   packet_repeats: 50
