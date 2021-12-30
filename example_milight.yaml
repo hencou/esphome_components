@@ -41,6 +41,10 @@ mi:
   rf24_power_level: MAX
   rf24_listen_channel: LOW
   packet_repeats_per_loop: 10
+  rf24_channels:
+  - LOW
+  - MID
+  - HIGH
 
 light:
 - platform: mi
