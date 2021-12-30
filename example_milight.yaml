@@ -35,7 +35,7 @@ mi:
   listen_repeats: 20
   state_flush_interval: 5000
   packet_repeat_throttle_threshold: 200
-  packet_repeat_throttle_sensitivity: 10
+  packet_repeat_throttle_sensitivity: 0
   packet_repeat_minimum: 3
   enable_automatic_mode_switching: false
   rf24_power_level: MAX
