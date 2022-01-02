@@ -4,15 +4,16 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP8266
-  board: d1_mini
-  includes:
-  - milight
+  libraries:
+    - milight=https://github.com/hencou/esphome-milight#main
 
 external_components:
 - source: github://hencou/esphome_components
   components: mi
-   
+
+esp8266:
+  board: d1_mini
+
 # Enable logging
 logger:
   level: WARN
@@ -90,7 +91,7 @@ binary_sensor:
     then:
       light.turn_on:
         id: light1
-        effect: night_mode 
+        effect: night_mode
   - timing:
     - ON for at most 0.5s
     - OFF for at most 0.5s
@@ -103,7 +104,7 @@ binary_sensor:
         id: light1
         color_mode: COLOR_TEMPERATURE
         color_temperature: 370 mireds
-        
+
 #switch to HA version 2021.12
 switch:
 - platform: mi

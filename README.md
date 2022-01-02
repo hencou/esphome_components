@@ -100,8 +100,7 @@ Connect SPI pins (CE, SCK, MOSI, MISO) to appropriate SPI pins on the ESP8266. W
 
 The goal here is to flash your ESP with the firmware. This should be done with ESPHome.
 * Create a yaml file with the example provided.
-* Import the "milight" directory by copying the files to the root directory of your ESPHome installation. (In my case the root directory is "\config\esphome\")
-* Deploy this to your devices. 
+* Deploy this to your devices.
 
 #### Pair Bulbs
 
