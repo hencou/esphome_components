@@ -9,7 +9,7 @@ Instead of using a central hub this project aims to be used behind every wall sw
 * Wall switches will remains working even without WIFI.
 * Status updates will be send by the native ESPHome API.
 
-Button press functions:
+Button press functions in provided example "example_milight.yaml": 
 * Short press: light on/off
 * Long press: fade light in to max brightness
 * 2 short presses: night mode
