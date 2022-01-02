@@ -17,5 +17,5 @@ Button press functions in provided example "example_milight.yaml":
 
 More detailed description about setting up MiLight devices: https://github.com/hencou/esphome-milight
 
-# 2. DCF77 module ESPhome
+# 2. DCF77 for ESPhome
 See the attached example "example_dcf77.yaml"
