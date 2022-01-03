@@ -105,7 +105,7 @@ binary_sensor:
         color_mode: COLOR_TEMPERATURE
         color_temperature: 370 mireds
 
-#switch to HA version 2021.12
+#switch towards HA version 2021.12
 switch:
 - platform: mi
   id: pair
