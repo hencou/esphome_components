@@ -6,7 +6,7 @@ This is a fork of Sidoh's Milight Hub: https://github.com/sidoh/esp8266_milight_
 This project can be used as standalone ESP Hub replacement or combined with a switch configuration to use behind a wall switch.
 * This version is deployed by ESPHome
 * RGB_CCT Lights can be controlled MiLight remote or a wall push switch.
-* Wall switches will remains working even without WIFI.
+* Wall switches/light combi will remains working even without WIFI.
 * Status updates will be send by the native ESPHome API.
 
 Button press functions in provided example "example_milight.yaml": 
