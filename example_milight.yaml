@@ -31,7 +31,7 @@ wifi:
 mi:
   ce_pin: D2                              #required, default: 4
   csn_pin: D8                             #required, default: 15
-  reset_pin: 0                              #optional, default: 0, only needed with LT8900 radio
+  reset_pin: 0                            #optional, default: 0, only needed with LT8900 radio
   radio_interface_type: nrf24             #optional, default: nrf24, possible values: nrf24,lt8900
   packet_repeats: 50                      #optional, default: 50
   listen_repeats: 20                      #optional, default: 20
