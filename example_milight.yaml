@@ -29,20 +29,20 @@ wifi:
   fast_connect: true
 
 mi:
-  ce_pin: D2
-  csn_pin: D8
-  radio_interface_type: nrf24
-  packet_repeats: 50
-  listen_repeats: 20
-  state_flush_interval: 5000
-  packet_repeat_throttle_threshold: 200
-  packet_repeat_throttle_sensitivity: 0
-  packet_repeat_minimum: 3
-  enable_automatic_mode_switching: false
-  rf24_power_level: MAX
-  rf24_listen_channel: LOW
-  packet_repeats_per_loop: 10
-  rf24_channels:
+  ce_pin: D2                              #required, default: 4
+  csn_pin: D8                             #required, default: 15
+  radio_interface_type: nrf24             #optional, default: nrf24, possible values: nrf24,lt8900
+  packet_repeats: 50                      #optional, default: 50
+  listen_repeats: 20                      #optional, default: 20
+  state_flush_interval: 5000              #optional, default: 10000
+  packet_repeat_throttle_threshold: 200   #optional, default: 200
+  packet_repeat_throttle_sensitivity: 0   #optional, default: 0
+  packet_repeat_minimum: 3                #optional, default: 3
+  enable_automatic_mode_switching: false  #optional, default: false
+  rf24_power_level: MAX                   #optional, default: MAX, possible values: MIN, LOW, HIGH, MAX
+  rf24_listen_channel: LOW                #optional, default: LOW, possible values: LOW, MID, HIGH
+  packet_repeats_per_loop: 10             #optional, default: 10
+  rf24_channels:                          #optional, 1-3 values required when used, default: LOW-MID-HIGH, possible values: LOW, MID, HIGH
   - LOW
   - MID
   - HIGH
@@ -54,6 +54,7 @@ light:
   device_id: 0xAB01
   group_id: 1
   remote_type: rgb_cct
+  # optional variables: all variables of ESPHome base light component
 
 binary_sensor:
 - platform: gpio
