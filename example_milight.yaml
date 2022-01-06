@@ -31,6 +31,7 @@ wifi:
 mi:
   ce_pin: D2                              #required, default: 4
   csn_pin: D8                             #required, default: 15
+  rst_pin: 0                              #optional, default: 0, only needed with LT8900 radio
   radio_interface_type: nrf24             #optional, default: nrf24, possible values: nrf24,lt8900
   packet_repeats: 50                      #optional, default: 50
   listen_repeats: 20                      #optional, default: 20
@@ -48,13 +49,13 @@ mi:
   - HIGH
 
 light:
-- platform: mi
-  id: light1
-  name: Test1
-  device_id: 0xAB01
-  group_id: 1
-  remote_type: rgb_cct
-  # optional variables: all variables of ESPHome base light component
+- platform: mi                            #required
+  id: light1                              #required
+  name: Test1                             #required
+  device_id: 0xAB01                       #required, hexadacimal value of MiLight id
+  group_id: 1                             #required, 1-4 or 1-8, depending on remote type
+  remote_type: rgb_cct                    #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020
+# optional variables: all variables of ESPHome base light component
 
 binary_sensor:
 - platform: gpio
