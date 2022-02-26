@@ -407,9 +407,9 @@ namespace esphome {
       
       while (millis() - lastRequestTime > repeatTimer && bulbIds.Count() > 0) {
     
-        BulbId bulbId = bulbIds[0];
+        BulbId bulbId = bulbIds.First();
         bulbIds.RemoveFirst();
-        Request request = requests[0];
+        Request request = requests.First();
         requests.RemoveFirst();
 
         StaticJsonDocument<400> buffer;
