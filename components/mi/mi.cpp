@@ -387,7 +387,8 @@ namespace esphome {
 
       int pos = -1;
       for (int i = 0; i < bulbIds.size(); ++i) {
-        if (bulbIds.get(i) == bulbId) { 
+        BulbId bId = bulbIds.get(i);
+        if (bId == bulbId) { 
           pos = i;
         }
       }
