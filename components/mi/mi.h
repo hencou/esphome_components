@@ -44,7 +44,7 @@
 #include "lib/MiLight/FUT020PacketFormatter.h"
 #include "lib/Settings/Settings.h"
 
-#include <List.hpp>
+#include "ListLib.h"
 
 namespace esphome {
   namespace mi {
@@ -116,8 +116,8 @@ namespace esphome {
 
         void applySettings();
 
-        List<BulbId> bulbIds;
-        LinkedList_espMH<Request> requests;
+        List<uint32_t> bulbCompactIds;
+        List<Request> requests;
         std::vector<MiOutput> miOutputs;
         int i = 0;
 
