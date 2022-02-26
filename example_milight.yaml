@@ -5,7 +5,7 @@ substitutions:
 esphome:
   name: $device_name
   libraries:
-    - milight=https://github.com/hencou/esphome-milight#main
+    - milight=https://github.com/hencou/esphome-milight
 
 external_components:
 - source: github://hencou/esphome_components
