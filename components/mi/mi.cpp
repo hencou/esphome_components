@@ -385,24 +385,12 @@ namespace esphome {
       serializeJson(requestJson, request.request);
       ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
-      int pos = -1;
-      for (int i = 0; i < bulbIds.size(); ++i) {
-        BulbId bId = bulbIds.get(i);
-        
-        ESP_LOGCONFIG(TAG, " bId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bId.deviceType).c_str());
-        ESP_LOGCONFIG(TAG, " bId.deviceId: %04X", bId.deviceId);
-        ESP_LOGCONFIG(TAG, " bId.groupId: %i", bId.groupId);
-        
-        if (bId == bulbId) { 
-          pos = i;
-        }
-      }
-
+      int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
       if (pos > -1) {
-        requests.set(pos, request);
+        requests.Replace(pos, request);
       } else {
-        bulbIds.add(bulbId);
-        requests.add(request);
+        bulbCompactIds.Add(bulbId.getCompactId());
+        requests.Add(request);
       }
       
       lastRequestTime = millis();
@@ -417,22 +405,29 @@ namespace esphome {
       stateStore->limitedFlush();
       packetSender->loop();
       
-      while (millis() - lastRequestTime > repeatTimer && bulbIds.size() > 0) {
+      while (millis() - lastRequestTime > repeatTimer && bulbCompactIds.Count() > 0) {
     
-        BulbId bulbId = bulbIds.shift();
-        Request request = requests.shift();
+        u_int32_t bulbCompactId = bulbCompactIds.First();
+        bulbCompactIds.RemoveFirst();
+        Request request = requests.First();
+        requests.RemoveFirst();
+        
+        //uint32_t bulbCompactId = (deviceId << 16) | (deviceType << 8) | groupId;
+        uint16_t deviceId = (bulbCompactId >> 16);
+        MiLightRemoteType deviceType = MiLightRemoteType((bulbCompactId >> 8) & 0xFF);
+        uint8_t groupId = bulbCompactId & 0xFF;
 
         StaticJsonDocument<400> buffer;
         deserializeJson(buffer, request.request);
         JsonObject obj = buffer.as<JsonObject>();
 
-        if (bulbIds.size() == 0) {
-          requests.clear();
+        if (bulbCompactIds.Count() == 0) {
+          requests.Clear();
         }
         
         //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
         if (millis() > 5000) {
-          milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
+          milightClient->prepare(deviceType, deviceId, groupId);
           milightClient->update(obj);
         }
       }
