@@ -69,7 +69,7 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     
-    cg.add_library("nkaaf/Arduino-List", None)
+    cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
     cg.add(var.set_ce_pin(ce_pin))
