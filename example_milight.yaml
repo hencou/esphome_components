@@ -107,25 +107,6 @@ binary_sensor:
         color_mode: COLOR_TEMPERATURE
         color_temperature: 370 mireds
 
-#switch towards HA version 2021.12
-switch:
-- platform: mi
-  id: pair
-  name: ${friendly_name} pair
-  entity_category: config
-  device_id: 0xAB01
-  group_id: 1
-  remote_type: rgb_cct
-  command: pair
-- platform: mi
-  id: unpair
-  name: ${friendly_name} unpair
-  entity_category: config
-  device_id: 0xAB01
-  group_id: 1
-  remote_type: rgb_cct
-  command: unpair
-
 #button possbile since HA version 2021.12
 button:
 - platform: mi
