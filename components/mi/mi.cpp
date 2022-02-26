@@ -388,6 +388,11 @@ namespace esphome {
       int pos = -1;
       for (int i = 0; i < bulbIds.size(); ++i) {
         BulbId bId = bulbIds.get(i);
+        
+        ESP_LOGCONFIG(TAG, " bId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bId.deviceType).c_str());
+        ESP_LOGCONFIG(TAG, " bId.deviceId: %04X", bId.deviceId);
+        ESP_LOGCONFIG(TAG, " bId.groupId: %i", bId.groupId);
+        
         if (bId == bulbId) { 
           pos = i;
         }
