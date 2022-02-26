@@ -385,12 +385,18 @@ namespace esphome {
       serializeJson(requestJson, request.request);
       ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
-      int pos = bulbIds.IndexOf(bulbId);
+      int pos = -1;
+      for (int i = 0; i < bulbIds.size(); ++i) {
+        if (bulbIds.get(i) == bulbId) { 
+          pos = i;
+        }
+      }
+
       if (pos > -1) {
-        requests.Replace(pos, request);
+        requests.set(pos, request);
       } else {
-        bulbIds.Add(bulbId);
-        requests.Add(request);
+        bulbIds.add(bulbId);
+        requests.add(request);
       }
       
       lastRequestTime = millis();
@@ -405,19 +411,17 @@ namespace esphome {
       stateStore->limitedFlush();
       packetSender->loop();
       
-      while (millis() - lastRequestTime > repeatTimer && bulbIds.Count() > 0) {
+      while (millis() - lastRequestTime > repeatTimer && bulbIds.size() > 0) {
     
-        BulbId bulbId = bulbIds.First();
-        bulbIds.RemoveFirst();
-        Request request = requests.First();
-        requests.RemoveFirst();
+        BulbId bulbId = bulbIds.shift();
+        Request request = requests.shift();
 
         StaticJsonDocument<400> buffer;
         deserializeJson(buffer, request.request);
         JsonObject obj = buffer.as<JsonObject>();
 
-        if (bulbIds.Count() == 0) {
-          requests.Clear();
+        if (bulbIds.size() == 0) {
+          requests.clear();
         }
         
         //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
