@@ -387,6 +387,10 @@ namespace esphome {
 
       int pos = -1;
       for (int i = 0; i < bulbCompactIds.size(); ++i) {
+        
+        ESP_LOGD(TAG, "bulbCompactIds: %ld", bulbCompactIds.get(i));
+        ESP_LOGD(TAG, "getCompactId: %ld", bulbId.getCompactId());
+        
         if (bulbCompactIds.get(i) == bulbId.getCompactId()) { 
           pos = i;
         }
