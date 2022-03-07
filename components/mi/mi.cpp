@@ -385,12 +385,18 @@ namespace esphome {
       serializeJson(requestJson, request.request);
       ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
-      int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
+      int pos = -1;
+      for (int i = 0; i < bulbCompactIds.size(); ++i) {
+        if (bulbCompactIds.get(i) == bulbId.getCompactId()) { 
+          pos = i;
+        }
+      }
+
       if (pos > -1) {
-        requests.Replace(pos, request);
+        requests.set(pos, request);
       } else {
-        bulbCompactIds.Add(bulbId.getCompactId());
-        requests.Add(request);
+        bulbCompactIds.add(bulbId.getCompactId());
+        requests.add(request);
       }
       
       lastRequestTime = millis();
@@ -405,12 +411,10 @@ namespace esphome {
       stateStore->limitedFlush();
       packetSender->loop();
       
-      while (millis() - lastRequestTime > repeatTimer && bulbCompactIds.Count() > 0) {
+      while (millis() - lastRequestTime > repeatTimer && bulbCompactIds.size() > 0) {
     
-        u_int32_t bulbCompactId = bulbCompactIds.First();
-        bulbCompactIds.RemoveFirst();
-        Request request = requests.First();
-        requests.RemoveFirst();
+        u_int32_t bulbCompactId = bulbCompactIds.shift();
+        Request request = requests.shift();
         
         //uint32_t bulbCompactId = (deviceId << 16) | (deviceType << 8) | groupId;
         uint16_t deviceId = (bulbCompactId >> 16);
@@ -421,8 +425,8 @@ namespace esphome {
         deserializeJson(buffer, request.request);
         JsonObject obj = buffer.as<JsonObject>();
 
-        if (bulbCompactIds.Count() == 0) {
-          requests.Clear();
+        if (bulbCompactIds.size() == 0) {
+          requests.clear();
         }
         
         //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
