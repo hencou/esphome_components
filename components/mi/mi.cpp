@@ -385,22 +385,12 @@ namespace esphome {
       serializeJson(requestJson, request.request);
       ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
-      int pos = -1;
-      for (int i = 0; i < bulbCompactIds.size(); ++i) {
-        
-        ESP_LOGD(TAG, "bulbCompactIds: %ld", bulbCompactIds.get(i));
-        ESP_LOGD(TAG, "getCompactId: %ld", bulbId.getCompactId());
-        
-        if (bulbCompactIds.get(i) == bulbId.getCompactId()) { 
-          pos = i;
-        }
-      }
-
+      int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
       if (pos > -1) {
-        requests.set(pos, request);
+        requests.Replace(pos, request);
       } else {
-        bulbCompactIds.add(bulbId.getCompactId());
-        requests.add(request);
+        bulbCompactIds.Add(bulbId.getCompactId());
+        requests.Add(request);
       }
       
       lastRequestTime = millis();
