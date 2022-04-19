@@ -407,7 +407,7 @@ namespace esphome {
       
        while (millis() - lastRequestTime > repeatTimer && bulbCompactIds.Count() > 0) {
 
-        u_int32_t bulbCompactId = bulbCompactIds.First();
+        uint32_t bulbCompactId = bulbCompactIds.First();
         bulbCompactIds.RemoveFirst();
         Request request = requests.First();
         requests.RemoveFirst();
