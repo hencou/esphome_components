@@ -77,6 +77,13 @@ namespace esphome {
 
         ESP_LOGD(TAG, "Received packet: %s", responseBody);
       }
+
+      MiBridgeData data;
+      data.device_id = bulbId.deviceId;
+      data.group_id = bulbId.groupId;
+      data.remote_type = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
+      serializeJson(result, data.command);
+      this->data_callback_.call(data);
       
       for (MiOutput miOutput : Mi::miOutputs) {
         //also listen to groupId 0
