@@ -1,7 +1,9 @@
 #pragma once
 
+#include <utility>
 #include "esphome/core/component.h"
 #include "esphome/components/light/light_state.h"
+#include "esphome/core/automation.h"
 
 #include "lib/Radio/PL1167_nRF24.h"
 #include "lib/Radio/NRF24MiLightRadio.h"
@@ -48,7 +50,14 @@
 
 namespace esphome {
   namespace mi {
- 
+    
+    struct MiBridgeData {
+      uint16_t device_id;
+      uint8_t group_id;
+      String remote_type;
+      String command;
+    };
+
     struct Request {
       char request[200];
     };
@@ -70,6 +79,9 @@ namespace esphome {
         void loop() override;
         void dump_config() override;
         void write_state(BulbId bulbId, light::LightState *state);
+        void add_on_command_received_callback(std::function<void(MiBridgeData)> callback) {
+          this->data_callback_.add(std::move(callback));
+        }
         
         void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
 
@@ -122,6 +134,15 @@ namespace esphome {
         int i = 0;
 
         void updateOutput(light::LightState *state, JsonObject result);
+        
+        CallbackManager<void(MiBridgeData)> data_callback_;
+    };
+    
+    class MiBridgeReceivedCodeTrigger : public Trigger<MiBridgeData> {
+      public:
+        explicit MiBridgeReceivedCodeTrigger(Mi *parent) {
+          parent->add_on_command_received_callback([this](MiBridgeData data) { this->trigger(data); });
+        }
     };
 
   }  // namespace mi
