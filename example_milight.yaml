@@ -47,6 +47,14 @@ mi:
   - LOW
   - MID
   - HIGH
+  on_command_received:                    #optional, useful to send remote commands to HA and process them further there in automations
+  - homeassistant.event:
+      event: esphome.mi_command_received
+      data:
+        device_id: !lambda 'return format_hex(data.device_id);'
+        group_id: !lambda 'return data.group_id;'
+        remote_type: !lambda 'return data.remote_type.c_str();'
+        command: !lambda 'return data.command.c_str();'
 
 light:
 - platform: mi                            #required
