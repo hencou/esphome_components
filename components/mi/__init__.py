@@ -1,7 +1,11 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
-from esphome.const import CONF_ID
+from esphome import automation
+from esphome.const import (
+  CONF_ID,
+  CONF_TRIGGER_ID,
+)
 
 mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
@@ -39,7 +43,13 @@ CONF_RF24_POWER_LEVEL = "rf24_power_level"
 CONF_RF24_CHANNELS = "rf24_channels"
 CONF_RF24_LISTEN_CHANNEL = "rf24_listen_channel"
 CONF_PACKET_REPEATS_PER_LOOP = "packet_repeats_per_loop"
-  
+CONF_ON_COMMAND_RECEIVED = "on_command_received"
+
+MiBridgeData = mi_ns.struct("MiBridgeData")
+MiBridgeReceivedCodeTrigger = mi_ns.class_(
+  "MiBridgeReceivedCodeTrigger", automation.Trigger.template(MiBridgeData)
+)
+
 CONF_MI_ID = "mi_id"
 CONFIG_SCHEMA = (
   cv.Schema(
@@ -60,6 +70,13 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_RF24_CHANNELS) : cv.All(cv.ensure_list(cv.enum(CHANNELS)), cv.Length(min=1, max=3)),
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
       cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.uint16_t,
+      cv.Optional(CONF_ON_COMMAND_RECEIVED): automation.validate_automation(
+          {
+            cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
+                MiBridgeReceivedCodeTrigger
+            ),
+          }
+      ),
     }
   )
   .extend(cv.COMPONENT_SCHEMA)
@@ -117,3 +134,8 @@ async def to_code(config):
       cg.add(var.del_rf24_channels())
       for channel in config.get(CONF_RF24_CHANNELS, []):
         cg.add(var.add_rf24_channel(channel))
+    
+    if CONF_ON_COMMAND_RECEIVED in config:
+      for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
