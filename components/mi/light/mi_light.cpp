@@ -36,6 +36,8 @@ namespace esphome {
       switch (MiLight::bulbId.deviceType) {
         case REMOTE_TYPE_RGB_CCT:
           traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_max_mireds(370);
+          traits.set_min_mireds(153);
           break;
         case REMOTE_TYPE_RGB:
           traits.set_supported_color_modes({light::ColorMode::RGB});
@@ -45,12 +47,18 @@ namespace esphome {
           break;
         case REMOTE_TYPE_CCT:
           traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_max_mireds(370);
+          traits.set_min_mireds(153);
           break;
         case REMOTE_TYPE_FUT089:
           traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_max_mireds(370);
+          traits.set_min_mireds(153);
           break;
         case REMOTE_TYPE_FUT091:
           traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_max_mireds(370);
+          traits.set_min_mireds(153);
           break;
         case REMOTE_TYPE_FUT020:
           traits.set_supported_color_modes({light::ColorMode::RGB});
@@ -59,8 +67,6 @@ namespace esphome {
           traits.set_supported_color_modes({light::ColorMode::ON_OFF});
           break;
       }
-      traits.set_max_mireds(370);
-      traits.set_min_mireds(153);
       return traits;
     }
 
