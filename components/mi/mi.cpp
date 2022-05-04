@@ -371,6 +371,10 @@ namespace esphome {
           color["c"] = uint8_t(values.get_cold_white() * 255);
           color["w"] = uint8_t(values.get_warm_white() * 255);
         }
+        
+        if (!(values.get_color_mode() & light::ColorCapability::RGB)) {
+          root.remove("color");
+        }
 
         if (values.get_color_mode() & light::ColorCapability::COLOR_TEMPERATURE) {
           root["color_temp"] = uint32_t(values.get_color_temperature());
