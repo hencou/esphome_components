@@ -50,13 +50,13 @@ namespace esphome {
           traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
           break;
         case REMOTE_TYPE_FUT091:
-          traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
           break;
         case REMOTE_TYPE_FUT020:
           traits.set_supported_color_modes({light::ColorMode::RGB});
           break;
         default:
-          traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::ON_OFF});
+          traits.set_supported_color_modes({light::ColorMode::ON_OFF});
           break;
       }
       traits.set_max_mireds(370);
@@ -76,55 +76,21 @@ namespace esphome {
         }, 360000)
       });
       
-      if (MiLight::bulbId.deviceType != REMOTE_TYPE_CCT) {
-        state_->add_effects({new light::LambdaLightEffect("1", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("1");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("2", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("2");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("3", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("3");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("4", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("4");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("5", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("5");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("6", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("6");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("7", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("7");
-          call.perform();
-          }, 360000)
-        });
-        state_->add_effects({new light::LambdaLightEffect("8", [=](bool initial_run) -> void {
-          auto call = state_->make_call();
-          call.set_effect("8");
-          call.perform();
-          }, 360000)
-        });
+      if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT || 
+          MiLight::bulbId.deviceType == REMOTE_TYPE_RGB || 
+          MiLight::bulbId.deviceType == REMOTE_TYPE_RGBW || 
+          MiLight::bulbId.deviceType == REMOTE_TYPE_FUT089 ||
+          MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020
+          ) {
+
+        for (int i = 1; i < 9; i++) {
+          state_->add_effects({new light::LambdaLightEffect(std::to_string(i), [=](bool initial_run) -> void {
+            auto call = state_->make_call();
+            call.set_effect(i);
+            call.perform();
+            }, 360000)
+          });
+        }
       }
     }
 
