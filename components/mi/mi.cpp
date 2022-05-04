@@ -353,25 +353,27 @@ namespace esphome {
         if (values.get_color_mode() & light::ColorCapability::BRIGHTNESS) {
           root["brightness"] = uint8_t(values.get_brightness() * 255);
         }
-       
+
+        JsonObject color = root.createNestedObject("color");
+
         if (values.get_color_mode() & light::ColorCapability::RGB) {
-          JsonObject color = root.createNestedObject("color");
           color["r"] = uint8_t(values.get_color_brightness() * values.get_red() * 255);
           color["g"] = uint8_t(values.get_color_brightness() * values.get_green() * 255);
           color["b"] = uint8_t(values.get_color_brightness() * values.get_blue() * 255);
         }
+
         if (values.get_color_mode() & light::ColorCapability::WHITE) {
-          JsonObject color = root.createNestedObject("color");
           color["w"] = uint8_t(values.get_white() * 255);
           root["white_value"] = uint8_t(values.get_white() * 255);  // legacy API
         }
-        if (values.get_color_mode() & light::ColorCapability::COLOR_TEMPERATURE) {
-          root["color_temp"] = uint32_t(values.get_color_temperature());
-        }
-        if (values.get_color_mode() & light::ColorCapability::COLD_WARM_WHITE) {
-          JsonObject color = root.createNestedObject("color");
+
+         if (values.get_color_mode() & light::ColorCapability::COLD_WARM_WHITE) {
           color["c"] = uint8_t(values.get_cold_white() * 255);
           color["w"] = uint8_t(values.get_warm_white() * 255);
+        }
+
+        if (values.get_color_mode() & light::ColorCapability::COLOR_TEMPERATURE) {
+          root["color_temp"] = uint32_t(values.get_color_temperature());
         }
       }
       
