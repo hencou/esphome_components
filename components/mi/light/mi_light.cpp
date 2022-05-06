@@ -43,7 +43,7 @@ namespace esphome {
           traits.set_supported_color_modes({light::ColorMode::RGB});
           break;
         case REMOTE_TYPE_RGBW:
-          traits.set_supported_color_modes({light::ColorMode::RGB});
+          traits.set_supported_color_modes({light::ColorMode::RGB_WHITE});
           break;
         case REMOTE_TYPE_CCT:
           traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
