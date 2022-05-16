@@ -9,7 +9,7 @@
 namespace esphome {
   namespace mi {
     
-    static const char *const TAG = "mi.light";
+    static const char *const TAG = "mi";
     
     Mi::Mi() {
       settings = Settings();
