@@ -33,7 +33,8 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_RESTORE_VALUE): cv.boolean,
         }
     )
-    .extend(cv.COMPONENT_SCHEMA),
+    .extend(cv.COMPONENT_SCHEMA)
+    .extend(cv.polling_component_schema("60s")),
     validate
 )
 
