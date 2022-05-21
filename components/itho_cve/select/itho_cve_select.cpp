@@ -8,8 +8,6 @@ static const char *const TAG = "itho_cve.select";
 
 void IthoCVE_Select::setup() {
 
-  this->set_update_interval(15000);
-
   if (this->f_.has_value())
     return;
 
