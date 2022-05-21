@@ -1,0 +1,73 @@
+substitutions:
+  device_name: test
+  friendly_name: Test
+
+esphome:
+  name: $device_name
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    
+external_components:
+- source: github://hencou/esphome_components
+  components: itho_cve
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+api:
+ reboot_timeout: 480min
+
+# Enable webserver
+web_server:
+
+@ Enable update Over The Air
+ota:
+
+itho_cve:
+
+fan:
+- platform: itho_cve
+  id: $device_name
+  name: $friendly_name
+  
+select:
+- platform: itho_cve
+  name: ${friendly_name} stand
+
+sensor:
+- platform: uptime
+  name: ${friendly_name} uptime
+  filters:
+    - throttle: 300s
+- platform: wifi_signal
+  name: ${friendly_name} WiFi signaal
+  filters:
+    - delta: 0.01
+    - throttle: 300s
+
+button:
+- platform: restart
+  entity_category: config
+  name: ${friendly_name} restart
+  id: ${device_name}__restart
+
+text_sensor:
+- platform: version
+  name: ${friendly_name} ESPHome versie
+- platform: wifi_info
+  ip_address:
+    name: ${friendly_name} ipadres
+  ssid:
+    name: ${friendly_name} SSID
+  bssid:
+    name: ${friendly_name} BSSID
