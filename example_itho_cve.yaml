@@ -30,7 +30,7 @@ api:
 # Enable webserver
 web_server:
 
-@ Enable update Over The Air
+# Enable update Over The Air
 ota:
 
 itho_cve:
