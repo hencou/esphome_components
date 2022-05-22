@@ -463,6 +463,7 @@ bool IthoCVE::ithoSetTimer(uint16_t timer) {
 bool IthoCVE::ithoSetSpeedTimer(uint16_t speed, uint16_t timer) {
   ESP_LOGD(TAG, "SET SPEED AND TIMER\n");
   if (speed < 255) {
+    ithoCurrentSpeed = speed;
     ithoQueue.add2queue(speed, timer, systemConfig.nonQ_cmd_clearsQ);
   }
   else {
