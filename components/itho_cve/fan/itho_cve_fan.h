@@ -19,13 +19,14 @@ namespace itho_cve {
     void dump_config() override;
     fan::FanTraits get_traits() override;
 
-    void set_ithocve_parent(IthoCVE *parent) { this->parent_ = parent; }
+    void set_itho_cve_parent(IthoCVE *parent) { this->parent_ = parent; }
 
   private:
     void control(const fan::FanCall &call) override;
     void write_state_();
 
     uint16_t ithoSpeed;
+    bool busy = false;
 
     IthoCVE *parent_;
   };
