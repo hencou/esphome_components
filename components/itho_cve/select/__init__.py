@@ -57,3 +57,6 @@ async def to_code(config):
         await automation.build_automation(
             var.get_set_trigger(), [(cg.std_string, "x")], config[CONF_SET_ACTION]
         )
+    
+    paren = await cg.get_variable(config[CONF_ITHOCVE_ID])
+    cg.add(var.set_itho_cve_parent(paren))

@@ -24,7 +24,7 @@ class IthoCVE_Select : public select::Select, public PollingComponent {
   void set_initial_option(const std::string &initial_option) { this->initial_option_ = initial_option; }
   void set_restore_value(bool restore_value) { this->restore_value_ = restore_value; }
 
-  void set_ithocve_parent(IthoCVE *parent) { this->parent_ = parent; }
+  void set_itho_cve_parent(IthoCVE *parent) { this->parent_ = parent; }
 
  protected:
   void control(const std::string &value) override;
