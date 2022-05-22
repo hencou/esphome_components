@@ -211,13 +211,13 @@ void execSystemControlTasks() {
   }
 
   if (ithoQueue.ithoSpeedUpdated) {
-    ithoQueue.ithoSpeedUpdated = false;
     uint16_t speed = ithoQueue.get_itho_speed();
     char buf[32] {};
     sprintf(buf, "speed:%d", speed);
     if (!writeIthoVal( speed )) {
       ESP_LOGE(TAG, "ithoQueue_error");
     }
+    ithoQueue.ithoSpeedUpdated = false;
   }
 
   if (!(itho_fwversion > 0) && millis() - lastVersionCheck > 60000) {
@@ -245,8 +245,10 @@ void execSystemControlTasks() {
 
     if (!ithoInternalMeasurements.empty()) {
       for (const auto& internalMeasurement : ithoInternalMeasurements) {
-        if (strcmp(internalMeasurement.name, "Speed status") == 0) {   
-          ithoCurrentSpeed = static_cast<int>(internalMeasurement.value.floatval * 2.55);
+        if (strcmp(internalMeasurement.name, "Speed status") == 0) { 
+          if (!ithoQueue.ithoSpeedUpdated)   {
+            ithoCurrentSpeed = static_cast<int>(internalMeasurement.value.floatval * 2.55);
+          }
         }
       }
     }

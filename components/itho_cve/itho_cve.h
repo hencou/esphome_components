@@ -48,6 +48,7 @@ namespace itho_cve {
     bool ithoI2CCommand(uint8_t remoteIndex, const std::string &command);
     std::string ithoGetFanInfo();
     bool ithoSetSpeed(uint16_t speed);
+    bool ithoGetSpeedUpdated() {return ithoQueue.ithoSpeedUpdated;}
     uint16_t ithoGetSpeed();
 
     bool ithoSetTimer(uint16_t timer);
