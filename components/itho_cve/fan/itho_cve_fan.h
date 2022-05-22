@@ -23,11 +23,6 @@ namespace itho_cve {
 
   private:
     void control(const fan::FanCall &call) override;
-    void write_state_();
-
-    uint16_t ithoSpeed;
-    bool busy = false;
-
     IthoCVE *parent_;
   };
 
