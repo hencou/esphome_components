@@ -15,7 +15,7 @@ static const char *const TAG = "itho_cve.fan";
 IthoCVE_Fan::IthoCVE_Fan() {}
 
 void IthoCVE_Fan::loop() {
-  if (parent_->ithoGetSpeed() != this->speed && busy == false) {
+  if (parent_->ithoGetSpeed() != this->speed && !busy && !parent_->ithoGetSpeedUpdated()) {
     this->speed = parent_->ithoGetSpeed();
     if(this->speed > 0) {this->state = true;}
     this->publish_state();
