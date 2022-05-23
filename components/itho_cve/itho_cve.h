@@ -53,6 +53,9 @@ namespace itho_cve {
 
     bool ithoSetTimer(uint16_t timer);
     bool ithoSetSpeedTimer(uint16_t speed, uint16_t timer);
+
+    double ithoGetTemperature() {return ithoTemp;}
+    double ithoGetHumidity() {return ithoHum;}
   
   private:
     
