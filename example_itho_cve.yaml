@@ -45,6 +45,11 @@ select:
   name: ${friendly_name} stand
 
 sensor:
+- platform: itho_cve ##Get sensor values by itho_cve module
+  temperature:
+    name: ${friendly_name} temperatuur
+  humidity:
+    name: ${friendly_name} luchtvochtigheid
 - platform: uptime
   name: ${friendly_name} uptime
   filters:
