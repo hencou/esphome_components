@@ -5,6 +5,8 @@
 #include <cstring>
 #include <driver/i2c.h>
 
+#include <Arduino.h>
+
 namespace esphome {
 namespace i2c_esp32 {
 
