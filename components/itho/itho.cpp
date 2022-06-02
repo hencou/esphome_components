@@ -6,6 +6,9 @@
 #include "esphome/core/util.h"
 #include "esphome/core/component.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 namespace esphome
 {
   namespace itho
@@ -14,6 +17,21 @@ namespace esphome
     static const char *const TAG = "itho";
 
     Itho::Itho() {}
+
+    void Itho::TaskSysControl( void * pvParameters ) {
+      Ticker TaskTimeout;
+      Itho *l_pThis = (Itho *) pvParameters;
+
+      for (;;) {
+        TaskTimeout.once_ms(35000, []() {
+          ESP_LOGD(TAG, "Error: Task SysControl timed out!");
+        });
+
+        l_pThis->execSystemControlTasks();
+        vTaskDelay(25 / portTICK_PERIOD_MS);
+      }
+      vTaskDelete(NULL);
+    }
 
     void Itho::execSystemControlTasks()
     {
@@ -280,9 +298,9 @@ namespace esphome
     }
 
     void Itho::loop() {
-      if (millis() > 3000) {
-        execSystemControlTasks();
-      }
+      //if (millis() > 3000) {
+      //  execSystemControlTasks();
+      //}
     }
 
     void Itho::setup()
@@ -321,8 +339,21 @@ namespace esphome
       this->loadVirtualRemotesConfig();
       this->IthoInit = true;
 
-      ESP_LOGD(TAG, "Setup Itho Core finished");
-    }
+      vTaskDelay(3000 / portTICK_RATE_MS);
+
+      xTaskSysControlHandle = xTaskCreateStaticPinnedToCore(
+        TaskSysControl,
+        "TaskSysControl",
+        STACK_SIZE,
+        ( void * ) 1,
+        TASK_MAIN_PRIO,
+        xTaskSysControlStack,
+        &xTaskSysControlBuffer,
+        CONFIG_ARDUINO_RUNNING_CORE
+      );
+
+        ESP_LOGD(TAG, "Setup Itho Core finished");
+      }
 
     void Itho::dump_config()
     {

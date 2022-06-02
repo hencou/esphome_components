@@ -5,6 +5,8 @@
 
 #include <Arduino.h>
 #include <Ticker.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "IthoSystem.h"
 #include "SystemConfig.h"
@@ -18,12 +20,16 @@ namespace esphome
 #define STATUSPIN 16
 #define ITHOSTATUS 13
 
+#define STACK_SIZE 4096
+#define TASK_MAIN_PRIO 5
 
     class Itho : public Component, public i2c_esp32::I2CDevice
     {
     public:
       Itho();
       ~Itho();
+
+      static void TaskSysControl( void *pvParameter );
 
       void setup() override;
       void loop() override;
@@ -50,6 +56,10 @@ namespace esphome
       bool ithoExecCommand(const char *command);
       bool ithoI2CCommand(uint8_t remoteIndex, const char *command);
       bool loadVirtualRemotesConfig();
+
+      TaskHandle_t xTaskSysControlHandle = NULL;
+      StaticTask_t xTaskSysControlBuffer;
+      StackType_t xTaskSysControlStack[ STACK_SIZE ];
 
       bool IthoInit = false;
       uint8_t syssht30 = 0;
