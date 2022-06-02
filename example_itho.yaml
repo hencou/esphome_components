@@ -12,7 +12,7 @@ esp32:
     
 external_components:
 - source: github://hencou/esphome_components
-  components: itho_cve
+  components: itho, i2c_esp32
 
 wifi:
   ssid: !secret wifi_ssid
@@ -33,19 +33,22 @@ web_server:
 # Enable update Over The Air
 ota:
 
-itho_cve:
+itho:
+
+i2c_esp32:
+- id: itho_bus
 
 fan:
-- platform: itho_cve
+- platform: itho
   id: $device_name
   name: $friendly_name
   
 select:
-- platform: itho_cve
+- platform: itho
   name: ${friendly_name} stand
 
 sensor:
-- platform: itho_cve ##Get sensor values by itho_cve module
+- platform: itho ##Get sensor values by itho module
   temperature:
     name: ${friendly_name} temperatuur
   humidity:
