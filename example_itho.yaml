@@ -34,6 +34,7 @@ web_server:
 ota:
 
 itho:
+  syssht30: enable
 
 i2c_esp32:
 - id: itho_bus
@@ -48,7 +49,7 @@ select:
   name: ${friendly_name} stand
 
 sensor:
-- platform: itho ##Get sensor values by itho module
+- platform: itho ##will only work when itho > syssht30: enable is configured. Otherwise use sht3xd_esp32
   temperature:
     name: ${friendly_name} temperatuur
   humidity:
@@ -62,6 +63,22 @@ sensor:
   filters:
     - delta: 0.01
     - throttle: 300s
+- platform: sht3xd_esp32
+  i2c_id: itho_bus
+  address: 0x44
+  update_interval: 10s
+  temperature:
+    name: ${friendly_name} sht temperatuur
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 300s
+  humidity:
+    name: ${friendly_name} sht luchtvochtigheid
+    filters:
+      or:
+      - delta: 1.0
+      - heartbeat: 300s
 
 button:
 - platform: restart
