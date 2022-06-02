@@ -12,7 +12,7 @@ esp32:
     
 external_components:
 - source: github://hencou/esphome_components
-  components: [itho, i2c_esp32]
+  components: [itho, i2c_esp32, sht3xd_esp32]
 
 wifi:
   ssid: !secret wifi_ssid
