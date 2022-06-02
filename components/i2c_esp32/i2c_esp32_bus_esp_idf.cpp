@@ -29,7 +29,11 @@ void IDFI2CBus::setup() {
 
 void IDFI2CBus::init(uint8_t address, i2c_mode_t mode) {
   
-   i2c_config_t conf{};
+  while (digitalRead(scl_pin_) == LOW ) {
+    vTaskDelay(10 / portTICK_RATE_MS);
+  }
+  
+  i2c_config_t conf{};
   memset(&conf, 0, sizeof(conf));
   conf.mode = mode;
   conf.sda_io_num = (gpio_num_t)sda_pin_;
