@@ -22,7 +22,7 @@ The DCF77 library adds the ability to read and decode the atomic time broadcaste
 
 See the attached example "example_dcf77.yaml"
 
-# 3. Itho CVE for ESPhome
-This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi. This implementation is only for the Itho CVE module.
+# 3. Itho for ESPhome
+This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi.
 
-See attached example "example_itho_cve.yaml"
+See attached example "example_itho.yaml"
