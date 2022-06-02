@@ -52,7 +52,7 @@ namespace esphome
       bool loadVirtualRemotesConfig();
 
       bool IthoInit = false;
-      uint8_t syssht30;
+      uint8_t syssht30 = 0;
 
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
