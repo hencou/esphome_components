@@ -32,7 +32,8 @@ void IDFI2CBus::setup() {
 void IDFI2CBus::init(uint8_t address, i2c_mode_t mode) {
   
   while (digitalRead(scl_pin_) == LOW ) {
-    vTaskDelay(10 / portTICK_RATE_MS);
+    yield();
+    vTaskDelay(500 / portTICK_RATE_MS);
   }
   
   i2c_config_t conf{};
