@@ -39,13 +39,7 @@ namespace esphome
       uint16_t getIthoSpeed() { return ithoSystem->getIthoSpeed(); }
       std::string getIthoFanInfo() { return ithoSystem->getIthoFanInfo(); }
 
-      void setSysSHT30(uint8_t value) { systemConfig->setSysSHT30(value); }
-      void setIthoLow(uint8_t value) { systemConfig->setIthoLow(value); }
-      void setIthoMedium(uint8_t value) { systemConfig->setIthoMedium(value); }
-      void setIthoHigh(uint8_t value) { systemConfig->setIthoHigh(value); }
-      void setIthoTimer1(uint16_t value) { systemConfig->setIthoTimer1(value); }
-      void setIthoTimer2(uint16_t value) { systemConfig->setIthoTimer2(value); }
-      void setIthoTimer3(uint16_t value) { systemConfig->setIthoTimer3(value); }
+      void setSysSHT30(uint8_t value) { syssht30 = value; }
 
       void write_bytes_raw_callback(const uint8_t *buffer, uint32_t len);
       void slave_receive_callback();
@@ -58,6 +52,7 @@ namespace esphome
       bool loadVirtualRemotesConfig();
 
       bool IthoInit = false;
+      uint8_t syssht30;
 
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;

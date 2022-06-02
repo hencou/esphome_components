@@ -297,6 +297,7 @@ namespace esphome
       digitalWrite(ITHOSTATUS, LOW);
 
       systemConfig = new SystemConfig();
+      systemConfig->setSysSHT30(syssht30);
 
       static uint8_t mac[6];
       esphome::get_mac_address_raw(mac);

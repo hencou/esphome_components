@@ -39,7 +39,7 @@ namespace esphome
       void setIthoTimer3(uint16_t value) { itho_timer3 = value; }
 
     private:
-      uint8_t syssht30 = 2;
+      uint8_t syssht30 = 0;
 
       uint8_t itho_low = 20;
       uint8_t itho_medium = 120;
