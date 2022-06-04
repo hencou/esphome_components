@@ -345,17 +345,6 @@ namespace esphome
       return false;
     }
 
-    // void Itho::write_bytes_raw_callback(const uint8_t *buffer, uint32_t len) {
-    //   this->write_bytes_raw((const char*)buffer, len);
-    // };
-
-    // void Itho::slave_receive_callback() {
-
-    //   uint8_t i2cbuf[512]{};
-    //   size_t len = this->slave_receive(i2cbuf);
-    //   this->ithoSystem->setI2Cbuffer(i2cbuf, len);
-    // }
-
     void Itho::loop() {}
 
     void Itho::setup()
@@ -383,28 +372,14 @@ namespace esphome
       id[2] = mac[5];
       ESP_LOGD(TAG, "Setup: Virtual remote ID: %d,%d,%d", id[0], id[1], id[2]);
 
-      // using std::placeholders::_1;
-      // using std::placeholders::_2;
       ithoSystem = new IthoSystem(
           id,
-          systemConfig //,
-                       // std::bind(&Itho::write_bytes_raw_callback, this, _1, _2),
-                       // std::bind(&Itho::slave_receive_callback, this)
+          systemConfig
       );
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();
       this->IthoInit = true;
-
-      // xTaskSysControlHandle = xTaskCreateStaticPinnedToCore(
-      //     this->TaskSysControl,
-      //     "TaskSysControl",
-      //     STACK_SIZE,
-      //     this,
-      //     TASK_MAIN_PRIO,
-      //     xTaskSysControlStack,
-      //     &xTaskSysControlBuffer,
-      //     CONFIG_ARDUINO_RUNNING_CORE);
 
       xTaskCreatePinnedToCore(
           this->TaskSysControl,

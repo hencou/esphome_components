@@ -24,14 +24,10 @@ namespace esphome
     class IthoSystem
     {
     public:
-      //typedef std::function<void(const uint8_t *buffer, uint32_t len)> Write_bytes_raw_callback;
-      //typedef std::function<void(void)> Slave_receive_callback;
 
       IthoSystem(
           uint8_t *id_,
-          SystemConfig *systemConfig //,
-          //Write_bytes_raw_callback write_bytes_raw_callback,
-          //Slave_receive_callback slave_receive_callback
+          SystemConfig *systemConfig
           );
       ~IthoSystem();
 
@@ -2320,9 +2316,6 @@ namespace esphome
       SystemConfig* systemConfig;
       IthoI2C* ithoI2C = NULL;
       SHTSensor* shtSensor = NULL;
-
-      //Write_bytes_raw_callback write_bytes_raw_callback;
-      //Slave_receive_callback slave_receive_callback;
 
       struct ithoSettings
       {

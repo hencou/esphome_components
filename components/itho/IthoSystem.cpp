@@ -11,13 +11,9 @@ namespace esphome
     
     IthoSystem::IthoSystem(
         uint8_t *id_,
-        SystemConfig *systemConfig //,
-        // Write_bytes_raw_callback write_bytes_raw_callback,
-        // Slave_receive_callback slave_receive_callback
+        SystemConfig *systemConfig
         )
-        : systemConfig(systemConfig) //,
-    // write_bytes_raw_callback(write_bytes_raw_callback),
-    // slave_receive_callback(slave_receive_callback)
+        : systemConfig(systemConfig) 
     {
       memcpy(id, id_, sizeof(id_[0]) * 3);
       ithoI2C = new IthoI2C(systemConfig);
