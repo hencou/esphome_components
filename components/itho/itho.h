@@ -8,6 +8,7 @@
 #include "freertos/task.h"
 
 #include "IthoSystem.h"
+#include "IthoQueue.h"
 #include "SystemConfig.h"
 
 namespace esphome
@@ -67,6 +68,7 @@ namespace esphome
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
       SystemConfig *systemConfig;
+      IthoQueue *ithoQueue;
 
       bool i2cStartCommands = false;
       bool joinSend = false;

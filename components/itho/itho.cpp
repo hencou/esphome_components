@@ -28,7 +28,7 @@ namespace esphome
       for (;;)
       {
         TaskTimeout.once_ms(35000, []()
-          { ESP_LOGD(TAG, "Error: Task SysControl timed out!"); });
+                            { ESP_LOGD(TAG, "Error: Task SysControl timed out!"); });
 
         l_pThis->execSystemControlTasks();
         vTaskDelay(25 / portTICK_PERIOD_MS);
@@ -184,6 +184,30 @@ namespace esphome
           this->ithoSystem->setSettingsHack();
         }
       }
+
+      if (this->ithoQueue->getIthoSpeedUpdated())
+      {
+        uint16_t speed = this->ithoQueue->getIthoSpeed();
+
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+
+        uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
+        uint8_t b = (uint8_t)speed;
+
+        command[6] = b;
+        command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
+
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->i2c_sendBytes(command, sizeof(command));
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+        this->ithoQueue->setIthoSpeedUpdated(false);
+      }
     }
 
     bool Itho::ithoInitCheck()
@@ -309,7 +333,9 @@ namespace esphome
         }
         xSemaphoreGive(this->mutexI2Ctask);
         return true;
-      } else {
+      }
+      else
+      {
         return false;
       }
     }
@@ -323,23 +349,7 @@ namespace esphome
       {
 
         ESP_LOGD(TAG, "setIthoSpeed: %d", value);
-        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-          this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
-          xSemaphoreGive(this->mutexI2Ctask);
-        }
-
-        uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
-        uint8_t b = (uint8_t)value;
-
-        command[6] = b;
-        command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
-
-        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-          this->ithoSystem->i2c_sendBytes(command, sizeof(command));
-          xSemaphoreGive(this->mutexI2Ctask);
-        }
+        this->ithoQueue->add2queue(value, 1, 0);
         return true;
       }
       return false;
@@ -372,10 +382,8 @@ namespace esphome
       id[2] = mac[5];
       ESP_LOGD(TAG, "Setup: Virtual remote ID: %d,%d,%d", id[0], id[1], id[2]);
 
-      ithoSystem = new IthoSystem(
-          id,
-          systemConfig
-      );
+      ithoSystem = new IthoSystem(id, systemConfig);
+      ithoQueue = new IthoQueue();
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();
