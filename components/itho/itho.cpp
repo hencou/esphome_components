@@ -189,20 +189,24 @@ namespace esphome
       {
         uint16_t speed = this->ithoQueue->getIthoSpeed();
 
+        //ESP_LOGD(TAG, "Set FanInfo on auto...");
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
         {
           this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
           xSemaphoreGive(this->mutexI2Ctask);
         }
 
-        uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
-        uint8_t b = (uint8_t)speed;
+        vTaskDelay(1000 / portTICK_RATE_MS);
 
-        command[6] = b;
-        command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
-
+        //ESP_LOGD(TAG, "Set speed to: %d", speed);
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
         {
+          uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
+          uint8_t b = (uint8_t)speed;
+
+          command[6] = b;
+          command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
+          
           this->ithoSystem->i2c_sendBytes(command, sizeof(command));
           xSemaphoreGive(this->mutexI2Ctask);
         }
@@ -349,7 +353,7 @@ namespace esphome
       {
 
         ESP_LOGD(TAG, "setIthoSpeed: %d", value);
-        this->ithoQueue->add2queue(value, 1, 0);
+        this->ithoQueue->add2queue(value, 0, 0);
         return true;
       }
       return false;
