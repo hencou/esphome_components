@@ -20,6 +20,9 @@ namespace esphome
       uint8_t getSysSHT30() { return syssht30; }
       void setSysSHT30(uint8_t value) { syssht30 = value; }
 
+      uint8_t getSysSHT30_Address() { return syssht30_address; }
+      void setSysSHT30_Address(uint8_t value) { syssht30_address = value; }
+
       uint8_t getIthoLow() { return itho_low; }
       void setIthoLow(uint8_t value) { itho_low = value; }
 
@@ -38,8 +41,21 @@ namespace esphome
       uint16_t getIthoTimer3() { return itho_timer3; }
       void setIthoTimer3(uint16_t value) { itho_timer3 = value; }
 
+      uint8_t getI2C_Master_SDA_Pin() { return i2c_master_sda_pin; }
+      void getI2C_Master_SDA_Pin(uint8_t value) { i2c_master_sda_pin = value; }
+
+      uint8_t getI2C_Master_SCL_Pin() { return i2c_master_scl_pin; }
+      void setI2C_Master_SCL_Pin(uint8_t value) { i2c_master_scl_pin = value; }
+
+       uint8_t getI2C_Slave_SDA_Pin() { return i2c_slave_sda_pin; }
+      void setI2C_Slave_SDA_Pin(uint8_t value) { i2c_slave_sda_pin = value; }
+
+      uint8_t getI2C_Slave_SCL_Pin() { return i2c_slave_scl_pin; }
+      void setI2C_Slave_SCL_Pin(uint8_t value) { i2c_slave_scl_pin = value; }
+
     private:
       uint8_t syssht30 = 0;
+      uint8_t syssht30_address = 0x44;
 
       uint8_t itho_low = 20;
       uint8_t itho_medium = 120;
@@ -47,6 +63,11 @@ namespace esphome
       uint16_t itho_timer1 = 10;
       uint16_t itho_timer2 = 20;
       uint16_t itho_timer3 = 30;
+
+      uint8_t i2c_master_sda_pin = 21;
+      uint8_t i2c_master_scl_pin = 22;
+      uint8_t i2c_slave_sda_pin = 21;
+      uint8_t i2c_slave_scl_pin = 22;
     };
     
   }

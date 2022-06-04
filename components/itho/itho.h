@@ -1,7 +1,6 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/i2c_esp32/i2c_esp32.h"
 
 #include <Arduino.h>
 #include <Ticker.h>
@@ -23,7 +22,7 @@ namespace esphome
 #define STACK_SIZE 4096
 #define TASK_MAIN_PRIO 5
 
-    class Itho : public Component, public i2c_esp32::I2CDevice
+    class Itho : public Component
     {
     public:
       Itho();
@@ -47,8 +46,8 @@ namespace esphome
 
       void setSysSHT30(uint8_t value) { syssht30 = value; }
 
-      void write_bytes_raw_callback(const uint8_t *buffer, uint32_t len);
-      void slave_receive_callback();
+      //void write_bytes_raw_callback(const uint8_t *buffer, uint32_t len);
+      //void slave_receive_callback();
 
     private:
       void execSystemControlTasks();
@@ -57,6 +56,7 @@ namespace esphome
       bool ithoI2CCommand(uint8_t remoteIndex, const char *command);
       bool loadVirtualRemotesConfig();
 
+      SemaphoreHandle_t mutexI2Ctask;
       TaskHandle_t xTaskSysControlHandle = NULL;
       StaticTask_t xTaskSysControlBuffer;
       StackType_t xTaskSysControlStack[ STACK_SIZE ];

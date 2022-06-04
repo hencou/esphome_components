@@ -18,14 +18,17 @@ namespace esphome
 
     Itho::Itho() {}
 
-    void Itho::TaskSysControl( void * pvParameters ) {
+    void Itho::TaskSysControl(void *pvParameters)
+    {
       Ticker TaskTimeout;
-      Itho *l_pThis = (Itho *) pvParameters;
+      Itho *l_pThis = (Itho *)pvParameters;
 
-      for (;;) {
-        TaskTimeout.once_ms(35000, []() {
-          ESP_LOGD(TAG, "Error: Task SysControl timed out!");
-        });
+      vTaskDelay(3000 / portTICK_RATE_MS);
+
+      for (;;)
+      {
+        TaskTimeout.once_ms(35000, []()
+          { ESP_LOGD(TAG, "Error: Task SysControl timed out!"); });
 
         l_pThis->execSystemControlTasks();
         vTaskDelay(25 / portTICK_PERIOD_MS);
@@ -35,16 +38,21 @@ namespace esphome
 
     void Itho::execSystemControlTasks()
     {
+
       if (this->IthoInit && millis() > 250)
       {
         this->IthoInit = this->ithoInitCheck();
       }
-      
+
       if (!this->i2cStartCommands && millis() > 15000 && (millis() - this->lastI2CinitRequest > 5000))
       {
 
         this->lastI2CinitRequest = millis();
-        this->ithoSystem->sendQueryDevicetype();
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)1000 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendQueryDevicetype();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
 
         if (this->ithoSystem->getIthoFwVersion() > 0)
         {
@@ -59,6 +67,8 @@ namespace esphome
           {
             if (this->ithoSystem->getIthoDeviceID() == 27)
             {
+              if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)1000 / portTICK_PERIOD_MS) == pdTRUE)
+              {
 
                 uint8_t index2410 = 0;
                 int32_t value2410 = 0;
@@ -86,16 +96,24 @@ namespace esphome
                   this->ithoSystem->setSetting2410();
                   ESP_LOGD(TAG, "I2C init: set hum sensor in itho firmware to: %s", value2410 ? "on" : "off");
                 }
+                xSemaphoreGive(this->mutexI2Ctask);
+              }
             }
             if (this->systemConfig->getSysSHT30() == 2)
             {
               this->systemConfig->setSysSHT30(0);
             }
           }
+          if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)1000 / portTICK_PERIOD_MS) == pdTRUE)
+          {
             this->ithoSystem->sendQueryStatusFormat();
-            vTaskDelay(500 / portTICK_RATE_MS);
+            xSemaphoreGive(this->mutexI2Ctask);
+          }
+          if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)1000 / portTICK_PERIOD_MS) == pdTRUE)
+          {
             this->ithoSystem->sendQueryStatus();
-            vTaskDelay(500 / portTICK_RATE_MS);
+            xSemaphoreGive(this->mutexI2Ctask);
+          }
         }
         else
         {
@@ -105,42 +123,66 @@ namespace esphome
 
       if (!this->joinSend && this->ithoInitResult == 1)
       {
-
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
           this->joinSend = true;
           this->ithoSystem->sendRemoteCmd(0, IthoJoin, virtualRemotes);
           uint8_t id[3];
           this->ithoSystem->getID(id);
           ESP_LOGD(TAG, "I2C init: Virtual remote join command send with id: %d, %d, %d", id[0], id[1], id[2]);
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
       }
 
       if (!(this->ithoSystem->getIthoFwVersion() > 0) && millis() - lastVersionCheck > 60000)
       {
         lastVersionCheck = millis();
-        this->ithoSystem->sendQueryDevicetype();
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)1000 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendQueryDevicetype();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
       }
 
       if (millis() - this->query2401time >= 10000UL && this->i2cStartCommands)
       {
         this->query2401time = millis();
-        this->ithoSystem->sendQueryStatus();
-        vTaskDelay(500 / portTICK_RATE_MS);
-        this->ithoSystem->sendQuery31DA();
-        vTaskDelay(500 / portTICK_RATE_MS);
-        this->ithoSystem->sendQuery31D9();
-        vTaskDelay(500 / portTICK_RATE_MS);
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendQueryStatus();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendQuery31DA();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendQuery31D9();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
       }
 
       if (this->ithoSystem->getUpdated2410())
       {
-        this->ithoSystem->setUpdated2410(false);
-        this->ithoSystem->sendQuery2410();
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->setUpdated2410(false);
+          this->ithoSystem->sendQuery2410();
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
       }
-      
+
       if (this->ithoSystem->getUpdate2410())
       {
-        this->ithoSystem->setSetting2410();
-        this->ithoSystem->setUpdate2410(false);
-        this->ithoSystem->setSettingsHack();
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->setSetting2410();
+          this->ithoSystem->setUpdate2410(false);
+          xSemaphoreGive(this->mutexI2Ctask);
+          this->ithoSystem->setSettingsHack();
+        }
       }
     }
 
@@ -150,7 +192,11 @@ namespace esphome
       {
         return false;
       }
-      this->ithoSystem->sendI2CPWMinit();
+      if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+      {
+        this->ithoSystem->sendI2CPWMinit();
+        xSemaphoreGive(this->mutexI2Ctask);
+      }
       return false;
     }
 
@@ -178,89 +224,94 @@ namespace esphome
     {
       ESP_LOGD(TAG, "EXEC VREMOTE BUTTON COMMAND: %s remote: %d", command.c_str(), remoteIndex);
 
-      if (strcmp(command.c_str(), "away") == 0)
+      if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAway, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "low") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLow, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "medium") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoMedium, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "high") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoHigh, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "timer1") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer1, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "timer2") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer2, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "timer3") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer3, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "cook30") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook30, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "cook60") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook60, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "auto") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAuto, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "autonight") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAutoNight, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "join") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoJoin, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "leave") == 0)
-      {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLeave, this->virtualRemotes);
-      }
-      else if (strcmp(command.c_str(), "type") == 0)
-      {
-        this->ithoSystem->sendQueryDevicetype();
-      }
-      else if (strcmp(command.c_str(), "status") == 0)
-      {
-        this->ithoSystem->sendQueryStatus();
-      }
-      else if (strcmp(command.c_str(), "statusformat") == 0)
-      {
-        this->ithoSystem->sendQueryStatusFormat();
-      }
-      else if (strcmp(command.c_str(), "31DA") == 0)
-      {
-        this->ithoSystem->sendQuery31DA();
-      }
-      else if (strcmp(command.c_str(), "31D9") == 0)
-      {
-        this->ithoSystem->sendQuery31D9();
-      }
-      else if (strcmp(command.c_str(), "10D0") == 0)
-      {
-        this->ithoSystem->filterReset();
-      }
-      else
-      {
-
+        if (strcmp(command.c_str(), "away") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAway, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "low") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLow, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "medium") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoMedium, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "high") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoHigh, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "timer1") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer1, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "timer2") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer2, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "timer3") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer3, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "cook30") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook30, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "cook60") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook60, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "auto") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAuto, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "autonight") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAutoNight, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "join") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoJoin, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "leave") == 0)
+        {
+          this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLeave, this->virtualRemotes);
+        }
+        else if (strcmp(command.c_str(), "type") == 0)
+        {
+          this->ithoSystem->sendQueryDevicetype();
+        }
+        else if (strcmp(command.c_str(), "status") == 0)
+        {
+          this->ithoSystem->sendQueryStatus();
+        }
+        else if (strcmp(command.c_str(), "statusformat") == 0)
+        {
+          this->ithoSystem->sendQueryStatusFormat();
+        }
+        else if (strcmp(command.c_str(), "31DA") == 0)
+        {
+          this->ithoSystem->sendQuery31DA();
+        }
+        else if (strcmp(command.c_str(), "31D9") == 0)
+        {
+          this->ithoSystem->sendQuery31D9();
+        }
+        else if (strcmp(command.c_str(), "10D0") == 0)
+        {
+          this->ithoSystem->filterReset();
+        }
+        else
+        {
+          xSemaphoreGive(this->mutexI2Ctask);
+          return false;
+        }
+        xSemaphoreGive(this->mutexI2Ctask);
+        return true;
+      } else {
         return false;
       }
-
-      return true;
     }
 
     bool Itho::setIthoSpeed(uint16_t value)
@@ -272,36 +323,40 @@ namespace esphome
       {
 
         ESP_LOGD(TAG, "setIthoSpeed: %d", value);
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
           this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
 
-          uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
-          uint8_t b = (uint8_t)value;
+        uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
+        uint8_t b = (uint8_t)value;
 
-          command[6] = b;
-          command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
+        command[6] = b;
+        command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
 
-          this->write_bytes_raw_callback(command, sizeof(command));
-          return true;
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->i2c_sendBytes(command, sizeof(command));
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+        return true;
       }
       return false;
     }
 
-    void Itho::write_bytes_raw_callback(const uint8_t *buffer, uint32_t len) {
-      this->write_bytes_raw((const char*)buffer, len);
-    };
+    // void Itho::write_bytes_raw_callback(const uint8_t *buffer, uint32_t len) {
+    //   this->write_bytes_raw((const char*)buffer, len);
+    // };
 
-    void Itho::slave_receive_callback() {
+    // void Itho::slave_receive_callback() {
 
-      uint8_t i2cbuf[512]{};
-      size_t len = this->slave_receive(i2cbuf);
-      this->ithoSystem->setI2Cbuffer(i2cbuf, len);
-    }
+    //   uint8_t i2cbuf[512]{};
+    //   size_t len = this->slave_receive(i2cbuf);
+    //   this->ithoSystem->setI2Cbuffer(i2cbuf, len);
+    // }
 
-    void Itho::loop() {
-      //if (millis() > 3000) {
-      //  execSystemControlTasks();
-      //}
-    }
+    void Itho::loop() {}
 
     void Itho::setup()
     {
@@ -314,6 +369,8 @@ namespace esphome
       pinMode(ITHOSTATUS, OUTPUT);
       digitalWrite(ITHOSTATUS, LOW);
 
+      mutexI2Ctask = xSemaphoreCreateMutex();
+
       systemConfig = new SystemConfig();
       systemConfig->setSysSHT30(syssht30);
 
@@ -325,39 +382,44 @@ namespace esphome
       id[1] = mac[4];
       id[2] = mac[5];
       ESP_LOGD(TAG, "Setup: Virtual remote ID: %d,%d,%d", id[0], id[1], id[2]);
-      
-      using std::placeholders::_1;
-      using std::placeholders::_2;
+
+      // using std::placeholders::_1;
+      // using std::placeholders::_2;
       ithoSystem = new IthoSystem(
-        id, 
-        systemConfig, 
-        std::bind(&Itho::write_bytes_raw_callback, this, _1, _2),
-        std::bind(&Itho::slave_receive_callback, this)
+          id,
+          systemConfig //,
+                       // std::bind(&Itho::write_bytes_raw_callback, this, _1, _2),
+                       // std::bind(&Itho::slave_receive_callback, this)
       );
-      
+
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();
       this->IthoInit = true;
 
-      vTaskDelay(3000 / portTICK_RATE_MS);
+      // xTaskSysControlHandle = xTaskCreateStaticPinnedToCore(
+      //     this->TaskSysControl,
+      //     "TaskSysControl",
+      //     STACK_SIZE,
+      //     this,
+      //     TASK_MAIN_PRIO,
+      //     xTaskSysControlStack,
+      //     &xTaskSysControlBuffer,
+      //     CONFIG_ARDUINO_RUNNING_CORE);
 
-      xTaskSysControlHandle = xTaskCreateStaticPinnedToCore(
-        TaskSysControl,
-        "TaskSysControl",
-        STACK_SIZE,
-        ( void * ) 1,
-        TASK_MAIN_PRIO,
-        xTaskSysControlStack,
-        &xTaskSysControlBuffer,
-        CONFIG_ARDUINO_RUNNING_CORE
-      );
+      xTaskCreatePinnedToCore(
+          this->TaskSysControl,
+          "TaskSysControl",
+          STACK_SIZE,
+          this,
+          TASK_MAIN_PRIO,
+          &xTaskSysControlHandle,
+          CONFIG_ARDUINO_RUNNING_CORE);
 
-        ESP_LOGD(TAG, "Setup Itho Core finished");
-      }
+      ESP_LOGD(TAG, "Setup Itho Core finished");
+    }
 
     void Itho::dump_config()
     {
-      LOG_I2C_DEVICE(this);
     }
 
   } // namespace itho

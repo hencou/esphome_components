@@ -12,6 +12,8 @@
 
 #include "IthoPacket.h"
 #include "IthoRemote.h"
+#include "IthoI2C.h"
+#include "SHTSensor.h"
 #include "SystemConfig.h"
 
 namespace esphome
@@ -22,14 +24,15 @@ namespace esphome
     class IthoSystem
     {
     public:
-      typedef std::function<void(const uint8_t *buffer, uint32_t len)> Write_bytes_raw_callback;
-      typedef std::function<void(void)> Slave_receive_callback;
+      //typedef std::function<void(const uint8_t *buffer, uint32_t len)> Write_bytes_raw_callback;
+      //typedef std::function<void(void)> Slave_receive_callback;
 
       IthoSystem(
           uint8_t *id_,
-          SystemConfig *systemConfig,
-          Write_bytes_raw_callback write_bytes_raw_callback,
-          Slave_receive_callback slave_receive_callback);
+          SystemConfig *systemConfig //,
+          //Write_bytes_raw_callback write_bytes_raw_callback,
+          //Slave_receive_callback slave_receive_callback
+          );
       ~IthoSystem();
 
       struct ithoDeviceStatus
@@ -2292,6 +2295,9 @@ namespace esphome
       void setValue2410(uint32_t value) { value2410 = value; }
       void sendQueryDevicetype();
       void sendI2CPWMinit();
+      bool i2c_sendBytes(const uint8_t *buf, size_t len);
+      bool i2c_sendCmd(uint8_t addr, const uint8_t *cmd, size_t len);
+
       void sendRemoteCmd(const uint8_t remoteIndex, const IthoCommand command, IthoRemote &remotes);
       void sendQueryStatusFormat();
       void sendQueryStatus();
@@ -2309,16 +2315,14 @@ namespace esphome
       bool getUpdate2410() { return update2410; }
       void setUpdated2410(bool value) { updated2410 = value; }
       void setUpdate2410(bool value) { update2410 = value; }
-      void setI2Cbuffer(uint8_t value[512], size_t len) { 
-        memcpy(i2cbuf, value, sizeof(value[0]) * 512); 
-        i2cbuflen = len;
-      }
 
     private:
-      SystemConfig *systemConfig;
+      SystemConfig* systemConfig;
+      IthoI2C* ithoI2C = NULL;
+      SHTSensor* shtSensor = NULL;
 
-      Write_bytes_raw_callback write_bytes_raw_callback;
-      Slave_receive_callback slave_receive_callback;
+      //Write_bytes_raw_callback write_bytes_raw_callback;
+      //Slave_receive_callback slave_receive_callback;
 
       struct ithoSettings
       {
@@ -2374,8 +2378,6 @@ namespace esphome
       uint8_t index2410 = 0;
       int32_t value2410 = 0;
       int32_t result2410[3];
-      uint8_t i2cbuf[512]{};
-      size_t i2cbuflen;
 
       Ticker getSettingsHack;
     };

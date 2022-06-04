@@ -8,19 +8,20 @@ namespace esphome
   namespace itho
   {
     static const char *const TAG = "itho.system";
-
+    
     IthoSystem::IthoSystem(
-      uint8_t *id_, 
-      SystemConfig *systemConfig, 
-      Write_bytes_raw_callback write_bytes_raw_callback,
-      Slave_receive_callback slave_receive_callback
-      ) 
-      : 
-      systemConfig(systemConfig), 
-      write_bytes_raw_callback(write_bytes_raw_callback),
-      slave_receive_callback(slave_receive_callback)
+        uint8_t *id_,
+        SystemConfig *systemConfig //,
+        // Write_bytes_raw_callback write_bytes_raw_callback,
+        // Slave_receive_callback slave_receive_callback
+        )
+        : systemConfig(systemConfig) //,
+    // write_bytes_raw_callback(write_bytes_raw_callback),
+    // slave_receive_callback(slave_receive_callback)
     {
-      memcpy(id, id_, sizeof(id_[0])*3);
+      memcpy(id, id_, sizeof(id_[0]) * 3);
+      ithoI2C = new IthoI2C(systemConfig);
+      shtSensor = new SHTSensor(ithoI2C, systemConfig->getSysSHT30_Address());
     }
 
     const uint8_t *IthoSystem::getRemoteCmd(const RemoteTypes type, const IthoCommand command)
@@ -107,7 +108,6 @@ namespace esphome
       index2410 = i;
       result2410[0] = 0;
       updated2410 = true;
-
     }
 
     int IthoSystem::getStatusLabelLength(const uint8_t deviceID, const uint8_t version)
@@ -206,7 +206,7 @@ namespace esphome
       uint8_t command[] = {0x82, 0xEF, 0xC0, 0x00, 0x01, 0x06, 0x00, 0x00, 0x09, 0x00, 0x09, 0x00, 0xB6};
 
       command[sizeof(command) - 1] = checksum(command, sizeof(command) - 1);
-      write_bytes_raw_callback(command, sizeof(command));
+      this->i2c_sendBytes(command, sizeof(command));
     }
 
     uint8_t cmdCounter = 0;
@@ -353,19 +353,20 @@ namespace esphome
       i2c_command[i2c_command_len] = checksum(i2c_command, i2c_command_len - 1);
       i2c_command_len++;
 
-      write_bytes_raw_callback(i2c_command, sizeof(i2c_command));
+      this->i2c_sendBytes(i2c_command, sizeof(i2c_command));
     }
 
     void IthoSystem::sendQueryDevicetype()
     {
 
       uint8_t command[] = {0x82, 0x80, 0x90, 0xE0, 0x04, 0x00, 0x8A};
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        //ESP_LOGD(TAG, "I2C sendRemoteCmd response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendRemoteCmd response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
         ithoDeviceID = i2cbuf[9];
         itho_fwversion = i2cbuf[11];
         getDevicePtr(ithoDeviceID);
@@ -377,12 +378,13 @@ namespace esphome
     {
 
       uint8_t command[] = {0x82, 0x80, 0x24, 0x00, 0x04, 0x00, 0xD6};
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        //ESP_LOGD(TAG, "I2C sendQueryStatusFormat response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQueryStatusFormat response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
         if (!ithoStatus.empty())
         {
           ithoStatus.clear();
@@ -439,19 +441,20 @@ namespace esphome
           }
         }
       }
-      //ESP_LOGD(TAG, "I2C ithoStatus - items:%d", ithoStatus.size());
+      // ESP_LOGD(TAG, "I2C ithoStatus - items:%d", ithoStatus.size());
     }
 
     void IthoSystem::sendQueryStatus()
     {
 
       uint8_t command[] = {0x82, 0x80, 0x24, 0x01, 0x04, 0x00, 0xD5};
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        //ESP_LOGD(TAG, "I2C sendQueryStatus response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQueryStatus response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
         int statusPos = 6; // first byte with status info
         int labelPos = 0;
         if (!ithoStatus.empty())
@@ -517,7 +520,7 @@ namespace esphome
             }
             if (strcmp("RelativeHumidity", ithoStat.name) == 0 || strcmp("relativehumidity", ithoStat.name) == 0)
             {
-              //ESP_LOGD(TAG, "I2C RelativeHumidity response: %02f", ithoStat.value.floatval);
+              // ESP_LOGD(TAG, "I2C RelativeHumidity response: %02f", ithoStat.value.floatval);
               if (ithoStat.value.floatval > 1.0 && ithoStat.value.floatval < 100.0)
               {
                 if (systemConfig->getSysSHT30() == 0)
@@ -533,7 +536,7 @@ namespace esphome
             }
             if (strcmp("Temperature", ithoStat.name) == 0 || strcmp("temperature", ithoStat.name) == 0)
             {
-              //ESP_LOGD(TAG, "I2C Temperature response: %02f", ithoStat.value.floatval);
+              // ESP_LOGD(TAG, "I2C Temperature response: %02f", ithoStat.value.floatval);
               if (ithoStat.value.floatval > 1.0 && ithoStat.value.floatval < 100.0)
               {
                 if (systemConfig->getSysSHT30() == 0)
@@ -551,18 +554,25 @@ namespace esphome
           }
         }
       }
+
+      if (systemConfig->getSysSHT30() == 1) {
+        shtSensor->readSample();
+        ithoTemperature = shtSensor->getTemperature();
+        ithoHumidity = shtSensor->getHumidity();
+      }
     }
 
     void IthoSystem::sendQuery31DA()
     {
 
       uint8_t command[] = {0x82, 0x80, 0x31, 0xDA, 0x04, 0x00, 0xEF};
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        //ESP_LOGD(TAG, "I2C sendQuery31DA response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQuery31DA response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
         auto dataLength = i2cbuf[5];
 
         auto dataStart = 6;
@@ -912,18 +922,27 @@ namespace esphome
         }
       }
 
-      //ESP_LOGD(TAG, "I2C ithoMeasurements: %i", ithoMeasurements.size());
+      // ESP_LOGD(TAG, "I2C ithoMeasurements: %i", ithoMeasurements.size());
       if (!ithoMeasurements.empty())
       {
         for (const auto &ithoMeasurement : ithoMeasurements)
         {
-          if (ithoMeasurement.type == ithoDeviceMeasurements::is_string) {ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, stringval: %s", ithoMeasurement.name, ithoMeasurement.value.stringval);}
-          if (ithoMeasurement.type == ithoDeviceMeasurements::is_int) {ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, intval: %i", ithoMeasurement.name, ithoMeasurement.value.intval);}
-          if (ithoMeasurement.type == ithoDeviceMeasurements::is_float) {ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, floatval: %02f", ithoMeasurement.name, ithoMeasurement.value.floatval);}
+          if (ithoMeasurement.type == ithoDeviceMeasurements::is_string)
+          {
+            ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, stringval: %s", ithoMeasurement.name, ithoMeasurement.value.stringval);
+          }
+          if (ithoMeasurement.type == ithoDeviceMeasurements::is_int)
+          {
+            ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, intval: %i", ithoMeasurement.name, ithoMeasurement.value.intval);
+          }
+          if (ithoMeasurement.type == ithoDeviceMeasurements::is_float)
+          {
+            ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, floatval: %02f", ithoMeasurement.name, ithoMeasurement.value.floatval);
+          }
           if (strcmp(ithoMeasurement.name, "FanInfo") == 0)
           {
             ithoFanInfo = ithoMeasurement.value.stringval;
-            //ESP_LOGD(TAG, "Read ithoFanInfo: %s", ithoMeasurement.value.stringval);
+            // ESP_LOGD(TAG, "Read ithoFanInfo: %s", ithoMeasurement.value.stringval);
           }
         }
       }
@@ -933,12 +952,13 @@ namespace esphome
     {
 
       uint8_t command[] = {0x82, 0x80, 0x31, 0xD9, 0x04, 0x00, 0xF0};
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        //ESP_LOGD(TAG, "I2C sendQuery31D9 response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQuery31D9 response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
         auto dataStart = 6;
 
         if (!ithoInternalMeasurements.empty())
@@ -1001,24 +1021,33 @@ namespace esphome
         //    }
       }
 
-      //ESP_LOGD(TAG, "I2C ithoInternalMeasurements: %i", ithoInternalMeasurements.size());
+      // ESP_LOGD(TAG, "I2C ithoInternalMeasurements: %i", ithoInternalMeasurements.size());
       if (!ithoInternalMeasurements.empty())
       {
         for (const auto &internalMeasurement : ithoInternalMeasurements)
         {
-          if (internalMeasurement.type == ithoDeviceMeasurements::is_string) {ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, stringval: %s", internalMeasurement.name, internalMeasurement.value.stringval);}
-          if (internalMeasurement.type == ithoDeviceMeasurements::is_int) {ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, intval: %i", internalMeasurement.name, internalMeasurement.value.intval);}
-          if (internalMeasurement.type == ithoDeviceMeasurements::is_float) {ESP_LOGD(TAG, "I2C iinternalMeasurement.name: %s, floatval: %02f", internalMeasurement.name, internalMeasurement.value.floatval);}
+          if (internalMeasurement.type == ithoDeviceMeasurements::is_string)
+          {
+            ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, stringval: %s", internalMeasurement.name, internalMeasurement.value.stringval);
+          }
+          if (internalMeasurement.type == ithoDeviceMeasurements::is_int)
+          {
+            ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, intval: %i", internalMeasurement.name, internalMeasurement.value.intval);
+          }
+          if (internalMeasurement.type == ithoDeviceMeasurements::is_float)
+          {
+            ESP_LOGD(TAG, "I2C iinternalMeasurement.name: %s, floatval: %02f", internalMeasurement.name, internalMeasurement.value.floatval);
+          }
           if (strcmp(internalMeasurement.name, "Speed status") == 0)
           {
             ithoSpeed = static_cast<int>(internalMeasurement.value.floatval * 2.55);
-            //ESP_LOGD(TAG, "Read ithoSpeed: %02f", internalMeasurement.value.floatval);
+            // ESP_LOGD(TAG, "Read ithoSpeed: %02f", internalMeasurement.value.floatval);
           }
         }
       }
     }
 
-     void IthoSystem::sendQuery2410()
+    void IthoSystem::sendQuery2410()
     {
 
       result2410[0] = 0;
@@ -1029,12 +1058,13 @@ namespace esphome
 
       command[23] = index2410;
       command[sizeof(command) - 1] = checksum(command, sizeof(command) - 1);
-      write_bytes_raw_callback(command, sizeof(command));
-      slave_receive_callback();
+      this->i2c_sendBytes(command, sizeof(command));
 
-      if (i2cbuflen > 1 && i2cbuf[i2cbuflen - 1] == checksum(i2cbuf, i2cbuflen - 1))
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        ESP_LOGD(TAG, "I2C sendQuery2410 response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        ESP_LOGD(TAG, "I2C sendQuery2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
         uint8_t tempBuf[] = {i2cbuf[9], i2cbuf[8], i2cbuf[7], i2cbuf[6]};
         std::memcpy(&result2410[0], tempBuf, 4);
 
@@ -1149,10 +1179,11 @@ namespace esphome
       }
 
       command[sizeof(command) - 1] = checksum(command, sizeof(command) - 1);
-      write_bytes_raw_callback(command, sizeof(command));
+      this->i2c_sendBytes(command, sizeof(command));
 
-      slave_receive_callback();
-      ESP_LOGD(TAG, "I2C setSetting2410 response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+      uint8_t i2cbuf[512]{};
+      uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
+      ESP_LOGD(TAG, "I2C setSetting2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
     }
 
     void IthoSystem::filterReset()
@@ -1177,7 +1208,7 @@ namespace esphome
 
       command[sizeof(command) - 1] = checksum(command, sizeof(command) - 1);
 
-      write_bytes_raw_callback(command, sizeof(command));
+      this->i2c_sendBytes(command, sizeof(command));
     }
 
     int IthoSystem::quick_pow10(int n)
@@ -1209,16 +1240,47 @@ namespace esphome
       return s;
     }
 
-    void IthoSystem::getID(uint8_t * id_)
+    void IthoSystem::getID(uint8_t *id_)
     {
-      memcpy(id_, id, sizeof(id[0])*3);
+      memcpy(id_, id, sizeof(id[0]) * 3);
     }
 
-    void IthoSystem::setSettingsHack() {
-        getSettingsHack.once_ms(1, +[](IthoSystem * ithoSystem)
-          { ithoSystem->getSetting(ithoSystem->getIndex2410(), true, false); },
+    void IthoSystem::setSettingsHack()
+    {
+      getSettingsHack.once_ms(
+          1, +[](IthoSystem *ithoSystem)
+             { ithoSystem->getSetting(ithoSystem->getIndex2410(), true, false); },
           this);
+    }
+
+    bool IthoSystem::i2c_sendBytes(const uint8_t *buf, size_t len)
+    {
+
+      if (len)
+      {
+        esp_err_t rc = ithoI2C->i2c_master_send((const char *)buf, len);
+        if (rc)
+        {
+          return false;
+        }
+        return true;
       }
+      return false;
+    }
+
+    bool IthoSystem::i2c_sendCmd(uint8_t addr, const uint8_t *cmd, size_t len)
+    {
+      if (len)
+      {
+        esp_err_t rc = ithoI2C->i2c_master_send_command(addr, cmd, len);
+        if (rc)
+        {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
 
   }
 }
