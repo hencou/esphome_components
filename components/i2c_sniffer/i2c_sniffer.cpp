@@ -186,13 +186,14 @@ namespace esphome
 
             uint16_t pw = bufferPoiW;
             // print out falseStart
-            Serial.printf("\nSCL up: %d SDA up: %d SDA down: %d false start: %d\n", sclUpCnt, sdaUpCnt, sdaDownCnt, falseStart);
+            ESP_LOGI(TAG, "\nSCL up: %d SDA up: %d SDA down: %d false start: %d\n", sclUpCnt, sdaUpCnt, sdaDownCnt, falseStart);
             // print out the content of the buffer
-            for (int i = bufferPoiR; i < pw; i++)
-            {
-                Serial.write(dataBuffer[i]);
-                bufferPoiR++;
-            }
+            ESP_LOGI(TAG, "Buffer: %04x", __builtin_bswap16(pw));;
+            // for (int i = bufferPoiR; i < pw; i++)
+            // {
+            //     Serial.write(dataBuffer[i]);
+            //     bufferPoiR++;
+            // }
 
             // if there is no I2C action in progress and there wasn't during the Serial.print then buffer was printed out completly and can be reset.
             if (i2cStatus == I2C_IDLE && pw == bufferPoiW)
@@ -232,10 +233,10 @@ namespace esphome
             if (i2cStatus == I2C_IDLE)
             {
                 processDataBuffer();
-                Serial.print("\rStart delay    ");
-                delay(5000);
-                Serial.print("\rEnd delay    ");
-                delay(500);
+                ESP_LOGI(TAG, "\rStart delay    ");
+                vTaskDelay(5000 / portTICK_RATE_MS);
+                ESP_LOGI(TAG, "\rEnd delay    ");
+                vTaskDelay(500 / portTICK_RATE_MS);
             }
         } // END of loop
 
