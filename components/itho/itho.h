@@ -45,6 +45,7 @@ namespace esphome
       std::string getIthoFanInfo() { return ithoSystem->getIthoFanInfo(); }
 
       void setSysSHT30(uint8_t value) { syssht30 = value; }
+      void setSysSHT30_Address(uint8_t value) { syssht30_address = value; }
 
       //void write_bytes_raw_callback(const uint8_t *buffer, uint32_t len);
       //void slave_receive_callback();
@@ -63,6 +64,8 @@ namespace esphome
 
       bool IthoInit = false;
       uint8_t syssht30 = 0;
+      uint8_t syssht30_address = 0x44;
+      
 
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
