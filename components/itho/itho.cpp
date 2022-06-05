@@ -44,9 +44,10 @@ namespace esphome
       //Only run after a second of inactivity on the I2C bus. Itho queries the bus every 8 seconds
       if (digitalRead(systemConfig->getI2C_SCL_Pin()) == HIGH && digitalRead(systemConfig->getI2C_SCL_Pin()) !=stateSCL) {
         this->lastSCLLowTime = millis();
+        ESP_LOGD(TAG, "SCL goes from LOW to HIGH...");
       }
       stateSCL = digitalRead(systemConfig->getI2C_SCL_Pin());
-      if (millis() - this->lastSCLLowTime < 1000) {return;}
+      if (millis() - this->lastSCLLowTime < 1000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {return;}
 
       if (this->IthoInit && millis() > 250)
       {
@@ -153,7 +154,7 @@ namespace esphome
         }
       }
 
-      if (millis() - this->query2401time >= 10000UL && this->i2cStartCommands)
+      if (millis() - this->query2401time >= 7000UL && this->i2cStartCommands)
       {
         this->query2401time = millis();
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
