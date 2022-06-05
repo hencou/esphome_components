@@ -2,6 +2,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 #include <cinttypes>
+#include <esp_task_wdt.h>
 
 namespace esphome
 {
@@ -18,7 +19,10 @@ namespace esphome
             while (digitalRead(scl_pin) != expected)
             {
                 while ((digitalRead(scl_pin) != expected) && (++i % PAUSE != 0))
-                    ;
+                {
+                    esp_task_wdt_reset();
+                    yield();
+                }
 
                 if (i % PAUSE == 0)
                 {
@@ -33,8 +37,9 @@ namespace esphome
                     if (bufI != &buf[0])
                         ESP_LOGI(TAG, s.c_str());
                     bufI = &buf[0];
-                    yield();
                 }
+                esp_task_wdt_reset();
+                yield();
             }
             return i;
         }
