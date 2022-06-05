@@ -36,6 +36,8 @@ ota:
 itho:
   syssht30: enable        ##Optional, default enabled: enable or disable Itho build in sensor and automation
   syssht30_address: 0x44  ##Optional, default 0x44, I2C SHT30 sensor address
+  sda: 21                 ##Optional, default to default SDA pin of ESP module (21)
+  scl: 22                 ##Optional, default to default SCL pin of ESP module (22)
 
 fan:
 - platform: itho
