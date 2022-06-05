@@ -52,5 +52,5 @@ async def to_code(config):
   if CONF_SYSSHT30_ADDRESS in config:
     cg.add(var.setSysSHT30_Address(config[CONF_SYSSHT30_ADDRESS]))
     
-  cg.add(var.set_sda_pin(config[CONF_SDA]))
-  cg.add(var.set_scl_pin(config[CONF_SCL]))
+  cg.add(var.setI2C_SDA_Pin(config[CONF_SDA]))
+  cg.add(var.setI2C_SCL_Pin(config[CONF_SCL]))
