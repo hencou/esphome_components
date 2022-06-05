@@ -59,8 +59,6 @@ namespace esphome
 
       SemaphoreHandle_t mutexI2Ctask;
       TaskHandle_t xTaskSysControlHandle = NULL;
-      StaticTask_t xTaskSysControlBuffer;
-      StackType_t xTaskSysControlStack[ STACK_SIZE ];
 
       bool IthoInit = false;
       
