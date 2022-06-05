@@ -45,8 +45,10 @@ namespace esphome
       uint16_t getIthoSpeed() { return ithoSystem->getIthoSpeed(); }
       std::string getIthoFanInfo() { return ithoSystem->getIthoFanInfo(); }
 
-      void setSysSHT30(uint8_t value) { syssht30 = value; }
-      void setSysSHT30_Address(uint8_t value) { syssht30_address = value; }
+      void setSysSHT30(uint8_t value) { systemConfig->setSysSHT30(value); }
+      void setSysSHT30_Address(uint8_t value) { systemConfig->setSysSHT30_Address(value); }
+      void setI2C_SDA_Pin(uint8_t value) { systemConfig->setI2C_SDA_Pin(value); }
+      void setI2C_SCL_Pin(uint8_t value) { systemConfig->setI2C_SCL_Pin(value); }
 
     private:
       void execSystemControlTasks();
@@ -61,10 +63,7 @@ namespace esphome
       StackType_t xTaskSysControlStack[ STACK_SIZE ];
 
       bool IthoInit = false;
-      uint8_t syssht30 = 0;
-      uint8_t syssht30_address = 0x44;
       
-
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
       SystemConfig *systemConfig;

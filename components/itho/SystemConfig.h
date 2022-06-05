@@ -41,17 +41,11 @@ namespace esphome
       uint16_t getIthoTimer3() { return itho_timer3; }
       void setIthoTimer3(uint16_t value) { itho_timer3 = value; }
 
-      uint8_t getI2C_Master_SDA_Pin() { return i2c_master_sda_pin; }
-      void getI2C_Master_SDA_Pin(uint8_t value) { i2c_master_sda_pin = value; }
+      uint8_t getI2C_SDA_Pin() { return i2c_sda_pin; }
+      void setI2C_SDA_Pin(uint8_t value) { i2c_sda_pin = value; }
 
-      uint8_t getI2C_Master_SCL_Pin() { return i2c_master_scl_pin; }
-      void setI2C_Master_SCL_Pin(uint8_t value) { i2c_master_scl_pin = value; }
-
-       uint8_t getI2C_Slave_SDA_Pin() { return i2c_slave_sda_pin; }
-      void setI2C_Slave_SDA_Pin(uint8_t value) { i2c_slave_sda_pin = value; }
-
-      uint8_t getI2C_Slave_SCL_Pin() { return i2c_slave_scl_pin; }
-      void setI2C_Slave_SCL_Pin(uint8_t value) { i2c_slave_scl_pin = value; }
+      uint8_t getI2C_SCL_Pin() { return i2c_scl_pin; }
+      void setI2C_SCL_Pin(uint8_t value) { i2c_scl_pin = value; }
 
     private:
       uint8_t syssht30 = 0;
@@ -64,10 +58,8 @@ namespace esphome
       uint16_t itho_timer2 = 20;
       uint16_t itho_timer3 = 30;
 
-      uint8_t i2c_master_sda_pin = 21;
-      uint8_t i2c_master_scl_pin = 22;
-      uint8_t i2c_slave_sda_pin = 21;
-      uint8_t i2c_slave_scl_pin = 22;
+      uint8_t i2c_sda_pin = 21;
+      uint8_t i2c_scl_pin = 22;
     };
     
   }

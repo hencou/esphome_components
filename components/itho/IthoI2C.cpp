@@ -18,12 +18,12 @@ namespace esphome
 
     void IthoI2C::i2c_master_init()
     {
-      while (digitalRead((gpio_num_t)systemConfig->getI2C_Master_SCL_Pin()) == LOW)
+      while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
         vTaskDelay(10 / portTICK_RATE_MS);
       }
 
-      i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_Master_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_Master_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
+      i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
       i2c_param_config(I2C_MASTER_NUM, &conf);
       i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
     }
@@ -35,12 +35,12 @@ namespace esphome
 
     void IthoI2C::i2c_slave_init()
     {
-       while (digitalRead((gpio_num_t)systemConfig->getI2C_Master_SCL_Pin()) == LOW)
+       while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
         vTaskDelay(10 / portTICK_RATE_MS);
       }
       
-      i2c_config_t conf = {I2C_MODE_SLAVE, (gpio_num_t)systemConfig->getI2C_Slave_SDA_Pin(), I2C_SLAVE_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_Slave_SCL_Pin(), I2C_SLAVE_SCL_PULLUP, {.slave = {0, I2C_SLAVE_ADDRESS}}};
+      i2c_config_t conf = {I2C_MODE_SLAVE, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_SLAVE_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_SLAVE_SCL_PULLUP, {.slave = {0, I2C_SLAVE_ADDRESS}}};
       i2c_param_config(I2C_SLAVE_NUM, &conf);
 
       i2c_driver_install(I2C_SLAVE_NUM, conf.mode, I2C_SLAVE_RX_BUF_LEN, 0, 0);
