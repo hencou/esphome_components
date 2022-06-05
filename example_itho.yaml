@@ -46,7 +46,7 @@ fan:
   
 select:
 - platform: itho
-  name: ${friendly_name} stand
+  name: ${friendly_name} level
 
 sensor:
 - platform: itho
