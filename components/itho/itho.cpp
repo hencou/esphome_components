@@ -15,8 +15,10 @@ namespace esphome
   {
 
     static const char *const TAG = "itho";
+    unsigned long lastSCLLowTime;
 
-    Itho::Itho() {
+    Itho::Itho()
+    {
       systemConfig = new SystemConfig();
     }
 
@@ -38,16 +40,20 @@ namespace esphome
       vTaskDelete(NULL);
     }
 
+    ///detect rising edge of I2C SCL pin
+    uint8_t scl_pin;
+    void IRAM_ATTR gpio_intr()
+    {
+      lastSCLLowTime = millis();
+      detachInterrupt(digitalPinToInterrupt(scl_pin));
+    }
+    ///end detect rising edge of I2C SCL pin
+
     void Itho::execSystemControlTasks()
     {
 
-      //Only run after a second of inactivity on the I2C bus. Itho queries the bus every 8 seconds
-      if (digitalRead(systemConfig->getI2C_SCL_Pin()) == HIGH && digitalRead(systemConfig->getI2C_SCL_Pin()) !=stateSCL) {
-        this->lastSCLLowTime = millis();
-        ESP_LOGD(TAG, "SCL goes from LOW to HIGH...");
-      }
-      stateSCL = digitalRead(systemConfig->getI2C_SCL_Pin());
-      if (millis() - this->lastSCLLowTime < 1000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {return;}
+      // Only run after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds
+      if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {return;}
 
       if (this->IthoInit && millis() > 250)
       {
@@ -199,7 +205,7 @@ namespace esphome
       {
         uint16_t speed = this->ithoQueue->getIthoSpeed();
 
-        //ESP_LOGD(TAG, "Set FanInfo on auto...");
+        // ESP_LOGD(TAG, "Set FanInfo on auto...");
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
         {
           this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
@@ -208,7 +214,7 @@ namespace esphome
 
         vTaskDelay(1000 / portTICK_RATE_MS);
 
-        //ESP_LOGD(TAG, "Set speed to: %d", speed);
+        // ESP_LOGD(TAG, "Set speed to: %d", speed);
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
         {
           uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
@@ -216,12 +222,13 @@ namespace esphome
 
           command[6] = b;
           command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
-          
+
           this->ithoSystem->i2c_sendBytes(command, sizeof(command));
           xSemaphoreGive(this->mutexI2Ctask);
         }
         this->ithoQueue->setIthoSpeedUpdated(false);
       }
+      attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
     }
 
     bool Itho::ithoInitCheck()
@@ -395,6 +402,8 @@ namespace esphome
 
       ithoSystem = new IthoSystem(id, systemConfig);
       ithoQueue = new IthoQueue();
+
+      scl_pin = systemConfig->getI2C_SCL_Pin();
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();
