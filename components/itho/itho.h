@@ -59,20 +59,21 @@ namespace esphome
 
       SemaphoreHandle_t mutexI2Ctask;
       TaskHandle_t xTaskSysControlHandle = NULL;
-
-      bool IthoInit = false;
       
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
       SystemConfig *systemConfig;
       IthoQueue *ithoQueue;
 
+      bool IthoInit = false;
       bool i2cStartCommands = false;
       bool joinSend = false;
       unsigned long lastI2CinitRequest = 0;
       int8_t ithoInitResult = 0;
       unsigned long lastVersionCheck;
       unsigned long query2401time = 0;
+      bool stateSCL;
+      unsigned long lastSCLLowTime;
     };
 
   } // namespace itho

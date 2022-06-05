@@ -41,6 +41,13 @@ namespace esphome
     void Itho::execSystemControlTasks()
     {
 
+      //Only run after a second of inactivity on the I2C bus. Itho queries the bus every 8 seconds
+      if (digitalRead(systemConfig->getI2C_SCL_Pin()) == HIGH && digitalRead(systemConfig->getI2C_SCL_Pin()) !=stateSCL) {
+        this->lastSCLLowTime = millis();
+      }
+      stateSCL = digitalRead(systemConfig->getI2C_SCL_Pin());
+      if (millis() - this->lastSCLLowTime < 1000) {return;}
+
       if (this->IthoInit && millis() > 250)
       {
         this->IthoInit = this->ithoInitCheck();
