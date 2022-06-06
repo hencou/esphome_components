@@ -71,9 +71,9 @@ namespace esphome
       unsigned long lastI2CinitRequest = 0;
       int8_t ithoInitResult = 0;
       unsigned long lastVersionCheck;
-      unsigned long query2401time = 0;
-      bool stateSCL;
-      unsigned long lastSCLLowTime;
+      unsigned long lastSCLLowTime = 0;
+      bool loopSystemControlTasks = true;
+      unsigned long loopSystemControlTasksTime = 0;
     };
 
   } // namespace itho

@@ -15,7 +15,6 @@ namespace esphome
   {
 
     static const char *const TAG = "itho";
-    unsigned long lastSCLLowTime;
 
     Itho::Itho()
     {
@@ -42,25 +41,34 @@ namespace esphome
 
     ///detect rising edge of I2C SCL pin
     uint8_t scl_pin;
+    bool lowSCL = false;
     void IRAM_ATTR gpio_intr()
     {
-      lastSCLLowTime = millis();
+      lowSCL = true;
       detachInterrupt(digitalPinToInterrupt(scl_pin));
     }
     ///end detect rising edge of I2C SCL pin
 
     void Itho::execSystemControlTasks()
     {
-
-      // Only run after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds
-      if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {return;}
-
+      // Only run once after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds with enabled sensor, or everty 2 minutes with disabled sensor
+      if (lowSCL == true) {
+        lowSCL = false;
+        this->lastSCLLowTime = millis();
+      }
+      if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {
+        loopSystemControlTasks = true;
+        attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
+        return;
+      }
+      // end "only run"
+      
       if (this->IthoInit && millis() > 250)
       {
         this->IthoInit = this->ithoInitCheck();
       }
 
-      if (!this->i2cStartCommands && millis() > 15000 && (millis() - this->lastI2CinitRequest > 5000))
+      if (!this->i2cStartCommands && millis() > 15000UL && (millis() - this->lastI2CinitRequest > 5000))
       {
 
         this->lastI2CinitRequest = millis();
@@ -137,6 +145,41 @@ namespace esphome
         }
       }
 
+      if (this->ithoQueue->getIthoSpeedUpdated())
+      {
+        uint16_t speed = this->ithoQueue->getIthoSpeed();
+
+        // ESP_LOGD(TAG, "Set FanInfo on auto...");
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+
+        vTaskDelay(1000 / portTICK_RATE_MS);
+
+        // ESP_LOGD(TAG, "Set speed to: %d", speed);
+        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
+        {
+          uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
+          uint8_t b = (uint8_t)speed;
+
+          command[6] = b;
+          command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
+
+          this->ithoSystem->i2c_sendBytes(command, sizeof(command));
+          xSemaphoreGive(this->mutexI2Ctask);
+        }
+        this->ithoQueue->setIthoSpeedUpdated(false);
+      }
+
+      if (!loopSystemControlTasks || millis() - loopSystemControlTasksTime < 10000UL) {
+        attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
+        return;
+      }
+      loopSystemControlTasks = false;
+      loopSystemControlTasksTime = millis();
+
       if (!this->joinSend && this->ithoInitResult == 1)
       {
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
@@ -160,9 +203,8 @@ namespace esphome
         }
       }
 
-      if (millis() - this->query2401time >= 7000UL && this->i2cStartCommands)
+      if (this->i2cStartCommands)
       {
-        this->query2401time = millis();
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
         {
           this->ithoSystem->sendQueryStatus();
@@ -199,34 +241,6 @@ namespace esphome
           xSemaphoreGive(this->mutexI2Ctask);
           this->ithoSystem->setSettingsHack();
         }
-      }
-
-      if (this->ithoQueue->getIthoSpeedUpdated())
-      {
-        uint16_t speed = this->ithoQueue->getIthoSpeed();
-
-        // ESP_LOGD(TAG, "Set FanInfo on auto...");
-        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-          this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
-          xSemaphoreGive(this->mutexI2Ctask);
-        }
-
-        vTaskDelay(1000 / portTICK_RATE_MS);
-
-        // ESP_LOGD(TAG, "Set speed to: %d", speed);
-        if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-          uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
-          uint8_t b = (uint8_t)speed;
-
-          command[6] = b;
-          command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
-
-          this->ithoSystem->i2c_sendBytes(command, sizeof(command));
-          xSemaphoreGive(this->mutexI2Ctask);
-        }
-        this->ithoQueue->setIthoSpeedUpdated(false);
       }
       attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
     }

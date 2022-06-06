@@ -1060,7 +1060,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        ESP_LOGD(TAG, "I2C sendQuery2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
+        //ESP_LOGD(TAG, "I2C sendQuery2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
         uint8_t tempBuf[] = {i2cbuf[9], i2cbuf[8], i2cbuf[7], i2cbuf[6]};
         std::memcpy(&result2410[0], tempBuf, 4);
 
@@ -1179,7 +1179,7 @@ namespace esphome
 
       uint8_t i2cbuf[512]{};
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
-      ESP_LOGD(TAG, "I2C setSetting2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
+      //ESP_LOGD(TAG, "I2C setSetting2410 response: %s", i2cbuf2string(i2cbuf, len).c_str());
     }
 
     void IthoSystem::filterReset()

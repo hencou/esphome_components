@@ -48,7 +48,7 @@ namespace esphome
       void setI2C_SCL_Pin(uint8_t value) { i2c_scl_pin = value; }
 
     private:
-      uint8_t syssht30 = 0;
+      uint8_t syssht30 = 2;
       uint8_t syssht30_address = 0x44;
 
       uint8_t itho_low = 20;
