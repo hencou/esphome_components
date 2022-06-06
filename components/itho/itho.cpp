@@ -54,6 +54,7 @@ namespace esphome
       //// Only run once after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds with enabled sensor, or everty 2 minutes with disabled sensor
       if (lowSCL == true) {
         lowSCL = false;
+        ESP_LOGD(TAG, "lowSCL triggered");
         this->lastSCLLowTime = millis();
       }
       if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {
@@ -195,7 +196,7 @@ namespace esphome
         }
       }
 
-      if (!loopSystemControlTasks || millis() - loopSystemControlTasksTime < 10000UL) {
+      if (!loopSystemControlTasks && millis() - loopSystemControlTasksTime < 10000UL) {
         return;
       }
       loopSystemControlTasks = false;
@@ -241,6 +242,7 @@ namespace esphome
         }
       }
       attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
+      lowSCL = false;
     }
 
     bool Itho::ithoInitCheck()
