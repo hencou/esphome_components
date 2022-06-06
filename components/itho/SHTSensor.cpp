@@ -2,10 +2,15 @@
 #include <Arduino.h>
 #include "SHTSensor.h"
 
+#include "esphome/core/log.h"
+#include "esphome.h"
+
 namespace esphome
 {
   namespace itho
   {
+    static const char *const TAG = "itho.sensor";
+
     SHTSensor::SHTSensor(IthoI2C *&ithoI2C, uint8_t i2cAddress)
         : mIthoI2C(ithoI2C), mI2cAddress(i2cAddress) {}
 
@@ -14,6 +19,11 @@ namespace esphome
                                 uint8_t dataLength,
                                 uint8_t duration)
     {
+      
+      std::string addr;
+      addr += toHex(mI2cAddress >> 4);
+      addr += ' ';
+      addr += toHex(mI2cAddress & 0xF);
 
       esp_err_t rc;
       rc = mIthoI2C->i2c_master_send_command(mI2cAddress, i2cCommand, commandLength);
@@ -52,6 +62,7 @@ namespace esphome
 
     bool SHTSensor::readSample()
     {
+
       uint8_t data[EXPECTED_DATA_SIZE];
       uint8_t cmd[CMD_SIZE];
 
@@ -61,11 +72,13 @@ namespace esphome
       if (!readFromI2c(cmd, CMD_SIZE, data,
                        EXPECTED_DATA_SIZE, mDuration))
       {
+        ESP_LOGE(TAG, "SHTSensor::readSample readFromI2c returned false!");
         return false;
       }
 
       if (crc8(&data[0], 2) != data[2] || crc8(&data[3], 2) != data[5])
       {
+        ESP_LOGE(TAG, "SHTSensor::readSample returned crc false!");
         return false;
       }
 
@@ -99,6 +112,25 @@ namespace esphome
         return false;
       }
       return true;
+    }
+
+    char SHTSensor::toHex(uint8_t c)
+    {
+      return c < 10 ? c + '0' : c + 'A' - 10;
+    }
+
+    std::string SHTSensor::i2cbuf2string(const uint8_t *data, size_t len)
+    {
+      std::string s;
+      s.reserve(len * 3 + 2);
+      for (size_t i = 0; i < len; ++i)
+      {
+        if (i)
+          s += ' ';
+        s += toHex(data[i] >> 4);
+        s += toHex(data[i] & 0xF);
+      }
+      return s;
     }
 
   }

@@ -51,14 +51,17 @@ namespace esphome
                               uint8_t commandLength, uint8_t *data,
                               uint8_t dataLength, uint8_t duration);
 
-      const uint8_t mI2cAddress;
-      uint16_t mI2cCommand;
-      uint8_t mDuration;
+      const uint8_t mI2cAddress = 0x44;
+      uint16_t mI2cCommand = SHT3X_ACCURACY_MEDIUM;
+      uint8_t mDuration = SHT3X_ACCURACY_MEDIUM_DURATION;
       float mA = -45;
       float mB = 175;
       float mC = 65535;
       float mX = 100;
       float mY = 65535;
+
+      char toHex(uint8_t c);
+      std::string i2cbuf2string(const uint8_t *data, size_t len);
     };
 
   }

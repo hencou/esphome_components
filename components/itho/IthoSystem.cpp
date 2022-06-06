@@ -362,7 +362,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        // ESP_LOGD(TAG, "I2C sendRemoteCmd response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendRemoteCmd response: %s", i2cbuf2string(i2cbuf, len).c_str());
         ithoDeviceID = i2cbuf[9];
         itho_fwversion = i2cbuf[11];
         getDevicePtr(ithoDeviceID);
@@ -380,7 +380,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        // ESP_LOGD(TAG, "I2C sendQueryStatusFormat response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQueryStatusFormat response: %s", i2cbuf2string(i2cbuf, len).c_str());
         if (!ithoStatus.empty())
         {
           ithoStatus.clear();
@@ -450,7 +450,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        // ESP_LOGD(TAG, "I2C sendQueryStatus response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQueryStatus response: %s", i2cbuf2string(i2cbuf,len).c_str());
         int statusPos = 6; // first byte with status info
         int labelPos = 0;
         if (!ithoStatus.empty())
@@ -552,10 +552,13 @@ namespace esphome
       }
 
       if (systemConfig->getSysSHT30() == 1) {
+        ESP_LOGD(TAG, "Internal Itho sensor disabled, get temperature from SHT sensor...");
         shtSensor->readSample();
         ithoTemperature = shtSensor->getTemperature();
         ithoHumidity = shtSensor->getHumidity();
       }
+      ESP_LOGD(TAG, "ithoTemperature: %02f", ithoTemperature);
+      ESP_LOGD(TAG, "ithoHumidity: %02f", ithoHumidity);
     }
 
     void IthoSystem::sendQuery31DA()
@@ -568,7 +571,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        // ESP_LOGD(TAG, "I2C sendQuery31DA response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQuery31DA response: %s", i2cbuf2string(i2cbuf, len).c_str());
         auto dataLength = i2cbuf[5];
 
         auto dataStart = 6;
@@ -954,7 +957,7 @@ namespace esphome
       uint8_t len = ithoI2C->i2c_slave_receive(i2cbuf);
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
-        // ESP_LOGD(TAG, "I2C sendQuery31D9 response: %s", i2cbuf2string(i2cbuf, i2cbuflen).c_str());
+        // ESP_LOGD(TAG, "I2C sendQuery31D9 response: %s", i2cbuf2string(i2cbuf, len).c_str());
         auto dataStart = 6;
 
         if (!ithoInternalMeasurements.empty())
@@ -1255,20 +1258,6 @@ namespace esphome
       if (len)
       {
         esp_err_t rc = ithoI2C->i2c_master_send((const char *)buf, len);
-        if (rc)
-        {
-          return false;
-        }
-        return true;
-      }
-      return false;
-    }
-
-    bool IthoSystem::i2c_sendCmd(uint8_t addr, const uint8_t *cmd, size_t len)
-    {
-      if (len)
-      {
-        esp_err_t rc = ithoI2C->i2c_master_send_command(addr, cmd, len);
         if (rc)
         {
           return false;
