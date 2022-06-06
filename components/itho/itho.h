@@ -2,11 +2,6 @@
 
 #include "esphome/core/component.h"
 
-#include <Arduino.h>
-#include <Ticker.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
 #include "IthoSystem.h"
 #include "IthoQueue.h"
 #include "SystemConfig.h"
@@ -20,16 +15,11 @@ namespace esphome
 #define STATUSPIN 16
 #define ITHOSTATUS 13
 
-#define STACK_SIZE 4096
-#define TASK_MAIN_PRIO 5
-
     class Itho : public Component
     {
     public:
       Itho();
       ~Itho();
-
-      static void TaskSysControl( void *pvParameter );
 
       void setup() override;
       void loop() override;
@@ -56,9 +46,6 @@ namespace esphome
       bool ithoExecCommand(const char *command);
       bool ithoI2CCommand(uint8_t remoteIndex, const char *command);
       bool loadVirtualRemotesConfig();
-
-      SemaphoreHandle_t mutexI2Ctask;
-      TaskHandle_t xTaskSysControlHandle = NULL;
       
       IthoRemote virtualRemotes;
       IthoSystem *ithoSystem;
