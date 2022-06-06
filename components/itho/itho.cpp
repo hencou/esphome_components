@@ -51,17 +51,16 @@ namespace esphome
 
     void Itho::execSystemControlTasks()
     {
-      // Only run once after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds with enabled sensor, or everty 2 minutes with disabled sensor
+      //// Only run once after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds with enabled sensor, or everty 2 minutes with disabled sensor
       if (lowSCL == true) {
         lowSCL = false;
         this->lastSCLLowTime = millis();
       }
       if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW) {
         loopSystemControlTasks = true;
-        attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
         return;
       }
-      // end "only run"
+      //// end "only run"
       
       if (this->IthoInit && millis() > 250)
       {
@@ -173,13 +172,6 @@ namespace esphome
         this->ithoQueue->setIthoSpeedUpdated(false);
       }
 
-      if (!loopSystemControlTasks || millis() - loopSystemControlTasksTime < 10000UL) {
-        attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
-        return;
-      }
-      loopSystemControlTasks = false;
-      loopSystemControlTasksTime = millis();
-
       if (!this->joinSend && this->ithoInitResult == 1)
       {
         if (xSemaphoreTake(this->mutexI2Ctask, (TickType_t)500 / portTICK_PERIOD_MS) == pdTRUE)
@@ -202,6 +194,12 @@ namespace esphome
           xSemaphoreGive(this->mutexI2Ctask);
         }
       }
+
+      if (!loopSystemControlTasks || millis() - loopSystemControlTasksTime < 10000UL) {
+        return;
+      }
+      loopSystemControlTasks = false;
+      loopSystemControlTasksTime = millis();
 
       if (this->i2cStartCommands)
       {
