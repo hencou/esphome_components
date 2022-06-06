@@ -19,11 +19,6 @@ namespace esphome
                                 uint8_t dataLength,
                                 uint8_t duration)
     {
-      
-      std::string addr;
-      addr += toHex(mI2cAddress >> 4);
-      addr += ' ';
-      addr += toHex(mI2cAddress & 0xF);
 
       esp_err_t rc;
       rc = mIthoI2C->i2c_master_send_command(mI2cAddress, i2cCommand, commandLength);
