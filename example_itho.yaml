@@ -41,7 +41,6 @@ itho:
 
 fan:
 - platform: itho
-  id: $device_name
   name: $friendly_name
   
 select:
