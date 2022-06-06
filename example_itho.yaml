@@ -68,8 +68,10 @@ button:
 - platform: restart
   entity_category: config
   name: ${friendly_name} restart
-  id: ${device_name}__restart
-
+- platform: safe_mode         ##Usefull when ISR calls are blocking OTA, restart in safe mode before updating
+  entity_category: config
+  name: ${friendly_name} safemode
+  
 text_sensor:
 - platform: version
   name: ${friendly_name} ESPHome versie
