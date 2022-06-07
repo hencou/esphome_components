@@ -96,22 +96,25 @@ sensor:
 - platform: template
   name: ${friendly_name} gem. luchtvochtigheid
   unit_of_measurement: "%"
-  lambda: return id(humidity_mean);
+  lambda: !lambda |-
+    return id(humidity_mean);
 
 - platform: template
   name: $friendly_name error value
   id: e_term
   update_interval: 10s
   accuracy_decimals: 1
-  lambda: return id(humidity).state - id(humidity_mean);
-
+  lambda: !lambda |-
+    return id(humidity).state - id(humidity_mean);
+  
 - platform: template
   name: $friendly_name p term
   id: p_term
   update_interval: 30s
   unit_of_measurement: "%"
   accuracy_decimals: 1
-  lambda: return id(e_term).state * id(kp).state;
+  lambda: !lambda |-
+    return float(id(e_term).state) * float(id(kp).state);
 
 - platform: template
   name: $friendly_name i term
@@ -128,7 +131,8 @@ sensor:
   update_interval: 30s
   unit_of_measurement: "%"
   accuracy_decimals: 1
-  lambda: return (id(e_term).state - id(old_e_term) * id(kd).state);
+  lambda: !lambda |-
+    return (id(e_term).state - id(old_e_term) * id(kd).state);
   on_value:
     then:
     - globals.set:
@@ -142,7 +146,8 @@ sensor:
   update_interval: 10s
   id: o_term
   accuracy_decimals: 1
-  lambda: return id(p_term).state + id(i_term).state + id(d_term).state;
+  lambda: !lambda |-
+    return id(p_term).state + id(i_term).state + id(d_term).state;
   on_value:
     then:
     - lambda: !lambda |-
