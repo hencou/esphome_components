@@ -147,7 +147,7 @@ sensor:
     - lambda: !lambda |-
         int speed = int(x);
         if (speed > 100) {speed = 100;}
-        if (speed < 1) {speed = 1;}
+        if (speed < id(minimal_output).state) {speed = id(minimal_output).state;}
         auto call = id(itho_fan).turn_on();
         call.set_speed(speed);
         call.perform();
@@ -174,6 +174,17 @@ text_sensor:
     name: ${friendly_name} BSSID
 
 number:                       ##HA controls for the frontend
+- platform: template
+  name: $friendly_name minimum output
+  id: minimal_output
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  optimistic: true
+  min_value: 10
+  max_value: 30
+  step: 1
+  
 - platform: template          ## A value of 5 is good to start with
   name: $friendly_name kp
   id: kp
