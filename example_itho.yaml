@@ -149,7 +149,7 @@ sensor:
         int speed = int(x);
         if (speed > 100) {speed = 100;}
         if (speed < id(minimal_output).state) {speed = id(minimal_output).state;}
-        auto call = id(itho_fan).turn_on();
+        auto call = id(itho_fan).make_call();
         call.set_speed(speed);
         call.perform();
 
