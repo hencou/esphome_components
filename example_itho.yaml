@@ -120,11 +120,12 @@ sensor:
   name: $friendly_name i term
   id: i_term
   update_interval: 30s
-  unit_of_measurement: "%"
   accuracy_decimals: 1
   lambda: !lambda |-
     float value = (isnan(id(i_term).state)) ? 0 : id(i_term).state + (id(e_term).state * id(ki).state);
-    return (value > 30)? 30 : value;
+    if (value > 30) {value = 30;}
+    if (value < 0) {value = 0;}
+    return value;
 
 - platform: template
   name: $friendly_name d term
@@ -144,20 +145,21 @@ sensor:
 
 - platform: template
   name: $friendly_name output term
-  unit_of_measurement: "%"
   update_interval: 10s
   id: o_term
   accuracy_decimals: 1
+  filters:
+  - filter_out: 0.0
   lambda: !lambda |-
-    return id(minimal_output).state + id(p_term).state + id(i_term).state + id(d_term).state;
+    float value = id(minimal_output).state + id(p_term).state + id(i_term).state + id(d_term).state;
+    return (value < id(minimal_output).state) ? id(minimal_output).state : value;
   on_value:
     then:
     - lambda: !lambda |-
-        int speed = int(x);
-        if (speed > 100) {speed = 100;}
-        if (speed < id(minimal_output).state) {speed = id(minimal_output).state;}
+        int speed = int(x * 2.54);
+        if (speed > 254) {speed = 254;}
         auto call = id(itho_fan).make_call();
-        call.set_speed(speed*2.54);
+        call.set_speed(speed);
         call.perform();
 
 button:
