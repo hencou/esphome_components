@@ -127,7 +127,7 @@ sensor:
   update_interval: 30s
   unit_of_measurement: "%"
   accuracy_decimals: 1
-  lambda: return (id(old_e_term) - id(e_term).state) * id(kd).state;
+  lambda: return (id(e_term).state) * id(kd).state - id(old_e_term);
   on_value:
     then:
     - globals.set:
