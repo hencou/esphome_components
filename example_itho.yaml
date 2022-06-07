@@ -149,7 +149,7 @@ sensor:
   id: o_term
   accuracy_decimals: 1
   lambda: !lambda |-
-    return id(p_term).state + id(i_term).state + id(d_term).state;
+    return id(minimal_output).state + id(p_term).state + id(i_term).state + id(d_term).state;
   on_value:
     then:
     - lambda: !lambda |-
