@@ -63,6 +63,7 @@ globals:
   
 sensor:
 - platform: itho
+  update_interval: 10s
   temperature:
     name: ${friendly_name} temperatuur
     filters:
