@@ -79,7 +79,7 @@ sensor:
           id: humidity_mean
           value:  !lambda |-
             id(humidity_count) = id(humidity_count) + 1;
-            if (id(humidity_count) > 1440) { id(humidity_count) = 1440;}
+            if (id(humidity_count) > 4000) { id(humidity_count) = 4000;}
             return (((id(humidity_count)-1) * id(humidity_mean)) + x) / id(humidity_count);
 
 - platform: uptime
