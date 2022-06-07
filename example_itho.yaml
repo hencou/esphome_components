@@ -111,7 +111,7 @@ sensor:
   update_interval: 30s
   unit_of_measurement: "%"
   accuracy_decimals: 1
-  lambda: return float(id(e_term).state) * id(kp).state;
+  lambda: return id(e_term).state * id(kp).state;
 
 - platform: template
   name: $friendly_name i term
@@ -128,7 +128,7 @@ sensor:
   update_interval: 30s
   unit_of_measurement: "%"
   accuracy_decimals: 1
-  lambda: return (id(e_term).state) * id(kd).state - id(old_e_term);
+  lambda: return (id(e_term).state - id(old_e_term) * id(kd).state);
   on_value:
     then:
     - globals.set:
