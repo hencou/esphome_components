@@ -1,0 +1,44 @@
+substitutions:
+  device_name: i2csniffer
+  friendly_name: i2csniffer
+
+esphome:
+  name: $device_name
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    
+external_components:
+- source: github://hencou/esphome_components
+  components: [i2c_sniffer]
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+ reboot_timeout: 480min
+
+# Enable webserver
+web_server:
+
+# Enable update Over The Air
+ota:
+
+i2c_sniffer:
+
+button:
+- platform: restart
+  entity_category: config
+  name: ${friendly_name} restart
+- platform: safe_mode
+  entity_category: config
+  name: ${friendly_name} safemode
