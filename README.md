@@ -23,9 +23,9 @@ The DCF77 library adds the ability to read and decode the atomic time broadcaste
 See the attached example "example_dcf77.yaml"
 
 # 3. Itho for ESPhome
-This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi. This example provides also an integrated standalone PID controller to drive the Itho box, with values from the integrated humidity sensor.
+This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi.
 
-See attached example "example_itho.yaml"
+See attached example "example_itho.yaml". This example provides also an integrated standalone PID controller to drive the Itho box, with values from the integrated humidity sensor.
 
 # 4. I2C sniffer for ESPhome
 A I2C sniffer implementation for a ESP32 module, using the code from https://github.com/ozarchie/I2C-sniffer. Will dump all the camptured packets from the I2C interface to the ESPhome logging console.
