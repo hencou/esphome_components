@@ -47,6 +47,14 @@ fan:
 select:
 - platform: itho
   name: ${friendly_name} level
+  id: itho_select
+  on_value:
+    then:
+    - globals.set:
+        id: faninfo
+        value:  !lambda |-
+          auto state = id(itho_select).state.c_str();
+          return state;
 
 globals:
 - id: humidity_mean
@@ -59,6 +67,10 @@ globals:
 
 - id: old_e_term
   type: float
+  restore_value: no
+  
+ - id: faninfo
+  type: std::string
   restore_value: no
   
 sensor:
@@ -156,11 +168,13 @@ sensor:
   on_value:
     then:
     - lambda: !lambda |-
-        int speed = int(x * 2.54);
-        if (speed > 254) {speed = 254;}
-        auto call = id(itho_fan).make_call();
-        call.set_speed(speed);
-        call.perform();
+        if (id(faninfo) == "medium") {
+          int speed = int(x * 2.54);
+          if (speed > 254) {speed = 254;}
+          auto call = id(itho_fan).make_call();
+          call.set_speed(speed);
+          call.perform();
+        }
 
 button:
 - platform: restart
