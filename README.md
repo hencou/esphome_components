@@ -26,3 +26,6 @@ See the attached example "example_dcf77.yaml"
 This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi.
 
 See attached example "example_itho.yaml"
+
+# 4. I2C sniffer for ESPhome
+A I2C sniffer implementation for a ESP32 module, using the code from https://github.com/ozarchie/I2C-sniffer. Will dump all the camptured packets from the I2C interface to the ESPhome logging console.
