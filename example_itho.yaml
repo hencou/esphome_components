@@ -105,7 +105,7 @@ sensor:
   update_interval: 10s
   accuracy_decimals: 1
   lambda: !lambda |-
-    return id(humidity).state - id(humidity_mean);
+    return id(humidity).state - id(humidity_mean) -1.5;
   
 - platform: template
   name: $friendly_name p term
@@ -209,7 +209,7 @@ number:                       ##HA controls for the frontend
   step: 0.1
 
 - platform: template
-  name: $friendly_name ki
+  name: $friendly_name Ki
   id: ki
   entity_category: config
   icon: mdi:chart-bell-curve
@@ -217,8 +217,8 @@ number:                       ##HA controls for the frontend
   initial_value: 0.2
   optimistic: true
   min_value: 0
-  max_value: 10
-  step: 0.1
+  max_value: 1
+  step: 0.01
 
 - platform: template
   name: $friendly_name kd
@@ -226,7 +226,7 @@ number:                       ##HA controls for the frontend
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 2.0
+  initial_value: 3.0
   optimistic: true
   min_value: 0
   max_value: 10
