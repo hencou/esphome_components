@@ -1,11 +1,5 @@
 #pragma once
 
-#include <cstdio>
-#include <string>
-
-#include <Arduino.h>
-#include <ArduinoJson.h>
-
 namespace esphome
 {
   namespace itho

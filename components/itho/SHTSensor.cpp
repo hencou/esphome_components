@@ -1,4 +1,3 @@
-#include <cinttypes>
 #include <Arduino.h>
 #include "SHTSensor.h"
 

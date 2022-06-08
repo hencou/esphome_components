@@ -1,9 +1,5 @@
 #include "IthoRemote.h"
-
-#include <string>
-#include <Arduino.h>
 #include <esphome.h>
-#include "esphome/core/log.h"
 
 namespace esphome
 {

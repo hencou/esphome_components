@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "IthoQueue.h"
 
 namespace esphome

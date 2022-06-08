@@ -1,10 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <cstdio>
-#include <string>
-
-#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Ticker.h>
 

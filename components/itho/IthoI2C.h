@@ -1,8 +1,5 @@
 #pragma once
 
-#include <driver/gpio.h>
-#include <stdint.h>
-
 #include "SystemConfig.h"
 
 #define WRITE_BIT I2C_MASTER_WRITE /*!< I2C master write */

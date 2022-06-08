@@ -2,8 +2,6 @@
 
 #include "esphome/core/log.h"
 #include "esphome.h"
-#include "esphome/core/helpers.h"
-#include "esphome/core/util.h"
 #include "esphome/core/component.h"
 
 namespace esphome

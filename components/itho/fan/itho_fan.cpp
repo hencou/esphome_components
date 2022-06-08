@@ -1,11 +1,6 @@
 #include "itho_fan.h"
 #include "esphome/core/log.h"
-
-#include "esphome.h"
-#include "esphome/core/helpers.h"
-#include "esphome/core/util.h"
 #include "esphome/core/component.h"
-#include "esphome/components/fan/fan_state.h"
 
 namespace esphome {
 namespace itho {

@@ -1,13 +1,6 @@
 #pragma once
 
-#include <cstdio>
-#include <string>
-#include <cstring>
-#include <vector>
 #include <map>
-#include <functional>
-
-#include <Arduino.h>
 #include <Ticker.h>
 
 #include "IthoPacket.h"
