@@ -197,7 +197,7 @@ number:                       ##HA controls for the frontend
   step: 1
   
 - platform: template
-  name: $friendly_name kp
+  name: $friendly_name Kp
   id: kp
   entity_category: config
   icon: mdi:chart-bell-curve
@@ -221,7 +221,7 @@ number:                       ##HA controls for the frontend
   step: 0.01
 
 - platform: template
-  name: $friendly_name kd
+  name: $friendly_name Kd
   id: kd
   entity_category: config
   icon: mdi:chart-bell-curve
