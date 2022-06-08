@@ -53,8 +53,7 @@ select:
     - globals.set:
         id: faninfo
         value:  !lambda |-
-          auto state = id(itho_select).state.c_str();
-          return state;
+          return x.c_str();
 
 globals:
 - id: humidity_mean
@@ -91,7 +90,7 @@ sensor:
           id: humidity_mean
           value:  !lambda |-
             id(humidity_count) = id(humidity_count) + 1;
-            if (id(humidity_count) > 4000) { id(humidity_count) = 4000;}
+            if (id(humidity_count) > 1000) { id(humidity_count) = 1000;}
             return (((id(humidity_count)-1) * id(humidity_mean)) + x) / id(humidity_count);
 
 - platform: uptime
@@ -122,11 +121,11 @@ sensor:
 - platform: template
   name: $friendly_name p term
   id: p_term
-  update_interval: 30s
+  update_interval: 15s
   unit_of_measurement: "%"
   accuracy_decimals: 1
   lambda: !lambda |-
-    return float(id(e_term).state) * float(id(kp).state);
+    return id(e_term).state * id(kp).state;
 
 - platform: template
   name: $friendly_name i term
@@ -142,7 +141,7 @@ sensor:
 - platform: template
   name: $friendly_name d term
   id: d_term
-  update_interval: 30s
+  update_interval: 15s
   unit_of_measurement: "%"
   accuracy_decimals: 1
   lambda: !lambda |-
