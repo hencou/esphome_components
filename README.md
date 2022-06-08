@@ -23,7 +23,7 @@ The DCF77 library adds the ability to read and decode the atomic time broadcaste
 See the attached example "example_dcf77.yaml"
 
 # 3. Itho for ESPhome
-This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi.
+This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenhiemstra/ithowifi. This example provides also an integrated standalone PID controller to drive the Itho box, with values from the integrated humidity sensor.
 
 See attached example "example_itho.yaml"
 
