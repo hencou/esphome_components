@@ -13,28 +13,22 @@ esp32:
 external_components:
 - source: github://hencou/esphome_components
   components: [itho]
-
+    
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   fast_connect: true
 
-# Enable logging
 logger:
   level: INFO
 
-# Enable Home Assistant API
 api:
  reboot_timeout: 480min
 
-# Enable webserver
-web_server:
-
-# Enable update Over The Air
 ota:
 
 itho:
-  syssht30: enable        ##Optional, default enabled: enable or disable Itho build in sensor and automation, set to disable when using own automation logic
+  syssht30: disable       ##Optional, default enabled: enable or disable Itho build in sensor and automation, set to disable when using own automation logic
   syssht30_address: 0x44  ##Optional, default 0x44, I2C SHT30 sensor address
   sda: 21                 ##Optional, default to default SDA pin of ESP module (21)
   scl: 22                 ##Optional, default to default SCL pin of ESP module (22)
@@ -46,157 +40,45 @@ fan:
   
 select:
 - platform: itho
-  name: ${friendly_name} level
+  name: ${friendly_name} stand
   id: itho_select
   on_value:
     then:
     - globals.set:
         id: faninfo
-        value:  !lambda |-
+        value: !lambda |-
           return x.c_str();
 
 globals:
 - id: humidity_mean
   type: float
-  restore_value: no
 
 - id: humidity_count
   type: int
-  restore_value: no
 
 - id: old_e_term
   type: float
-  restore_value: no
+
+- id: e_term
+  type: float
   
- - id: faninfo
+- id: p_term
+  type: float
+  
+- id: i_term
+  type: float
+  
+- id: d_term
+  type: float
+  
+- id: o_term
+  type: float
+  
+- id: faninfo
   type: std::string
-  restore_value: no
   
-sensor:
-- platform: itho
-  update_interval: 10s
-  temperature:
-    name: ${friendly_name} temperatuur
-    filters:
-    - filter_out: 0.0
-  humidity:
-    name: ${friendly_name} luchtvochtigheid
-    filters:
-    - filter_out: 0.0
-    id: "humidity"
-    on_value:
-      then:
-      - globals.set:
-          id: humidity_mean
-          value:  !lambda |-
-            id(humidity_count) = id(humidity_count) + 1;
-            if (id(humidity_count) > 1000) { id(humidity_count) = 1000;}
-            return (((id(humidity_count)-1) * id(humidity_mean)) + x) / id(humidity_count);
-
-- platform: uptime
-  name: ${friendly_name} uptime
-  filters:
-    - throttle: 300s
-
-- platform: wifi_signal
-  name: ${friendly_name} WiFi signaal
-  filters:
-    - delta: 0.01
-    - throttle: 300s
-
-- platform: template
-  name: ${friendly_name} gem. luchtvochtigheid
-  unit_of_measurement: "%"
-  lambda: !lambda |-
-    return id(humidity_mean);
-
-- platform: template
-  name: $friendly_name error value
-  id: e_term
-  update_interval: 10s
-  accuracy_decimals: 1
-  lambda: !lambda |-
-    return id(humidity).state - id(humidity_mean) -1.5;
-  
-- platform: template
-  name: $friendly_name p term
-  id: p_term
-  update_interval: 15s
-  unit_of_measurement: "%"
-  accuracy_decimals: 1
-  lambda: !lambda |-
-    return id(e_term).state * id(kp).state;
-
-- platform: template
-  name: $friendly_name i term
-  id: i_term
-  update_interval: 30s
-  accuracy_decimals: 1
-  lambda: !lambda |-
-    float value = (isnan(id(i_term).state)) ? 0 : id(i_term).state + (id(e_term).state * id(ki).state);
-    if (value > 30) {value = 30;}
-    if (value < 0) {value = 0;}
-    return value;
-
-- platform: template
-  name: $friendly_name d term
-  id: d_term
-  update_interval: 15s
-  unit_of_measurement: "%"
-  accuracy_decimals: 1
-  lambda: !lambda |-
-    float value = (id(e_term).state - id(old_e_term) * id(kd).state);
-    return (value < 0)? 0 : value;
-  on_value:
-    then:
-    - globals.set:
-        id: old_e_term
-        value: !lambda |-
-          return id(e_term).state;
-
-- platform: template
-  name: $friendly_name output term
-  update_interval: 10s
-  id: o_term
-  accuracy_decimals: 1
-  filters:
-  - filter_out: 0.0
-  lambda: !lambda |-
-    float value = id(minimal_output).state + id(p_term).state + id(i_term).state + id(d_term).state;
-    return (value < id(minimal_output).state) ? id(minimal_output).state : value;
-  on_value:
-    then:
-    - lambda: !lambda |-
-        if (id(faninfo) == "medium") {
-          int speed = int(x * 2.54);
-          if (speed > 254) {speed = 254;}
-          auto call = id(itho_fan).make_call();
-          call.set_speed(speed);
-          call.perform();
-        }
-
-button:
-- platform: restart
-  entity_category: config
-  name: ${friendly_name} restart
-
-- platform: safe_mode         ##Usefull when ISR calls are blocking OTA, restart in safe mode before updating
-  entity_category: config
-  name: ${friendly_name} safemode
-  
-text_sensor:
-- platform: version
-  name: ${friendly_name} ESPHome versie
-
-- platform: wifi_info
-  ip_address:
-    name: ${friendly_name} ipadres
-  ssid:
-    name: ${friendly_name} SSID
-  bssid:
-    name: ${friendly_name} BSSID
-
-number:                       ##HA controls for the frontend
+##HA controls for the frontend
+number:
 - platform: template
   name: $friendly_name minimum output
   id: minimal_output
@@ -215,7 +97,7 @@ number:                       ##HA controls for the frontend
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 5.0
+  initial_value: 4.0
   optimistic: true
   min_value: 0
   max_value: 10
@@ -227,7 +109,7 @@ number:                       ##HA controls for the frontend
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 0.2
+  initial_value: 0.1
   optimistic: true
   min_value: 0
   max_value: 1
@@ -239,8 +121,141 @@ number:                       ##HA controls for the frontend
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 3.0
+  initial_value: 8.0
   optimistic: true
   min_value: 0
-  max_value: 10
+  max_value: 20
   step: 0.1
+  
+sensor:
+- platform: itho
+  update_interval: 8s
+  temperature:
+    name: ${friendly_name} temperatuur
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+  humidity:
+    name: ${friendly_name} luchtvochtigheid
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+    id: "humidity"
+    on_raw_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: humidity
+            above: 0.1
+            below: 120.0
+        then:
+        - globals.set:
+            id: humidity_mean
+            value:  !lambda |-
+              id(humidity_count) = id(humidity_count) + 1;
+              if (id(humidity_count) > 1000) { id(humidity_count) = 1000;}
+              return (((id(humidity_count)-1) * id(humidity_mean)) + x) / id(humidity_count);
+        - globals.set:
+            id: e_term
+            value: !lambda |-
+              return x - id(humidity_mean) - 1.5;
+        - globals.set:
+            id: p_term
+            value: !lambda |-
+              return id(e_term) * id(kp).state;
+        - globals.set:
+            id: i_term
+            value: !lambda |-
+              float value = id(i_term) + (id(e_term) * id(ki).state);
+              if (value > 30) {value = 30;}
+              if (value < 0) {value = 0;}
+              return value;
+        - globals.set:
+            id: d_term
+            value: !lambda |-
+              float value = (id(e_term) - id(old_e_term)) * id(kd).state;
+              return (value < 0)? 0 : value;
+        - globals.set:
+            id: old_e_term
+            value: !lambda |-
+              return id(e_term);
+        - globals.set:
+            id: o_term
+            value: !lambda |-
+              float value = id(minimal_output).state + id(p_term) + id(i_term) + id(d_term);
+              return (value < id(minimal_output).state) ? id(minimal_output).state : value;
+        - lambda: !lambda |-
+            if (id(faninfo) == "medium") {
+              int speed = int(id(o_term) * 2.54);
+              if (speed > 254) {speed = 254;}
+              auto call = id(itho_fan).make_call();
+              call.set_speed(speed);
+              call.perform();
+            }
+
+- platform: template
+  name: ${friendly_name} gem. luchtvochtigheid
+  unit_of_measurement: "%"
+  lambda: !lambda |-
+    return id(humidity_mean);
+
+- platform: template
+  name: $friendly_name error value
+  lambda: !lambda |-
+    return id(e_term);
+  
+- platform: template
+  name: $friendly_name p term
+  lambda: !lambda |-
+    return id(p_term);
+
+- platform: template
+  name: $friendly_name i term
+  lambda: !lambda |-
+    return id(i_term);
+
+- platform: template
+  name: $friendly_name d term
+  lambda: !lambda |-
+    return id(d_term);
+
+- platform: template
+  name: $friendly_name output term
+  lambda: !lambda |-
+    return id(o_term);
+        
+- platform: uptime
+  name: ${friendly_name} uptime
+  filters:
+    - throttle: 300s
+
+- platform: wifi_signal
+  name: ${friendly_name} WiFi signaal
+  filters:
+    - delta: 0.01
+    - throttle: 300s
+        
+button:
+- platform: restart
+  entity_category: config
+  name: ${friendly_name} restart
+
+- platform: safe_mode
+  entity_category: config
+  name: ${friendly_name} safemode
+
+text_sensor:
+- platform: version
+  name: ${friendly_name} ESPHome versie
+
+- platform: wifi_info
+  ip_address:
+    name: ${friendly_name} ipadres
+  ssid:
+    name: ${friendly_name} SSID
+  bssid:
+    name: ${friendly_name} BSSID
+
+
