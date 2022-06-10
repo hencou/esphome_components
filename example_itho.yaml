@@ -85,10 +85,10 @@ number:
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 30.0
+  initial_value: 15.0
   optimistic: true
   min_value: 10
-  max_value: 50
+  max_value: 30
   step: 1
   
 - platform: template
@@ -97,7 +97,7 @@ number:
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 4.0
+  initial_value: 5.0
   optimistic: true
   min_value: 0
   max_value: 10
@@ -109,11 +109,23 @@ number:
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 0.1
+  initial_value: 0.05
   optimistic: true
   min_value: 0
-  max_value: 1
-  step: 0.01
+  max_value: 0.1
+  step: 0.001
+
+- platform: template
+  name: $friendly_name max i term
+  id: max_i_term
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 30
+  optimistic: true
+  min_value: 0
+  max_value: 50
+  step: 1
 
 - platform: template
   name: $friendly_name Kd
@@ -121,10 +133,10 @@ number:
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 8.0
+  initial_value: 4.0
   optimistic: true
   min_value: 0
-  max_value: 20
+  max_value: 10
   step: 0.1
   
 sensor:
@@ -160,7 +172,7 @@ sensor:
         - globals.set:
             id: e_term
             value: !lambda |-
-              return x - id(humidity_mean) - 1.5;
+              return x - id(humidity_mean) - 2.0;
         - globals.set:
             id: p_term
             value: !lambda |-
@@ -169,7 +181,7 @@ sensor:
             id: i_term
             value: !lambda |-
               float value = id(i_term) + (id(e_term) * id(ki).state);
-              if (value > 30) {value = 30;}
+              if (value > id(max_i_term).state) {value = id(max_i_term).state;}
               if (value < 0) {value = 0;}
               return value;
         - globals.set:
@@ -184,7 +196,7 @@ sensor:
         - globals.set:
             id: o_term
             value: !lambda |-
-              float value = id(minimal_output).state + id(p_term) + id(i_term) + id(d_term);
+              float value = id(p_term) + id(i_term) + id(d_term);
               return (value < id(minimal_output).state) ? id(minimal_output).state : value;
         - lambda: !lambda |-
             if (id(faninfo) == "medium") {
@@ -257,5 +269,4 @@ text_sensor:
     name: ${friendly_name} SSID
   bssid:
     name: ${friendly_name} BSSID
-
 
