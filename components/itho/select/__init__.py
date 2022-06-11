@@ -41,7 +41,7 @@ CONFIG_SCHEMA = cv.All(
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    await select.register_select(var, config, options=["away", "low", "medium", "high"])
+    await select.register_select(var, config, options=["manual", "away", "low", "auto", "high"])
 
     if CONF_LAMBDA in config:
         itho_ = await cg.process_lambda(

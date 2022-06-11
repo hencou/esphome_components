@@ -33,14 +33,14 @@ void Itho_Select::setup() {
 
 void Itho_Select::loop() {
   if (parent_->getIthoFanInfo() != ithoFanInfo) {
+    ESP_LOGD(TAG, "Updated ithoFanInfo this->state: %s", this->state.c_str());
+    ESP_LOGD(TAG, "Updated ithoFanInfo parent_->getIthoFanInfo(): %s", parent_->getIthoFanInfo().c_str());
     ithoFanInfo = parent_->getIthoFanInfo();
-    
-    if (strcmp(ithoFanInfo.c_str(), "auto") == 0) {
-      this->publish_state("medium");
+    if (this->state == "manual" && parent_->getIthoFanInfo() == "auto") {
+      this->publish_state("manual");
     } else {
       this->publish_state(ithoFanInfo);
     }
-  
     ESP_LOGD(TAG, "Updated ithoFanInfo: %s", ithoFanInfo.c_str());
   }
 } 
@@ -56,8 +56,14 @@ void Itho_Select::control(const std::string &value) {
 
     this->pref_.save(&index);
   }
-
-  bool success = parent_->ithoI2CCommand(0, value);
+  
+if (value == "manual" || value == "auto") {
+    const std::string s = "medium";
+    bool success = parent_->ithoI2CCommand(0, s);
+    this->publish_state(value);
+  } else {
+    bool success = parent_->ithoI2CCommand(0, value);
+  }
 }
 
 void Itho_Select::dump_config() {
