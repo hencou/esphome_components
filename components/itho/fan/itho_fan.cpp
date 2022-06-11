@@ -24,7 +24,7 @@ void Itho_Fan::setup() {
 void Itho_Fan::dump_config() { LOG_FAN("", "Speed Fan", this); }
 
 fan::FanTraits Itho_Fan::get_traits() {
-  return fan::FanTraits(false, true, false, 255);
+  return fan::FanTraits(false, true, false, 254);
 }
 
 void Itho_Fan::control(const fan::FanCall &call) {
