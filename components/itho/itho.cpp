@@ -288,7 +288,7 @@ namespace esphome
 
     bool Itho::setIthoSpeed(uint16_t value)
     {
-
+      value += 12; //Correct diff between input and output values
       if (value > 254)
         value = 254;
       if (this->ithoSystem->getIthoSpeed() != value)
