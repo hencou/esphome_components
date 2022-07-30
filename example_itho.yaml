@@ -197,6 +197,7 @@ sensor:
             id: o_term
             value: !lambda |-
               float value = id(p_term) + id(i_term) + id(d_term);
+              value = (id(o_term) < value) ? value : id(o_term) -1; //Fast speed up, slow speed down
               return (value < id(minimal_output).state) ? id(minimal_output).state : value;
         - lambda: !lambda |-
             if (id(faninfo) == "medium") {
