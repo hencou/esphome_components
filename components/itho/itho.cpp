@@ -28,7 +28,7 @@ namespace esphome
 
     void Itho::execSystemControlTasks()
     {
-      //// Only run once after a 2 seconds of inactivity on the I2C bus. Itho queries the bus every 8 seconds
+      //// Only run once after a 200 msec of inactivity on the I2C bus. Itho queries the bus every 8 seconds
       if (lowSCL == true)
       {
         lowSCL = false;
