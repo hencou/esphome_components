@@ -35,7 +35,7 @@ namespace esphome
         ESP_LOGD(TAG, "lowSCL triggered");
         this->lastSCLLowTime = millis();
       }
-      if (millis() - lastSCLLowTime < 2000 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW)
+      if (millis() - lastSCLLowTime < 200 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW)
       {
         loopSystemControlTasks = true;
         return;
