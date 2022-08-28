@@ -231,6 +231,7 @@ sensor:
 
 - platform: template
   name: $friendly_name d term
+  id: d_term_t
   lambda: !lambda |-
     return id(d_term);
 
@@ -249,7 +250,15 @@ sensor:
   filters:
     - delta: 0.01
     - throttle: 300s
-        
+
+binary_sensor:
+- platform: analog_threshold
+  name: ${friendly_name} douchen
+  sensor_id: d_term_t
+  threshold:
+    upper: 5
+    lower: -5
+    
 button:
 - platform: restart
   entity_category: config
