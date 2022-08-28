@@ -256,8 +256,8 @@ binary_sensor:
   name: ${friendly_name} douchen
   sensor_id: d_term_t
   threshold:
-    upper: 5
-    lower: -5
+    upper: 1
+    lower: -1
     
 button:
 - platform: restart
