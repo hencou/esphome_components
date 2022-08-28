@@ -188,7 +188,7 @@ sensor:
             id: d_term
             value: !lambda |-
               float value = (id(e_term) - id(old_e_term)) * id(kd).state;
-              return (value < 0)? 0 : value;
+              return value;
         - globals.set:
             id: old_e_term
             value: !lambda |-
@@ -196,7 +196,7 @@ sensor:
         - globals.set:
             id: o_term
             value: !lambda |-
-              float value = id(p_term) + id(i_term) + id(d_term);
+              float value = id(p_term) + id(i_term) + ((id(d_term) < 0)? 0 : id(d_term));
               value = (id(o_term) < value) ? value : id(o_term) -1; //Fast speed up, slow speed down
               return (value < id(minimal_output).state) ? id(minimal_output).state : value;
         - lambda: !lambda |-
