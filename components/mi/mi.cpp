@@ -381,6 +381,7 @@ namespace esphome {
           if (values.get_state() == 0.0f) {
             root.remove("color");
             root.remove("white_value");
+            root.remove("brightness");
           }
         }
 
