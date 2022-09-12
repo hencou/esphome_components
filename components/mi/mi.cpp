@@ -375,6 +375,14 @@ namespace esphome {
         if (!(values.get_color_mode() & light::ColorCapability::RGB)) {
           root.remove("color");
         }
+        
+        //Remove unwanted color and white commands when set RGBW light to Off
+        if (values.get_color_mode() == light::ColorMode::RGB_WHITE) {
+          if (values.get_state() == 0.0f) {
+            root.remove("color");
+            root.remove("white_value");
+          }
+        }
 
         if (values.get_color_mode() & light::ColorCapability::COLOR_TEMPERATURE) {
           root["color_temp"] = uint32_t(values.get_color_temperature());
