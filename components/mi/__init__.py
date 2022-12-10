@@ -61,7 +61,7 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
       cv.Optional(CONF_PACKET_REPEATS) : cv.uint16_t,
       cv.Optional(CONF_LISTEN_REPEATS) : cv.uint8_t,
-      cv.Optional(CONF_STATE_FLUSH_INTERVAL) : cv.uint16_t,
+      cv.Optional(CONF_STATE_FLUSH_INTERVAL): cv.int_range(min=1000, max=20000),
       cv.Optional(CONF_PACKET_REPEAT_THROTTLE_THRESHOLD) : cv.uint16_t,
       cv.Optional(CONF_PACKET_REPEAT_THROTTLE_SENSITIVITY) : cv.uint16_t,
       cv.Optional(CONF_PACKET_REPEAT_MINIMUM) : cv.uint16_t,
