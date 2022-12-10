@@ -89,7 +89,7 @@ namespace esphome {
           MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020
           ) {
 
-        for (int i = 1; i < 9; i++) {
+        for (int i = 0; i < 9; i++) {
           state_->add_effects({new light::LambdaLightEffect(esphome::to_string(i), [=](bool initial_run) -> void {
             auto call = state_->make_call();
             call.set_effect(i);
