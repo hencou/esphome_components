@@ -44,6 +44,7 @@ CONF_RF24_CHANNELS = "rf24_channels"
 CONF_RF24_LISTEN_CHANNEL = "rf24_listen_channel"
 CONF_PACKET_REPEATS_PER_LOOP = "packet_repeats_per_loop"
 CONF_ON_COMMAND_RECEIVED = "on_command_received"
+CONF_RESEND_LAST_COMMAND = "resend_last_command"
 
 MiBridgeData = mi_ns.struct("MiBridgeData")
 MiBridgeReceivedCodeTrigger = mi_ns.class_(
@@ -70,6 +71,7 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_RF24_CHANNELS) : cv.All(cv.ensure_list(cv.enum(CHANNELS)), cv.Length(min=1, max=3)),
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
       cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.uint16_t,
+      cv.Optional(CONF_RESEND_LAST_COMMAND) : cv.boolean,
       cv.Optional(CONF_ON_COMMAND_RECEIVED): automation.validate_automation(
           {
             cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
