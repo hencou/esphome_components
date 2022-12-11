@@ -132,8 +132,8 @@ async def to_code(config):
     if CONF_PACKET_REPEATS_PER_LOOP in config:
       cg.add(var.set_packet_repeats_per_loop(config[CONF_PACKET_REPEATS_PER_LOOP]))
       
-    if CONF_ON_COMMAND_RECEIVED in config:
-      cg.add(var.set_resend_last_command(config[CONF_ON_COMMAND_RECEIVED]))
+    if CONF_RESEND_LAST_COMMAND in config:
+      cg.add(var.set_resend_last_command(config[CONF_RESEND_LAST_COMMAND]))
 
     if CONF_RF24_CHANNELS in config:
       cg.add(var.del_rf24_channels())
