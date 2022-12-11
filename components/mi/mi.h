@@ -101,6 +101,7 @@ namespace esphome {
         void add_rf24_channel(String value) {settings.rf24Channels.push_back(RF24ChannelHelpers::valueFromName(value));}
         void set_rf24_listen_channel(String value) {settings.rf24ListenChannel = RF24ChannelHelpers::valueFromName(value);}
         void set_packet_repeats_per_loop(size_t value) {settings.packetRepeatsPerLoop = value;}
+        void set_resend_last_command(bool value) {settings.resendLastCommand = value;}
       private:
 
         Settings settings;
