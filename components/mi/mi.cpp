@@ -32,17 +32,40 @@ namespace esphome {
         return;
       }
 
-      // update state to reflect changes from this packet
-      groupState = stateStore->get(bulbId);
+      for (MiOutput miOutput : Mi::miOutputs) {
+        //also listen to groupId 0
+        if (
+            bulbId.deviceId == miOutput.bulbId.deviceId &&
+             (
+              bulbId.groupId == miOutput.bulbId.groupId ||
+              bulbId.groupId == 0
+             )
+           )
+        {
+          // update state to reflect changes from this packet
+          groupState = stateStore->get(bulbId);
 
-      // pass in previous scratch state as well
-      const GroupState stateUpdates(groupState, result);
+          // pass in previous scratch state as well
+          const GroupState stateUpdates(groupState, result);
 
-      if (groupState != NULL) {
-        groupState->patch(stateUpdates);
+          if (groupState != NULL) {
+            groupState->patch(stateUpdates);
 
-        // Copy state before setting it to avoid group 0 re-initialization clobbering it
-        stateStore->set(bulbId, stateUpdates);
+            // Copy state before setting it to avoid group 0 re-initialization clobbering it
+            stateStore->set(bulbId, stateUpdates);
+            
+            light::LightState* state;
+            if (bulbId.groupId == 0) {
+              for (MiOutput miOutput : Mi::miOutputs) {
+                if (bulbId.deviceId == miOutput.bulbId.deviceId) {
+                  state = App.get_light_by_key(miOutput.key);
+                  Mi::updateOutput(state, result);
+                }
+              }
+            } 
+          }
+          break;
+        }
       }
     }
 
