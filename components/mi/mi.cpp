@@ -426,16 +426,18 @@ namespace esphome {
       
       milightClient->clearRepeatsOverride();
       
-      Request request = Request();
-      serializeJson(requestJson, request.request);
-      ESP_LOGD(TAG, "Send Milight request: %s", request.request);
+      if (settings.resendLastCommand == true) {
+        Request request = Request();
+        serializeJson(requestJson, request.request);
+        ESP_LOGD(TAG, "Send Milight request: %s", request.request);
 
-      int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
-      if (pos > -1) {
-        requests.Replace(pos, request);
-      } else {
-        bulbCompactIds.Add(bulbId.getCompactId());
-        requests.Add(request);
+        int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
+        if (pos > -1) {
+          requests.Replace(pos, request);
+        } else {
+          bulbCompactIds.Add(bulbId.getCompactId());
+          requests.Add(request);
+        }
       }
       
       lastRequestTime = millis();
