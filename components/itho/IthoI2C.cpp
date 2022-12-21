@@ -17,19 +17,19 @@ namespace esphome
       }
       
       #ifdef ESPRESSIF32_3_5_0
-       i2c_config_t conf = {I2C_MODE_MASTER, master_sda_pin, I2C_MASTER_SDA_PULLUP, master_scl_pin, I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
+        i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
       #else
-      i2c_config_t conf = {
-          .mode = I2C_MODE_MASTER,
-          .sda_io_num = master_sda_pin,
-          .scl_io_num = master_scl_pin,
-          .sda_pullup_en = I2C_MASTER_SDA_PULLUP,
-          .scl_pullup_en = I2C_MASTER_SCL_PULLUP,
-          .master = {
-              .clk_speed = I2C_MASTER_FREQ_HZ,
-          },
-          .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL, // optional
-      };
+        i2c_config_t conf = {
+            .mode = I2C_MODE_MASTER,
+            .sda_io_num = systemConfig->getI2C_SDA_Pin(),
+            .scl_io_num = systemConfig->getI2C_SCL_Pin(),
+            .sda_pullup_en = I2C_MASTER_SDA_PULLUP,
+            .scl_pullup_en = I2C_MASTER_SCL_PULLUP,
+            .master = {
+                .clk_speed = I2C_MASTER_FREQ_HZ,
+            },
+            .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL, // optional
+        };
       #endif
       
       i2c_param_config(I2C_MASTER_NUM, &conf);
