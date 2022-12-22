@@ -53,8 +53,8 @@ namespace esphome
       #else
         i2c_config_t conf_slave = {
             .mode = I2C_MODE_SLAVE,
-            .sda_io_num = systemConfig->getI2C_SDA_Pin(),,
-            .scl_io_num = systemConfig->getI2C_SCL_Pin(),,
+            .sda_io_num = systemConfig->getI2C_SDA_Pin(),
+            .scl_io_num = systemConfig->getI2C_SCL_Pin(),
             .sda_pullup_en = I2C_SLAVE_SDA_PULLUP,
             .scl_pullup_en = I2C_SLAVE_SCL_PULLUP,
             .slave = {
