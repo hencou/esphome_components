@@ -49,16 +49,18 @@ namespace esphome
       }
       
       #ifdef ESPRESSIF32_3_5_0
-        i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
+        i2c_config_t conf_slave = {I2C_MODE_SLAVE, slave_sda_pin, I2C_SLAVE_SDA_PULLUP, slave_scl_pin, I2C_SLAVE_SCL_PULLUP, {.slave = {0, I2C_SLAVE_ADDRESS}}};
       #else
-        i2c_config_t conf = {
-            .mode = I2C_MODE_MASTER,
-            .sda_io_num = systemConfig->getI2C_SDA_Pin(),
-            .scl_io_num = systemConfig->getI2C_SCL_Pin(),
-            .sda_pullup_en = I2C_MASTER_SDA_PULLUP,
-            .scl_pullup_en = I2C_MASTER_SCL_PULLUP,
-            .master = {
-                .clk_speed = I2C_MASTER_FREQ_HZ,
+        i2c_config_t conf_slave = {
+            .mode = I2C_MODE_SLAVE,
+            .sda_io_num = systemConfig->getI2C_SDA_Pin(),,
+            .scl_io_num = systemConfig->getI2C_SCL_Pin(),,
+            .sda_pullup_en = I2C_SLAVE_SDA_PULLUP,
+            .scl_pullup_en = I2C_SLAVE_SCL_PULLUP,
+            .slave = {
+                .addr_10bit_en = 0,
+                .slave_addr = I2C_SLAVE_ADDRESS,
+                .maximum_speed = 400000UL,
             },
             .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL, // optional
         };
