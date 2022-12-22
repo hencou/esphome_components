@@ -66,9 +66,9 @@ namespace esphome
         };
       #endif
       
-      i2c_param_config(I2C_SLAVE_NUM, &conf);
+      i2c_param_config(I2C_SLAVE_NUM, &conf_slave);
 
-      i2c_driver_install(I2C_SLAVE_NUM, conf.mode, I2C_SLAVE_RX_BUF_LEN, 0, 0);
+      i2c_driver_install(I2C_SLAVE_NUM, conf_slave.mode, I2C_SLAVE_RX_BUF_LEN, 0, 0);
 
       i2c_set_timeout(I2C_SLAVE_NUM, 0xFFFFF);
     }
