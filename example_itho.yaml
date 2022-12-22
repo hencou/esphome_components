@@ -9,8 +9,6 @@ esp32:
   board: esp32dev
   framework:
     type: arduino
-    version: 1.0.6
-    platform_version: 3.5.0
     
 external_components:
 - source: github://hencou/esphome_components
