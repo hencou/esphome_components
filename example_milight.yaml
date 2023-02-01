@@ -4,15 +4,20 @@ substitutions:
 
 esphome:
   name: $device_name
-  #platformio_options:                     #optional, to set addiotional build flags
-  #  build_flags:                          #optional, to set addiotional build flags
-  #  - -DUSE_ESP32_ALTERNATE_SPI           #optional, to use the alternate HSPI SPI bus instead of the default VSPI on an ESP32 board
+  # platformio_options:                     #optional, to set addiotional build flags
+  #   build_flags:                          #optional, to set addiotional build flags
+  #     - "-D USE_ESP32_ALTERNATE_SPI"      #optional, to use the alternate HSPI SPI bus instead of the default VSPI on an ESP32 board
+  #     - "-D ALT_SPI_MISO_PIN=15"          #optional, if HSPI bus is used, alternate pins can also be defined
+  #     - "-D ALT_SPI_MOSI_PIN=14"
+  #     - "-D ALT_SPI_SCLK_PIN=12"
+  #     - "-D ALT_SPI_SS_PIN=4"
+
   libraries:
     - milight=https://github.com/hencou/esphome-milight
 
 external_components:
-- source: github://hencou/esphome_components
-  components: mi
+  - source: github://hencou/esphome_components
+    components: mi
 
 esp8266:
   board: d1_mini
@@ -32,109 +37,109 @@ wifi:
   fast_connect: true
 
 mi:
-  ce_pin: D2                              #required, default: 4
-  csn_pin: D8                             #required, default: 15
-  reset_pin: 0                            #optional, default: 0, only needed with LT8900 radio
-  radio_interface_type: nrf24             #optional, default: nrf24, possible values: nrf24,lt8900
-  packet_repeats: 50                      #optional, default: 50, total of sended packets per command
-  listen_repeats: 20                      #optional, default: 20, amount of received packets needed for a incoming command from other remote
-  state_flush_interval: 5000              #optional, default: 10000, time in miliseconds to send the latest state report to HomeAssistant
-  packet_repeat_throttle_threshold: 200   #optional, default: 200, threshold to limit the amount of packets in a second
-  packet_repeat_throttle_sensitivity: 0   #optional, default: 0
-  packet_repeat_minimum: 3                #optional, default: 3
-  enable_automatic_mode_switching: false  #optional, default: false
-  rf24_power_level: MAX                   #optional, default: MAX, possible values: MIN, LOW, HIGH, MAX
-  rf24_listen_channel: LOW                #optional, default: LOW, possible values: LOW, MID, HIGH
-  packet_repeats_per_loop: 10             #optional, default: 10, repeat packets sended per loop
-  resend_last_command: true               #optional, default: true, repeats the latest command after a random time between 2 and 3 seconds again
-  rf24_channels:                          #optional, 1-3 values required when used, default: LOW-MID-HIGH, possible values: LOW, MID, HIGH
-  - LOW
-  - MID
-  - HIGH
-  on_command_received:                    #optional, useful to send remote commands to HA and process them further there in automations
-  - homeassistant.event:
-      event: esphome.mi_command_received
-      data:
-        device_id: !lambda 'return format_hex(data.device_id);'
-        group_id: !lambda 'return data.group_id;'
-        remote_type: !lambda 'return data.remote_type.c_str();'
-        command: !lambda 'return data.command.c_str();'
+  ce_pin: D2 #required, default: 4
+  csn_pin: D8 #required, default: 15
+  reset_pin: 0 #optional, default: 0, only needed with LT8900 radio
+  radio_interface_type: nrf24 #optional, default: nrf24, possible values: nrf24,lt8900
+  packet_repeats: 50 #optional, default: 50, total of sended packets per command
+  listen_repeats: 20 #optional, default: 20, amount of received packets needed for a incoming command from other remote
+  state_flush_interval: 5000 #optional, default: 10000, time in miliseconds to send the latest state report to HomeAssistant
+  packet_repeat_throttle_threshold: 200 #optional, default: 200, threshold to limit the amount of packets in a second
+  packet_repeat_throttle_sensitivity: 0 #optional, default: 0
+  packet_repeat_minimum: 3 #optional, default: 3
+  enable_automatic_mode_switching: false #optional, default: false
+  rf24_power_level: MAX #optional, default: MAX, possible values: MIN, LOW, HIGH, MAX
+  rf24_listen_channel: LOW #optional, default: LOW, possible values: LOW, MID, HIGH
+  packet_repeats_per_loop: 10 #optional, default: 10, repeat packets sended per loop
+  resend_last_command: true #optional, default: true, repeats the latest command after a random time between 2 and 3 seconds again
+  rf24_channels: #optional, 1-3 values required when used, default: LOW-MID-HIGH, possible values: LOW, MID, HIGH
+    - LOW
+    - MID
+    - HIGH
+  on_command_received: #optional, useful to send remote commands to HA and process them further there in automations
+    - homeassistant.event:
+        event: esphome.mi_command_received
+        data:
+          device_id: !lambda "return format_hex(data.device_id);"
+          group_id: !lambda "return data.group_id;"
+          remote_type: !lambda "return data.remote_type.c_str();"
+          command: !lambda "return data.command.c_str();"
 
 light:
-- platform: mi                            #required
-  id: light1                              #required
-  name: ${friendly_name}                  #required
-  device_id: 0xAB01                       #required, hexadacimal value of MiLight id
-  group_id: 1                             #required, 1-4 or 1-8, depending on remote type
-  remote_type: rgb_cct                    #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020
-  default_transition_length: 0s           #optional, but 0s gives a better behaviour instead the default 200ms
+  - platform: mi #required
+    id: light1 #required
+    name: ${friendly_name} #required
+    device_id: 0xAB01 #required, hexadacimal value of MiLight id
+    group_id: 1 #required, 1-4 or 1-8, depending on remote type
+    remote_type: rgb_cct #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020
+    default_transition_length: 0s #optional, but 0s gives a better behaviour instead the default 200ms
 # optional variables: all variables of ESPHome base light component
 
 binary_sensor:
-- platform: gpio
-  id: d1
-  pin:
-    number: D1
-    mode: INPUT_PULLUP
-    inverted: True
-  on_multi_click:
-  - timing:
-    - ON for at most 0.5s
-    - OFF for at least 0.5s
-    then:
-      light.toggle: light1
-  - timing:
-    - ON for at least 1s
-    then:
-    - light.turn_on:
-        id: light1
-        brightness: 0.01
-        effect: 'None'
-    - while:
-        condition:
-          binary_sensor.is_on: d1
+  - platform: gpio
+    id: d1
+    pin:
+      number: D1
+      mode: INPUT_PULLUP
+      inverted: True
+    on_multi_click:
+      - timing:
+          - ON for at most 0.5s
+          - OFF for at least 0.5s
         then:
-        - light.dim_relative:
+          light.toggle: light1
+      - timing:
+          - ON for at least 1s
+        then:
+          - light.turn_on:
+              id: light1
+              brightness: 0.01
+              effect: "None"
+          - while:
+              condition:
+                binary_sensor.is_on: d1
+              then:
+                - light.dim_relative:
+                    id: light1
+                    relative_brightness: 7%
+                - delay: 0.3s
+      - timing:
+          - ON for at most 0.5s
+          - OFF for at most 0.5s
+          - ON for at most 0.5s
+          - OFF for at least 0.5s
+        then:
+          light.turn_on:
             id: light1
-            relative_brightness: 7%
-        - delay: 0.3s
-  - timing:
-    - ON for at most 0.5s
-    - OFF for at most 0.5s
-    - ON for at most 0.5s
-    - OFF for at least 0.5s
-    then:
-      light.turn_on:
-        id: light1
-        effect: night_mode
-  - timing:
-    - ON for at most 0.5s
-    - OFF for at most 0.5s
-    - ON for at most 0.5s
-    - OFF for at most 0.5s
-    - ON for at most 0.5s
-    - OFF for at least 0.5s
-    then:
-      light.turn_on:
-        id: light1
-        color_mode: COLOR_TEMPERATURE
-        color_temperature: 370 mireds
+            effect: night_mode
+      - timing:
+          - ON for at most 0.5s
+          - OFF for at most 0.5s
+          - ON for at most 0.5s
+          - OFF for at most 0.5s
+          - ON for at most 0.5s
+          - OFF for at least 0.5s
+        then:
+          light.turn_on:
+            id: light1
+            color_mode: COLOR_TEMPERATURE
+            color_temperature: 370 mireds
 
 #button possbile since HA version 2021.12
 button:
-- platform: mi
-  id: pair
-  name: ${friendly_name} pair
-  device_id: 0xAB01
-  group_id: 1
-  remote_type: rgb_cct
-  command: pair
-  entity_category: config
-- platform: mi
-  id: unpair
-  name: ${friendly_name} unpair
-  device_id: 0xAB01
-  group_id: 1
-  remote_type: rgb_cct
-  command: unpair
-  entity_category: config
+  - platform: mi
+    id: pair
+    name: ${friendly_name} pair
+    device_id: 0xAB01
+    group_id: 1
+    remote_type: rgb_cct
+    command: pair
+    entity_category: config
+  - platform: mi
+    id: unpair
+    name: ${friendly_name} unpair
+    device_id: 0xAB01
+    group_id: 1
+    remote_type: rgb_cct
+    command: unpair
+    entity_category: config
