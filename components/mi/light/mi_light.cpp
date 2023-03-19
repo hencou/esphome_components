@@ -100,7 +100,19 @@ namespace esphome {
       }
     }
 
+    float mi_color_temperature(float real_color_temperature) {
+      const auto MI_MIN = 153;
+      const auto MI_MAX = 370;
+      const auto MI_RANGE = MI_MAX - MI_MIN;
+      float range = warm_white_temperature_ - cold_white_temperature_;
+      float pct = (real_color_temperature - cold_white_temperature_) / range;
+      return pct * MI_RANGE + MI_MIN;
+    }
+
     void MiLight::write_state(light::LightState *state) {
+      state->current_values.set_color_temperature(
+        mi_color_temperature(state->current_values.get_color_temperature())
+      );
       parent_->write_state(bulbId, state);
     }
   }  // namespace mi
