@@ -5,6 +5,8 @@ from esphome.const import (
     CONF_OUTPUT_ID,
     CONF_DEFAULT_TRANSITION_LENGTH,
     CONF_GAMMA_CORRECT,
+    CONF_COLD_WHITE_COLOR_TEMPERATURE,
+    CONF_WARM_WHITE_COLOR_TEMPERATURE,
 )
 from .. import mi_ns, CONF_MI_ID, Mi
 
@@ -41,6 +43,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_DEFAULT_TRANSITION_LENGTH, default="200ms"
             ): cv.positive_time_period_milliseconds,
+
+            cv.Optional(CONF_COLD_WHITE_COLOR_TEMPERATURE, default=153): cv.color_temperature,
+            cv.Optional(CONF_WARM_WHITE_COLOR_TEMPERATURE, default=370): cv.color_temperature,
         }
     ).extend(cv.COMPONENT_SCHEMA),
     light.validate_color_temperature_channels,

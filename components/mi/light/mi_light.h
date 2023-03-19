@@ -24,11 +24,16 @@ namespace esphome {
     void setup_state(light::LightState *state) override;
     void write_state(light::LightState *state) override;
 
-   private:
+    void set_cold_white_temperature(float cold_white_temperature) { cold_white_temperature_ = cold_white_temperature; }
+    void set_warm_white_temperature(float warm_white_temperature) { warm_white_temperature_ = warm_white_temperature; }
 
+   private:
     BulbId bulbId = {0, 0, REMOTE_TYPE_RGB_CCT};
     Mi *parent_;
     light::LightState *state_{nullptr};
+
+    float cold_white_temperature_;
+    float warm_white_temperature_;
   };
 
   }  // namespace mi
