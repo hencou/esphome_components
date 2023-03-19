@@ -159,10 +159,12 @@ namespace esphome {
         state->remote_values.set_state(result["state"] == "ON");
       }
       if (result.containsKey("color_temp")) {
+        MiLight* output = (MiLight*)(state->get_output());
+        float color_temp = output->real_color_temperature((float)result["color_temp"]);
         state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-        state->current_values.set_color_temperature((float)result["color_temp"]);
+        state->current_values.set_color_temperature(color_temp);
         state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-        state->remote_values.set_color_temperature((float)result["color_temp"]);
+        state->remote_values.set_color_temperature(color_temp);
       }
       if (result.containsKey("brightness")) {
         state->current_values.set_brightness((float)result["brightness"]/255.00);
