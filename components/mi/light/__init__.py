@@ -61,4 +61,7 @@ async def to_code(config):
     cg.add(var.set_mi_parent(paren))
     
     cg.add(var.set_bulb_id(config[CONF_DEVICEID], config[CONF_GROUPID], config[CONF_REMOTETYPE]))
+
+    cg.add(var.set_cold_white_temperature(config[CONF_COLD_WHITE_COLOR_TEMPERATURE]))
+    cg.add(var.set_warm_white_temperature(config[CONF_WARM_WHITE_COLOR_TEMPERATURE]))
    
