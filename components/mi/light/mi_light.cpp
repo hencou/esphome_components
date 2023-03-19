@@ -100,7 +100,7 @@ namespace esphome {
       }
     }
 
-    float mi_color_temperature(float real_color_temperature) {
+    float MiLight::mi_color_temperature(float real_color_temperature) {
       const auto MI_MIN = 153;
       const auto MI_MAX = 370;
       const auto MI_RANGE = MI_MAX - MI_MIN;
