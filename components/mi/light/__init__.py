@@ -44,8 +44,8 @@ CONFIG_SCHEMA = cv.All(
                 CONF_DEFAULT_TRANSITION_LENGTH, default="200ms"
             ): cv.positive_time_period_milliseconds,
 
-            cv.Optional(CONF_COLD_WHITE_COLOR_TEMPERATURE, default=153): cv.color_temperature,
-            cv.Optional(CONF_WARM_WHITE_COLOR_TEMPERATURE, default=370): cv.color_temperature,
+            cv.Optional(CONF_COLD_WHITE_COLOR_TEMPERATURE, default="153 mireds"): cv.color_temperature,
+            cv.Optional(CONF_WARM_WHITE_COLOR_TEMPERATURE, default="370 mireds"): cv.color_temperature,
         }
     ).extend(cv.COMPONENT_SCHEMA),
     light.validate_color_temperature_channels,
