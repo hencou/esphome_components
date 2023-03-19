@@ -153,16 +153,18 @@ namespace esphome {
     }
 
     void Mi::updateOutput(light::LightState *state, JsonObject result) {
-      
+
+      MiLight* output = (MiLight*)(state->get_output());
       if (result.containsKey("state")) {
         state->current_values.set_state(result["state"] == "ON");
         state->remote_values.set_state(result["state"] == "ON");
       }
       if (result.containsKey("color_temp")) {
+        float color_temp = output->real_color_temperature((float)result["color_temp"]);
         state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-        state->current_values.set_color_temperature((float)result["color_temp"]);
+        state->current_values.set_color_temperature(color_temp);
         state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
-        state->remote_values.set_color_temperature((float)result["color_temp"]);
+        state->remote_values.set_color_temperature(color_temp);
       }
       if (result.containsKey("brightness")) {
         state->current_values.set_brightness((float)result["brightness"]/255.00);
@@ -203,7 +205,7 @@ namespace esphome {
         colorMode = false;
       }     
       state->publish_state();
-      state->get_output()->update_state(state);
+      output->update_state(state);
     }
 
     void Mi::handleCommand(BulbId bulbId, String command) {
