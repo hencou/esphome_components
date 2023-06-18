@@ -4,8 +4,8 @@ substitutions:
 
 esphome:
   name: $device_name
-  # platformio_options:                     #optional, to set addiotional build flags
-  #   build_flags:                          #optional, to set addiotional build flags
+  # platformio_options:                     #optional, to set additional build flags
+  #   build_flags:                          #optional, to set additional build flags
   #     - "-D USE_ESP32_ALTERNATE_SPI"      #optional, to use the alternate HSPI SPI bus instead of the default VSPI on an ESP32 board
   #     - "-D ALT_SPI_MISO_PIN=15"          #optional, if HSPI bus is used, alternate pins can also be defined
   #     - "-D ALT_SPI_MOSI_PIN=14"
