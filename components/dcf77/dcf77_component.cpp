@@ -37,7 +37,7 @@ namespace esphome {
       if (this->has_time_)
         return;
       
-      time::ESPTime val{};
+      esphome::ESPTime val{};
       val.year = year();
       val.month = month();
       val.day_of_month = day();
