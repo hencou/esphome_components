@@ -233,18 +233,12 @@ namespace esphome {
 
       milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
       std::shared_ptr<MiLightRadio> radio = radios->switchRadio(Mi::miOutputs[i].bulbId.deviceType);
-      i++;
-      if (i > miOutputs.size()-1) {i=0;}
-
+      
       if (radios->available()) {
         uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
         size_t packetLen = radios->read(readPacket);
 
-        const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromReceivedPacket(
-          radio->config(),
-          readPacket,
-          packetLen
-        );
+        const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[i].bulbId.deviceType);
 
         if (remoteConfig == NULL) {
           // This can happen under normal circumstances, so not an error condition
@@ -255,6 +249,9 @@ namespace esphome {
         // update state to reflect this packet
         onPacketReceivedHandler(readPacket, *remoteConfig);
       }
+
+      i++;
+      if (i > miOutputs.size()-1) {i=0;}
     }
 
     /**
