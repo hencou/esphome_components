@@ -7,7 +7,7 @@ from esphome.const import (
   CONF_TRIGGER_ID,
 )
 
-AUTO_LOAD = ["json"]
+##AUTO_LOAD = ["json"]
 
 mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
