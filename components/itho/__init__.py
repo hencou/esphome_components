@@ -9,6 +9,8 @@ from esphome.const import (
     CONF_SDA,
 )
 
+AUTO_LOAD = ["json"]
+
 itho_ns = cg.esphome_ns.namespace("itho")
 Itho = itho_ns.class_("Itho", cg.Component)
 
