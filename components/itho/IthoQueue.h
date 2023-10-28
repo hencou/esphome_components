@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ArduinoJson.h>
+#include "esphome/components/json/json_util.h"
 #include <Ticker.h>
 
 namespace esphome
