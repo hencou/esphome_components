@@ -46,7 +46,6 @@ async def to_code(config):
   await cg.register_component(var, config)
   
   cg.add_library("Ticker", None)
-  cg.add_library("ArduinoJson", None)
   
   if CONF_SYSSHT30_VALUE in config:
     cg.add(var.setSysSHT30(config[CONF_SYSSHT30_VALUE]))
