@@ -12,9 +12,6 @@ esphome:
   #     - "-D ALT_SPI_SCLK_PIN=12"
   #     - "-D ALT_SPI_SS_PIN=4"
 
-  libraries:
-    - milight=https://github.com/hencou/esphome-milight
-
 external_components:
   - source: github://hencou/esphome_components
     components: mi
