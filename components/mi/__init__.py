@@ -7,7 +7,7 @@ from esphome.const import (
   CONF_TRIGGER_ID,
 )
 
-##AUTO_LOAD = ["json"]
+AUTO_LOAD = ["json","spi"]
 
 mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
@@ -91,6 +91,9 @@ async def to_code(config):
     await cg.register_component(var, config)
     
     cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
+    cg.add_library("nrf24/RF24", "1.4.5")
+    cg.add_library("PathVariableHandlers", None)
+    cg.add_library("StreamUtils", None)
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
     cg.add(var.set_ce_pin(ce_pin))
