@@ -417,7 +417,7 @@ namespace esphome {
       this->write_state(bulbId, requestJson);
     }
 
-     void Mi::write_state(BulbId bulbId, String command) {
+     void Mi::write_state(BulbId bulbId, std::string command) {
 
       StaticJsonDocument<400> buffer;
       deserializeJson(buffer, command.c_str());
