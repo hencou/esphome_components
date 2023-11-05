@@ -25,6 +25,22 @@ logger:
 
 # Enable Home Assistant API
 api:
+  reboot_timeout: 24h                                                    #optional, only to show howto send json commands
+  services:                                                              #optional, only to show howto send json commands
+  - service: mi_command                                                  #optional, only to show howto send json commands
+    variables:                                                           #optional, only to show howto send json commands
+      device_id: int                                                     #optional, only to show howto send json commands
+      group_id: int                                                      #optional, only to show howto send json commands
+      type: string                                                       #optional, only to show howto send json commands
+      command: string                                                    #optional, only to show howto send json commands
+    then:                                                                #optional, only to show howto send json commands
+      - lambda: |-                                                       #optional, only to show howto send json commands
+          const BulbId bulbId = {                                        #optional, only to show howto send json commands
+           device_id,                                                    #optional, only to show howto send json commands
+            group_id,                                                    #optional, only to show howto send json commands
+            MiLightRemoteTypeHelpers::remoteTypeFromString(type.c_str()) #optional, only to show howto send json commands
+          };                                                             #optional, only to show howto send json commands
+          id(mi1).write_state(bulbId, command.c_str());                  #optional, only to show howto send json commands
 
 ota:
 
@@ -34,6 +50,7 @@ wifi:
   fast_connect: true
 
 mi:
+  id: mi1  #optional
   ce_pin: D2 #required, default: 4
   csn_pin: D8 #required, default: 15
   reset_pin: 0 #optional, default: 0, only needed with LT8900 radio
