@@ -40,7 +40,7 @@ api:
             group_id,                                                    //#optional, only to show howto send json commands
             MiLightRemoteTypeHelpers::remoteTypeFromString(type.c_str()) //#optional, only to show howto send json commands
           };                                                             //#optional, only to show howto send json commands
-          id(mi1).write_state(bulbId, command.c_str());                  //#optional, only to show howto send json commands
+          id(mi1).write_state(bulbId, command);                          //#optional, only to show howto send json commands
 
 ota:
 
