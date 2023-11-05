@@ -35,12 +35,12 @@ api:
       command: string                                                    #optional, only to show howto send json commands
     then:                                                                #optional, only to show howto send json commands
       - lambda: |-                                                       #optional, only to show howto send json commands
-          const BulbId bulbId = {                                        #optional, only to show howto send json commands
-           device_id,                                                    #optional, only to show howto send json commands
-            group_id,                                                    #optional, only to show howto send json commands
-            MiLightRemoteTypeHelpers::remoteTypeFromString(type.c_str()) #optional, only to show howto send json commands
-          };                                                             #optional, only to show howto send json commands
-          id(mi1).write_state(bulbId, command.c_str());                  #optional, only to show howto send json commands
+          const BulbId bulbId = {                                        //#optional, only to show howto send json commands
+           device_id,                                                    //#optional, only to show howto send json commands
+            group_id,                                                    //#optional, only to show howto send json commands
+            MiLightRemoteTypeHelpers::remoteTypeFromString(type.c_str()) //#optional, only to show howto send json commands
+          };                                                             //#optional, only to show howto send json commands
+          id(mi1).write_state(bulbId, command.c_str());                  //#optional, only to show howto send json commands
 
 ota:
 
