@@ -214,6 +214,10 @@ namespace esphome {
       deserializeJson(buffer, command);
       JsonVariant variant = buffer.as<JsonVariant>();
 
+      ESP_LOGD("mi", "device_id: %i", bulbId.deviceId);
+      ESP_LOGD("mi", "group_id: %i", bulbId.groupId);
+      ESP_LOGD("mi", "mi_command: %s", command.c_str());
+
       milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
       milightClient->handleCommand(variant);
     }
@@ -411,6 +415,45 @@ namespace esphome {
           root["color_temp"] = uint32_t(values.get_color_temperature());
         }
       }
+      
+      if (millis() - lastRequestTime < 2000) {
+        //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
+        milightClient->setRepeatsOverride(10);
+      }
+
+      //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
+      if (millis() > 5000) {
+        milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
+        milightClient->update(requestJson);
+      }
+      
+      milightClient->clearRepeatsOverride();
+      
+      if (settings.resendLastCommand == true) {
+        Request request = Request();
+        serializeJson(requestJson, request.request);
+        ESP_LOGD(TAG, "Send Milight request: %s", request.request);
+
+        int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
+        if (pos > -1) {
+          requests.Replace(pos, request);
+        } else {
+          bulbCompactIds.Add(bulbId.getCompactId());
+          requests.Add(request);
+        }
+      }
+      
+      lastRequestTime = millis();
+      writeState = false;
+    }
+
+    void Mi::write_state(BulbId bulbId, String command) {
+      
+      writeState = true;
+
+      StaticJsonDocument<400> buffer;
+      deserializeJson(buffer, command.c_str());
+      JsonObject requestJson = buffer.as<JsonObject>();
       
       if (millis() - lastRequestTime < 2000) {
         //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
