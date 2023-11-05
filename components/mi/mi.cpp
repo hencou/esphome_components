@@ -306,8 +306,6 @@ namespace esphome {
     }
 
     void Mi::write_state(BulbId bulbId, light::LightState *state) {
-      
-      writeState = true;
 
       for (MiOutput miOutput : Mi::miOutputs) {
         if (bulbId == miOutput.bulbId) {
@@ -416,44 +414,21 @@ namespace esphome {
         }
       }
       
-      if (millis() - lastRequestTime < 2000) {
-        //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
-        milightClient->setRepeatsOverride(10);
-      }
-
-      //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
-      if (millis() > 5000) {
-        milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-        milightClient->update(requestJson);
-      }
-      
-      milightClient->clearRepeatsOverride();
-      
-      if (settings.resendLastCommand == true) {
-        Request request = Request();
-        serializeJson(requestJson, request.request);
-        ESP_LOGD(TAG, "Send Milight request: %s", request.request);
-
-        int pos = bulbCompactIds.IndexOf(bulbId.getCompactId());
-        if (pos > -1) {
-          requests.Replace(pos, request);
-        } else {
-          bulbCompactIds.Add(bulbId.getCompactId());
-          requests.Add(request);
-        }
-      }
-      
-      lastRequestTime = millis();
-      writeState = false;
+      this->write_state(bulbId, requestJson);
     }
 
-    void Mi::write_state(BulbId bulbId, String command) {
-      
-      writeState = true;
+     void Mi::write_state(BulbId bulbId, String command) {
 
       StaticJsonDocument<400> buffer;
       deserializeJson(buffer, command.c_str());
       JsonObject requestJson = buffer.as<JsonObject>();
+      
+      this->write_state(bulbId, requestJson);
+    }
+
+    void Mi::write_state(BulbId bulbId, JsonObject requestJson) {
+      
+      writeState = true;
       
       if (millis() - lastRequestTime < 2000) {
         //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
