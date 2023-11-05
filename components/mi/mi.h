@@ -79,6 +79,7 @@ namespace esphome {
         void loop() override;
         void dump_config() override;
         void write_state(BulbId bulbId, light::LightState *state);
+        void write_state(BulbId bulbId, String command);
         void add_on_command_received_callback(std::function<void(MiBridgeData)> callback) {
           this->data_callback_.add(std::move(callback));
         }
