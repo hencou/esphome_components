@@ -32,41 +32,7 @@ namespace esphome {
         return;
       }
 
-      for (MiOutput miOutput : Mi::miOutputs) {
-        //also listen to groupId 0
-        if (
-            bulbId.deviceId == miOutput.bulbId.deviceId &&
-             (
-              bulbId.groupId == miOutput.bulbId.groupId ||
-              bulbId.groupId == 0
-             )
-           )
-        {
-          // update state to reflect changes from this packet
-          groupState = stateStore->get(bulbId);
-
-          // pass in previous scratch state as well
-          const GroupState stateUpdates(groupState, result);
-
-          if (groupState != NULL) {
-            groupState->patch(stateUpdates);
-
-            // Copy state before setting it to avoid group 0 re-initialization clobbering it
-            stateStore->set(bulbId, stateUpdates);
-            
-            light::LightState* state;
-            if (bulbId.groupId == 0) {
-              for (MiOutput miOutput : Mi::miOutputs) {
-                if (bulbId.deviceId == miOutput.bulbId.deviceId) {
-                  state = App.get_light_by_key(miOutput.key);
-                  Mi::updateOutput(state, result);
-                }
-              }
-            } 
-          }
-          break;
-        }
-      }
+      this->updateState(bulbId, result, true);
     }
 
     /**
@@ -101,11 +67,19 @@ namespace esphome {
         ESP_LOGD(TAG, "Received packet: %s", responseBody);
       }
 
+      this->updateState(bulbId, result, false);
+    }
+
+    /**
+     * Update internal groupstate
+     */
+    void Mi::updateState(BulbId bulbId, JsonObject requestJson, bool local) {
+      
       MiBridgeData data;
       data.device_id = bulbId.deviceId;
       data.group_id = bulbId.groupId;
       data.remote_type = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
-      serializeJson(result, data.command);
+      serializeJson(requestJson, data.command);
       this->data_callback_.call(data);
       
       for (MiOutput miOutput : Mi::miOutputs) {
@@ -122,7 +96,7 @@ namespace esphome {
           groupState = stateStore->get(bulbId);
 
           // pass in previous scratch state as well
-          const GroupState stateUpdates(groupState, result);
+          const GroupState stateUpdates(groupState, requestJson);
 
           if (groupState != NULL) {
             groupState->patch(stateUpdates);
@@ -135,16 +109,18 @@ namespace esphome {
               for (MiOutput miOutput : Mi::miOutputs) {
                 if (bulbId.deviceId == miOutput.bulbId.deviceId) {
                   state = App.get_light_by_key(miOutput.key);
-                  Mi::updateOutput(state, result);
+                  Mi::updateOutput(state, requestJson);
                 }
               }
             } else {
-              state = App.get_light_by_key(miOutput.key);
-              Mi::updateOutput(state, result);
+              if (local == false) {
+                state = App.get_light_by_key(miOutput.key);
+                Mi::updateOutput(state, requestJson);
+              }
             }
             
             char buff[200];
-            serializeJson(result, buff);
+            serializeJson(requestJson, buff);
             ESP_LOGD(TAG, "Received Milight request: %s", buff);
           }
           break;
@@ -152,6 +128,9 @@ namespace esphome {
       }
     }
 
+    /**
+     * Update ESPhome light state
+     */
     void Mi::updateOutput(light::LightState *state, JsonObject result) {
 
       MiLight* output = (MiLight*)(state->get_output());
@@ -208,6 +187,9 @@ namespace esphome {
       output->update_state(state);
     }
 
+    /**
+     * Send milight commands
+     */
     void Mi::handleCommand(BulbId bulbId, String command) {
       
       StaticJsonDocument<200> buffer;
@@ -231,7 +213,7 @@ namespace esphome {
       // Do not handle listens while there are packets enqueued to be sent
       // Doing so causes the radio module to need to be reinitialized inbetween
       // repeats, which slows things down.
-      if (packetSender->isSending() || writeState == true) {
+      if (packetSender->isSending() || writingState == true) {
         return;
       }
 
@@ -305,6 +287,10 @@ namespace esphome {
       ESP_LOGD(TAG, "Setup complete"); 
     }
 
+
+     /**
+     * write incoming state from ESPhome to MiLight.
+     */
     void Mi::write_state(BulbId bulbId, light::LightState *state) {
 
       for (MiOutput miOutput : Mi::miOutputs) {
@@ -414,21 +400,28 @@ namespace esphome {
         }
       }
       
-      this->write_state(bulbId, requestJson);
+      this->writeState(bulbId, requestJson);
     }
 
-     void Mi::write_state(BulbId bulbId, std::string command) {
+    /**
+     * write incoming json state from ESPhome to MiLight.
+     */
+    void Mi::write_state(BulbId bulbId, std::string command) {
 
       StaticJsonDocument<400> buffer;
       deserializeJson(buffer, command.c_str());
       JsonObject requestJson = buffer.as<JsonObject>();
       
-      this->write_state(bulbId, requestJson);
+      this->writeState(bulbId, requestJson);
+      this->updateState(bulbId, requestJson, false);
     }
 
-    void Mi::write_state(BulbId bulbId, JsonObject requestJson) {
+    /**
+     * write incoming state from ESP home to MiLight.
+     */
+    void Mi::writeState(BulbId bulbId, JsonObject requestJson) {
       
-      writeState = true;
+      writingState = true;
       
       if (millis() - lastRequestTime < 2000) {
         //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
@@ -458,7 +451,7 @@ namespace esphome {
       }
       
       lastRequestTime = millis();
-      writeState = false;
+      writingState = false;
     }
 
 
