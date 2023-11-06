@@ -80,7 +80,6 @@ namespace esphome {
         void dump_config() override;
         void write_state(BulbId bulbId, light::LightState *state);
         void write_state(BulbId bulbId, std::string command);
-        void write_state(BulbId bulbId, JsonObject requestJson);
         void add_on_command_received_callback(std::function<void(MiBridgeData)> callback) {
           this->data_callback_.add(std::move(callback));
         }
@@ -123,10 +122,12 @@ namespace esphome {
         
         int hue = 0;
         int saturation = 100;
-        bool writeState = false;
+        bool writingState = false;
 
+        void writeState(BulbId bulbId, JsonObject requestJson);
         void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config);
         void onPacketReceivedHandler(uint8_t* packet, const MiLightRemoteConfig& config);
+        void updateState(BulbId bulbId, JsonObject requestJson, bool local);
         void handleListen();
 
         void applySettings();
