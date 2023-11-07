@@ -74,13 +74,17 @@ namespace esphome {
      * Update internal groupstate
      */
     void Mi::updateState(BulbId bulbId, JsonObject requestJson, bool local) {
-      
-      MiBridgeData data;
-      data.device_id = bulbId.deviceId;
-      data.group_id = bulbId.groupId;
-      data.remote_type = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
-      serializeJson(requestJson, data.command);
-      this->data_callback_.call(data);
+
+      // Only callback the state when receiving by a remote command, or by "mi_command"
+      // Doing this with ESPhome sent states will slow down transitions
+      if (local == false) {
+        MiBridgeData data;
+        data.device_id = bulbId.deviceId;
+        data.group_id = bulbId.groupId;
+        data.remote_type = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
+        serializeJson(requestJson, data.command);
+        this->data_callback_.call(data);
+      }
       
       for (MiOutput miOutput : Mi::miOutputs) {
         //also listen to groupId 0
