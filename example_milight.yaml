@@ -25,7 +25,7 @@ logger:
 
 # Enable Home Assistant API
 api:
-  reboot_timeout: 24h                                                    #optional, only to show howto send json commands
+  reboot_timeout: 24h
   services:                                                              #optional, only to show howto send json commands
   - service: mi_command                                                  #optional, only to show howto send json commands
     variables:                                                           #optional, only to show howto send json commands
