@@ -61,7 +61,7 @@ mi:
   packet_repeat_throttle_threshold: 200 #optional, default: 200, threshold to limit the amount of packets in a second
   packet_repeat_throttle_sensitivity: 0 #optional, default: 0
   packet_repeat_minimum: 3 #optional, default: 3
-  enable_automatic_mode_switching: false #optional, default: false
+  enable_automatic_mode_switching: false #optional, default: false, switch automatic between color and white mode
   rf24_power_level: MAX #optional, default: MAX, possible values: MIN, LOW, HIGH, MAX
   rf24_listen_channel: LOW #optional, default: LOW, possible values: LOW, MID, HIGH
   packet_repeats_per_loop: 10 #optional, default: 10, repeat packets sended per loop
