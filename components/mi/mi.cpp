@@ -221,20 +221,20 @@ namespace esphome {
         return;
       }
 
+       const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[i].bulbId.deviceType);
+
+      if (remoteConfig == NULL) {
+        // This can happen under normal circumstances, so not an error condition
+        ESP_LOGD(TAG, "WARNING: Couldn't find remote for received packet");
+        return;
+      }
+
       milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
-      std::shared_ptr<MiLightRadio> radio = radios->switchRadio(Mi::miOutputs[i].bulbId.deviceType);
+      std::shared_ptr<MiLightRadio> radio = radios->switchRadio(remoteConfig);
       
       if (radios->available()) {
         uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
         size_t packetLen = radios->read(readPacket);
-
-        const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[i].bulbId.deviceType);
-
-        if (remoteConfig == NULL) {
-          // This can happen under normal circumstances, so not an error condition
-          ESP_LOGD(TAG, "WARNING: Couldn't find remote for received packet");
-          return;
-        }
 
         // update state to reflect this packet
         onPacketReceivedHandler(readPacket, *remoteConfig);
