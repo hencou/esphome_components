@@ -7,6 +7,8 @@ from esphome.const import (
   CONF_TRIGGER_ID,
 )
 
+DEPENDENCIES = ["light"]
+
 AUTO_LOAD = ["json","spi"]
 
 mi_ns = cg.esphome_ns.namespace("mi")
