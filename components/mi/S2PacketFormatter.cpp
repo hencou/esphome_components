@@ -125,7 +125,7 @@ BulbId S2PacketFormatter::parsePacket(const uint8_t *packet, JsonObject result) 
     result[GroupStateFieldNames::HUE] = hue;
   } else if (command == S2_KELVIN) {
     uint8_t temperature = arg;
-    result[GroupStateFieldNames::COLOR_TEMP] = Units::whiteValToMireds(temperature, 100);
+    result[GroupStateFieldNames::KELVIN] = Units::whiteValToMireds(temperature, 100);
   } else if (command == S2_BRIGHTNESS) {
     result[GroupStateFieldNames::BRIGHTNESS] = Units::rescale<uint8_t, uint8_t>(arg, 255, 100);
   } else if (command == S2_SATURATION) {
