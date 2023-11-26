@@ -41,6 +41,7 @@
 #include "FUT02xPacketFormatter.h"
 #include "FUT089PacketFormatter.h"
 #include "FUT091PacketFormatter.h"
+#include "S2PacketFormatter.h"
 #include "PacketFormatter.h"
 #include "MiLightRemoteConfig.h"
 #include "FUT020PacketFormatter.h"

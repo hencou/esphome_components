@@ -85,7 +85,7 @@ light:
     name: ${friendly_name} #required
     device_id: 0xAB01 #required, hexadacimal value of MiLight id
     group_id: 1 #required, 1-4 or 1-8, depending on remote type
-    remote_type: rgb_cct #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020
+    remote_type: rgb_cct #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020, s2
     default_transition_length: 0s #optional, but 0s gives a better behaviour instead the default 200ms
   # Set these to calibrate the color temperature of your light, measured with an external color temp. sensor or app
   # optional, [153, 370] mireds is the range miboxer uses internally ([6535, 2702] K)

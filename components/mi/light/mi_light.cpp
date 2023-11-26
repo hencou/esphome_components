@@ -63,6 +63,11 @@ namespace esphome {
         case REMOTE_TYPE_FUT020:
           traits.set_supported_color_modes({light::ColorMode::RGB});
           break;
+        case REMOTE_TYPE_S2:
+          traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+          traits.set_max_mireds(warm_white_temperature_);
+          traits.set_min_mireds(cold_white_temperature_);
+          break;
         default:
           traits.set_supported_color_modes({light::ColorMode::ON_OFF});
           break;
