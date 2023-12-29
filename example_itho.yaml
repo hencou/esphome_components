@@ -200,8 +200,13 @@ sensor:
               value = (id(o_term) < value) ? value : id(o_term) -1; //Fast speed up, slow speed down
               return (value < id(minimal_output).state) ? id(minimal_output).state : value;
         - lambda: !lambda |-
-            if (id(faninfo) == "medium") {
-              int speed = int(id(o_term) * 2.54);
+            if (id(faninfo) == "auto") {
+              int speed = 0;
+              if (x >= 85.00) {
+                speed = 254;
+              } else {
+                speed = int(id(o_term) * 2.54);
+              } 
               if (speed > 254) {speed = 254;}
               auto call = id(itho_fan).make_call();
               call.set_speed(speed);
