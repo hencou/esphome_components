@@ -1,6 +1,7 @@
 #include "esphome.h"
 #include "esphome/core/log.h"
 #include "mi_light.h"
+#include "../MiLightCommands.h"
 #include "esphome/core/helpers.h"
 
 
@@ -80,11 +81,11 @@ namespace esphome {
 
       parent_->add_child(state_->get_object_id_hash(), bulbId);
 
-      state_->add_effects({new light::LambdaLightEffect("night_mode", [=](bool initial_run) -> void {
+      state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[0], [=](bool initial_run) -> void {
         auto call = state_->make_call();
-        call.set_effect("night_mode");
+        call.set_effect(DISCO_MODE_NAMES[0]);
         call.perform();
-        }, 360000)
+        }, 0xffffffff)
       });
       
       if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT || 
@@ -93,13 +94,14 @@ namespace esphome {
           MiLight::bulbId.deviceType == REMOTE_TYPE_FUT089 ||
           MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020
           ) {
-
-        for (int i = 0; i < 9; i++) {
-          state_->add_effects({new light::LambdaLightEffect(esphome::to_string(i), [=](bool initial_run) -> void {
+        
+        // Add the 9 built-in effects with descriptive names...
+        for (int i = 1; i < 10; i++) {
+          state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[i], [=](bool initial_run) -> void {
             auto call = state_->make_call();
-            call.set_effect(i);
+            call.set_effect(DISCO_MODE_NAMES[i]);
             call.perform();
-            }, 360000)
+            }, 0xffffffff)
           });
         }
       }
