@@ -85,7 +85,7 @@ namespace esphome {
         auto call = state_->make_call();
         call.set_effect(DISCO_MODE_NAMES[0]);
         call.perform();
-        }, 0xfffffff)
+        }, 0xffffffff)
       });
       
       if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT || 
@@ -101,7 +101,7 @@ namespace esphome {
             auto call = state_->make_call();
             call.set_effect(DISCO_MODE_NAMES[i]);
             call.perform();
-            }, 0xfffffff)
+            }, 0xffffffff)
           });
         }
       }

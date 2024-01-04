@@ -25,7 +25,7 @@ static const std::string DISCO_MODE_NAMES[] = {
     "Mi 02: Low-Sat Rainbow",
     "Mi 03: No-Red Rainbow",
     "Mi 04: Fast Rainbow",
-    "Mi 05: Red-White-Bue",
+    "Mi 05: Red-White-Blue",
     "Mi 06: Pink-Blue-White",
     "Mi 07: Green-Blue-Red-White",
     "Mi 08: Slow Random Fade",
