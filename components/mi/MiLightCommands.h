@@ -18,3 +18,16 @@ namespace MiLightCommandNames {
   static const char TOGGLE[] = "toggle";
   static const char TRANSITION[] = "transition";
 };
+
+static const std::string DISCO_MODE_NAMES[] = {
+    "Mi 00: Night Mode",
+    "Mi 01: Rainbow",
+    "Mi 02: Low-Sat Rainbow",
+    "Mi 03: No-Red Rainbow",
+    "Mi 04: Fast Rainbow",
+    "Mi 05: Red-White-Bue",
+    "Mi 06: Pink-Blue-White",
+    "Mi 07: Green-Blue-Red-White",
+    "Mi 08: Slow Random Fade",
+    "Mi 09: Slow Blue-Green Fade"
+};

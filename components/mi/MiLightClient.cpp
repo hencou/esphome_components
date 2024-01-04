@@ -434,12 +434,27 @@ void MiLightClient::handleCommand(JsonVariant command) {
 }
 
 void MiLightClient::handleEffect(const String& effect) {
-  if (effect == MiLightCommandNames::NIGHT_MODE) {
+  #ifdef DEBUG_CLIENT_COMMANDS
+  Serial.printf_P(PSTR("Request to handle effect '%s' in MiLight component."), effect);
+  #endif
+  if (effect.startsWith("Mi ") != true) {
+    // This is not a MiLight built-in effect. We don't need to handle it here.
+    #ifdef DEBUG_CLIENT_COMMANDS
+    Serial.printf_P(PSTR("This is not a MiLight built-in effect."));
+    #endif
+    return;
+  }
+  int effectId = effect.substring(3, 5).toInt();
+  if (effectId < 0 || effectId > 9) {
+    #ifdef DEBUG_CLIENT_COMMANDS
+    Serial.printf_P(PSTR("Invalid effect ID at position 3-4: %d. MiLights only support effect ids 1-9."), effectId);
+    #endif
+    return;
+  }
+  if (effectId == 0) {
     this->enableNightMode();
-  } else if (effect == "white" || effect == "white_mode") {
-    this->updateColorWhite();
-  } else { // assume we're trying to set mode
-    this->updateMode(effect.toInt());
+  } else {
+    this->updateMode((uint8_t) (effectId & 0xFF));
   }
 }
 
