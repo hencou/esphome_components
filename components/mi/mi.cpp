@@ -327,6 +327,10 @@ namespace esphome {
         effectChr[effect.size()] = '\0';
          
         root["effect"] = effectChr;
+        if (traits.supports_color_capability(light::ColorCapability::BRIGHTNESS)) {
+          root["brightness"] = uint8_t(values.get_brightness() * 255);
+        }
+
       } else {
        
         switch (values.get_color_mode()) {
