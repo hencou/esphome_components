@@ -9,6 +9,8 @@ namespace MiLightCommandNames {
   static const char LEVEL_DOWN[] = "level_down";
   static const char TEMPERATURE_UP[] = "temperature_up";
   static const char TEMPERATURE_DOWN[] = "temperature_down";
+  static const char BRIGHTNESS_UP[] = "brightness_up";
+  static const char BRIGHTNESS_DOWN[] = "brightness_down";
   static const char NEXT_MODE[] = "next_mode";
   static const char PREVIOUS_MODE[] = "previous_mode";
   static const char MODE_SPEED_DOWN[] = "mode_speed_down";
