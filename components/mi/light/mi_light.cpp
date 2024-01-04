@@ -85,7 +85,7 @@ namespace esphome {
         auto call = state_->make_call();
         call.set_effect(DISCO_MODE_NAMES[0]);
         call.perform();
-        }, 360000)
+        }, 0xfffffff)
       });
       
       if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT || 
@@ -94,14 +94,14 @@ namespace esphome {
           MiLight::bulbId.deviceType == REMOTE_TYPE_FUT089 ||
           MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020
           ) {
-
+        
         // Add the 9 built-in effects with descriptive names...
         for (int i = 1; i < 10; i++) {
           state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[i], [=](bool initial_run) -> void {
             auto call = state_->make_call();
             call.set_effect(DISCO_MODE_NAMES[i]);
             call.perform();
-            }, 360000)
+            }, 0xfffffff)
           });
         }
       }
