@@ -28,10 +28,7 @@ api:
 ota:
 
 itho:
-  syssht30: disable       ##Optional, default enabled: enable or disable Itho build in sensor and automation, set to disable when using own automation logic
-  syssht30_address: 0x44  ##Optional, default 0x44, I2C SHT30 sensor address
-  sda: 21                 ##Optional, default to default SDA pin of ESP module (21)
-  scl: 22                 ##Optional, default to default SCL pin of ESP module (22)
+  syssht30: disable
 
 fan:
 - platform: itho
@@ -56,6 +53,9 @@ globals:
 - id: humidity_count
   type: int
 
+- id: max_speed
+  type: bool
+
 - id: old_e_term
   type: float
 
@@ -77,7 +77,6 @@ globals:
 - id: faninfo
   type: std::string
   
-##HA controls for the frontend
 number:
 - platform: template
   name: $friendly_name minimum output
@@ -121,7 +120,7 @@ number:
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
-  initial_value: 40
+  initial_value: 30
   optimistic: true
   min_value: 0
   max_value: 50
@@ -202,15 +201,24 @@ sensor:
         - lambda: !lambda |-
             if (id(faninfo) == "auto") {
               int speed = 0;
-              if (x >= 85.00) {
+
+              if (x > 87.00 && id(max_speed) == false) {
+                id(max_speed) = true;
                 speed = 254;
-              } else {
+
+                auto call = id(itho_fan).make_call();
+                call.set_speed(speed);
+                call.perform();
+              }
+              if (x < 80.00 && id(max_speed) == true) {
+                id(max_speed) = false;
                 speed = int(id(o_term) * 2.54);
-              } 
-              if (speed > 254) {speed = 254;}
-              auto call = id(itho_fan).make_call();
-              call.set_speed(speed);
-              call.perform();
+
+                if (speed > 254) {speed = 254;}
+                auto call = id(itho_fan).make_call();
+                call.set_speed(speed);
+                call.perform();
+              }
             }
 
 - platform: template
@@ -255,7 +263,7 @@ sensor:
   filters:
     - delta: 0.01
     - throttle: 300s
-
+    
 binary_sensor:
 - platform: analog_threshold
   name: ${friendly_name} douchen
@@ -263,15 +271,17 @@ binary_sensor:
   threshold:
     upper: 5
     lower: -3
-    
+        
 button:
 - platform: restart
   entity_category: config
   name: ${friendly_name} restart
-
 - platform: safe_mode
   entity_category: config
   name: ${friendly_name} safemode
+- platform: factory_reset
+  name: ${friendly_name} factory reset
+  entity_category: config
 
 text_sensor:
 - platform: version
@@ -284,4 +294,3 @@ text_sensor:
     name: ${friendly_name} SSID
   bssid:
     name: ${friendly_name} BSSID
-
