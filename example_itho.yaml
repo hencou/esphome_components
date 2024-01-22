@@ -213,9 +213,18 @@ sensor:
                 call.set_speed(speed);
                 call.perform();
               }
-              if (x < 80.00 && id(max_speed) == true) {
-                id(max_speed) = false;
-                speed = int(id(o_term) * 2.54);
+
+              if (x <= 87.00) {
+                if (x < 80.00) {
+                  id(max_speed) = false;
+                  speed = int(id(o_term) * 2.54);
+                } else {
+                  if (id(max_speed) == true) {
+                    speed = 254;
+                  } else {
+                    speed = int(id(o_term) * 2.54);
+                  }
+                }
 
                 if (speed > 254) {speed = 254;}
                 auto call = id(itho_fan).make_call();
