@@ -129,7 +129,7 @@ binary_sensor:
         then:
           light.turn_on:
             id: light1
-            effect: night_mode
+            effect: "Mi 00: Night Mode"
       - timing:
           - ON for at most 0.5s
           - OFF for at most 0.5s
