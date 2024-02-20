@@ -232,12 +232,20 @@ namespace esphome {
       milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
       std::shared_ptr<MiLightRadio> radio = radios->switchRadio(remoteConfig);
       
-      if (radios->available()) {
-        uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
-        size_t packetLen = radios->read(readPacket);
-
-        // update state to reflect this packet
-        onPacketReceivedHandler(readPacket, *remoteConfig);
+      for (size_t i = 0; i < settings.listenRepeats; i++) {
+        if (radios->available()) {
+          uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
+          size_t packetLen = radios->read(readPacket);
+    
+          const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromReceivedPacket(
+            radio->config(),
+            readPacket,
+            packetLen
+          );
+    
+          // update state to reflect this packet
+          onPacketSentHandler(readPacket, *remoteConfig);
+        }
       }
 
       i++;
