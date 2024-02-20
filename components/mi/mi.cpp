@@ -6,8 +6,6 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/util.h"
 
-#define LOOPS_PER_CONFIG 5
-
 namespace esphome {
   namespace mi {
     
@@ -223,7 +221,7 @@ namespace esphome {
         return;
       }
 
-      auto configIndex = i/LOOPS_PER_CONFIG;
+      auto configIndex = i/(settings.listenRepeats + 1);
 
        const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[configIndex].bulbId.deviceType);
 
@@ -240,12 +238,18 @@ namespace esphome {
         uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
         size_t packetLen = radios->read(readPacket);
 
+        const MiLightRemoteConfig* newRemoteConfig = MiLightRemoteConfig::fromReceivedPacket(
+          radio->config(),
+          readPacket,
+          packetLen
+        );
+
         // update state to reflect this packet
-        onPacketReceivedHandler(readPacket, *remoteConfig);
+        onPacketReceivedHandler(readPacket, newRemoteConfig? *newRemoteConfig : *remoteConfig);
       }
 
       i++;
-      if (i == (miOutputs.size() * LOOPS_PER_CONFIG)) {i=0;}
+      if (i == (miOutputs.size() * (settings.listenRepeats + 1))) {i=0;}
     }
 
     /**
