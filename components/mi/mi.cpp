@@ -6,6 +6,8 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/util.h"
 
+#define LOOPS_PER_CONFIG 5
+
 namespace esphome {
   namespace mi {
     
@@ -221,7 +223,9 @@ namespace esphome {
         return;
       }
 
-       const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[i].bulbId.deviceType);
+      auto configIndex = i/LOOPS_PER_CONFIG;
+
+       const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[configIndex].bulbId.deviceType);
 
       if (remoteConfig == NULL) {
         // This can happen under normal circumstances, so not an error condition
@@ -229,7 +233,7 @@ namespace esphome {
         return;
       }
 
-      milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
+      milightClient->prepare(Mi::miOutputs[configIndex].bulbId.deviceType, 0, 0);
       std::shared_ptr<MiLightRadio> radio = radios->switchRadio(remoteConfig);
       
       if (radios->available()) {
@@ -241,7 +245,7 @@ namespace esphome {
       }
 
       i++;
-      if (i > miOutputs.size()-1) {i=0;}
+      if (i == (miOutputs.size() * LOOPS_PER_CONFIG)) {i=0;}
     }
 
     /**
