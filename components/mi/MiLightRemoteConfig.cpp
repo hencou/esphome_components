@@ -110,7 +110,7 @@ const MiLightRemoteConfig FUT020Config(
 
 const MiLightRemoteConfig S2Config( //rgb+cct
   new S2PacketFormatter(),
-  MiLightRadioConfig::ALL_CONFIGS[2],
+  MiLightRadioConfig::ALL_CONFIGS[5],
   REMOTE_TYPE_S2,
   "s2",
   4

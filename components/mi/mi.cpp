@@ -221,7 +221,9 @@ namespace esphome {
         return;
       }
 
-       const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[i].bulbId.deviceType);
+      auto configIndex = i/(settings.listenRepeats + 1);
+
+       const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(Mi::miOutputs[configIndex].bulbId.deviceType);
 
       if (remoteConfig == NULL) {
         // This can happen under normal circumstances, so not an error condition
@@ -229,27 +231,25 @@ namespace esphome {
         return;
       }
 
-      milightClient->prepare(Mi::miOutputs[i].bulbId.deviceType, 0, 0);
+      milightClient->prepare(Mi::miOutputs[configIndex].bulbId.deviceType, 0, 0);
       std::shared_ptr<MiLightRadio> radio = radios->switchRadio(remoteConfig);
       
-      for (size_t i = 0; i < settings.listenRepeats; i++) {
-        if (radios->available()) {
-          uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
-          size_t packetLen = radios->read(readPacket);
-    
-          const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromReceivedPacket(
-            radio->config(),
-            readPacket,
-            packetLen
-          );
-    
-          // update state to reflect this packet
-          onPacketSentHandler(readPacket, *remoteConfig);
-        }
+      if (radios->available()) {
+        uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
+        size_t packetLen = radios->read(readPacket);
+
+        const MiLightRemoteConfig* newRemoteConfig = MiLightRemoteConfig::fromReceivedPacket(
+          radio->config(),
+          readPacket,
+          packetLen
+        );
+
+        // update state to reflect this packet
+        onPacketReceivedHandler(readPacket, newRemoteConfig? *newRemoteConfig : *remoteConfig);
       }
 
       i++;
-      if (i > miOutputs.size()-1) {i=0;}
+      if (i == (miOutputs.size() * (settings.listenRepeats + 1))) {i=0;}
     }
 
     /**
