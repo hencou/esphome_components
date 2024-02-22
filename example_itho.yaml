@@ -282,7 +282,7 @@ binary_sensor:
   sensor_id: d_term_t
   threshold:
     upper: 5
-    lower: -3
+    lower: -1.4
         
 button:
 - platform: restart
