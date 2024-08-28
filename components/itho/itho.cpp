@@ -311,8 +311,6 @@ namespace esphome
 
       ESP_LOGD(TAG, "Setup Itho Core start");
 
-      pinMode(WIFILED, OUTPUT);
-      digitalWrite(WIFILED, HIGH);
       pinMode(STATUSPIN, INPUT_PULLUP);
       pinMode(ITHOSTATUS, OUTPUT);
       digitalWrite(ITHOSTATUS, LOW);
