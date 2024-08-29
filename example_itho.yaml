@@ -26,6 +26,16 @@ api:
  reboot_timeout: 480min
 
 ota:
+  - platform: esphome
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: board_status_led
+    pin:
+      number: 17
+      inverted: true
+    entity_category: diagnostic
 
 itho:
   syssht30: disable       ##Optional, default enabled: enable or disable Itho build in sensor and automation, set to disable when using own automation logic

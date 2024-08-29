@@ -11,7 +11,6 @@ namespace esphome
   namespace itho
   {
 
-#define WIFILED 17
 #define STATUSPIN 16
 #define ITHOSTATUS 13
 
