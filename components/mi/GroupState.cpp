@@ -822,7 +822,7 @@ void GroupState::applyOhColor(JsonObject state) const {
   ParsedColor color = getColor();
 
   char ohColorStr[13];
-  sprintf(ohColorStr, "%hd, %hd, %hd", color.r, color.g, color.b);
+  snprintf_P(ohColorStr, sizeof(ohColorStr), PSTR("%d,%d,%d"), color.r, color.g, color.b);
 
   state[GroupStateFieldNames::COLOR] = ohColorStr;
 }
@@ -831,7 +831,7 @@ void GroupState::applyHexColor(JsonObject state) const {
   ParsedColor color = getColor();
 
   char hexColor[8];
-  sprintf(hexColor, "#%02hX%02hX%02hX", color.r, color.g, color.b);
+  snprintf_P(hexColor, sizeof(hexColor), PSTR("#%02X%02X%02X"), color.r, color.g, color.b);
 
   state[GroupStateFieldNames::COLOR] = hexColor;
 }
@@ -1069,7 +1069,7 @@ ParsedColor GroupState::getColor() const {
 
 // build up a partial state representation based on the specified GrouipStateField array.  Used
 // to gather a subset of states (configurable in the UI) for sending to MQTT and web responses.
-void GroupState::applyState(JsonObject partialState, const BulbId& bulbId, std::vector<GroupStateField>& fields) const {
+void GroupState::applyState(JsonObject partialState, const BulbId& bulbId, const std::vector<GroupStateField>& fields) const {
   for (std::vector<GroupStateField>::const_iterator itr = fields.begin(); itr != fields.end(); ++itr) {
     applyField(partialState, bulbId, *itr);
   }

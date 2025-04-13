@@ -53,7 +53,7 @@ void GroupAlias::loadAliases(Stream &stream, std::map<String, GroupAlias> &alias
 void GroupAlias::saveAliases(Stream &stream, const std::map<String, GroupAlias> &aliases) {
   // Write number of aliases
   stream.print(aliases.size());
-  stream.write((byte) 0x00);
+  stream.write((uint8_t)0);
 
   Serial.printf_P(PSTR("Saving %d aliases\n"), aliases.size());
 

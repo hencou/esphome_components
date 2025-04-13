@@ -171,9 +171,9 @@ void MiLightClient::updateStatus(MiLightStatus status, uint8_t groupId) {
 #endif
 
   //<added by HC>
-  if (status == MiLightStatus::OFF) {
-    this->updateBrightness(0);
-  }
+  //if (status == MiLightStatus::OFF) {
+  //  this->updateBrightness(0);
+  //}
   //</added by HC>
 
   currentRemote->packetFormatter->updateStatus(status, groupId);
@@ -186,9 +186,9 @@ void MiLightClient::updateStatus(MiLightStatus status) {
 #endif
 
   //<added by HC>
-  if (status == MiLightStatus::OFF) {
-    this->updateBrightness(0);
-  }
+  //if (status == MiLightStatus::OFF) {
+  //  this->updateBrightness(0);
+  //}
   //</added by HC>
 
   currentRemote->packetFormatter->updateStatus(status);
