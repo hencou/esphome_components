@@ -32,6 +32,7 @@ web_server:
 
 # Enable update Over The Air
 ota:
+  platform: esphome
 
 i2c_sniffer:
 
