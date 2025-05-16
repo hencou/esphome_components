@@ -31,6 +31,8 @@ namespace esphome
 
       double getIthoTemperature() { return ithoSystem->getIthoTemperature(); }
       double getIthoHumidity() { return ithoSystem->getIthoHumidity(); }
+      double getIthoFanSetpoint() { return ithoSystem->getIthoFanSetpoint(); }
+      double getIthoFanSpeed() { return ithoSystem->getIthoFanSpeed(); }
       uint16_t getIthoSpeed() { return ithoSystem->getIthoSpeed(); }
       std::string getIthoFanInfo() { return ithoSystem->getIthoFanInfo(); }
 

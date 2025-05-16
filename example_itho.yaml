@@ -242,6 +242,18 @@ sensor:
                 call.perform();
               }
             }
+  fan_setpoint:
+    name: ${friendly_name} fan setpoint
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+  fan_speed:
+    name: ${friendly_name} fan speed
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
 
 - platform: template
   name: ${friendly_name} gem. luchtvochtigheid

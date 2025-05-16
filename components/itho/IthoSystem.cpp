@@ -546,6 +546,16 @@ namespace esphome
                 ithoStat.value.stringval = fanSensorErrors.begin()->second;
               }
             }
+            if (strcmp("Fan setpoint (rpm)", ithoStat.name) == 0)
+            {
+              ithoFanSetpoint = ithoStat.value.intval;
+              ESP_LOGD(TAG, "ithoFanSetpoint: %02f", ithoFanSetpoint);
+            }
+            if (strcmp("Fan speed (rpm)", ithoStat.name) == 0)
+            {
+              ithoFanSpeed = ithoStat.value.intval;
+              ESP_LOGD(TAG, "ithoFanSpeed: %02f", ithoFanSpeed);
+            }
             labelPos++;
           }
         }

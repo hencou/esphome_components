@@ -7,11 +7,16 @@ from esphome.const import (
     CONF_TEMPERATURE,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_FREQUENCY,
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
     UNIT_PERCENT,
 )
 from .. import itho_ns, CONF_ITHO_ID, Itho
+
+CONF_FAN_SETPOINT = "fan_setpoint"
+CONF_FAN_SPEED = "fan_speed"
+UNIT_RPM = "rpm"
 
 #DEPENDENCIES = ["itho"]
 AUTO_LOAD = ["itho"]
@@ -35,6 +40,18 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_HUMIDITY,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
+            cv.Optional(CONF_FAN_SETPOINT): sensor.sensor_schema(
+                unit_of_measurement=UNIT_RPM,
+                accuracy_decimals=0,
+                device_class=DEVICE_CLASS_FREQUENCY,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+            cv.Optional(CONF_FAN_SPEED): sensor.sensor_schema(
+                unit_of_measurement=UNIT_RPM,
+                accuracy_decimals=0,
+                device_class=DEVICE_CLASS_FREQUENCY,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -52,6 +69,14 @@ async def to_code(config):
     if CONF_HUMIDITY in config:
         sens = await sensor.new_sensor(config[CONF_HUMIDITY])
         cg.add(var.set_humidity_sensor(sens))
+
+    if CONF_FAN_SETPOINT in config:
+        sens = await sensor.new_sensor(config[CONF_FAN_SETPOINT])
+        cg.add(var.set_fan_setpoint_sensor(sens))
+
+    if CONF_FAN_SPEED in config:
+        sens = await sensor.new_sensor(config[CONF_FAN_SPEED])
+        cg.add(var.set_fan_speed_sensor(sens))
     
     paren = await cg.get_variable(config[CONF_ITHO_ID])
     cg.add(var.set_itho_parent(paren))
