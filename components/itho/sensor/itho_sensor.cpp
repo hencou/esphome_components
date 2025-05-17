@@ -16,6 +16,8 @@ void Itho_Sensor::dump_config() {
     LOG_UPDATE_INTERVAL(this);
     LOG_SENSOR(TAG, "Temperature", this->temperature_sensor_);
     LOG_SENSOR(TAG, "Humidity", this->humidity_sensor_);
+    LOG_SENSOR(TAG, "Fan setpoint", this->fan_setpoint_sensor_);
+    LOG_SENSOR(TAG, "Fan speed", this->fan_speed_sensor_);
 }
 
 void Itho_Sensor::update() {
@@ -27,6 +29,16 @@ void Itho_Sensor::update() {
     if (this->humidity_sensor_ != nullptr) {
         const float humidity = parent_->getIthoHumidity();
         this->humidity_sensor_->publish_state(humidity);
+    }
+
+    if (this->fan_setpoint_sensor_ != nullptr) {
+        const float fan_setpoint = parent_->getIthoFanSetpoint();
+        this->fan_setpoint_sensor_->publish_state(fan_setpoint);
+    }
+
+    if (this->fan_speed_sensor_ != nullptr) {
+        const float fan_speed = parent_->getIthoFanSpeed();
+        this->fan_speed_sensor_->publish_state(fan_speed);
     }
 }
 
