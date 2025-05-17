@@ -15,6 +15,7 @@ from esphome.const import (
 )
 from .. import itho_ns, CONF_ITHO_ID, Itho
 
+CONF_ERROR = "error"
 CONF_FAN_SETPOINT = "fan_setpoint"
 CONF_FAN_SPEED = "fan_speed"
 UNIT_RPM = "rpm"
@@ -29,6 +30,10 @@ CONFIG_SCHEMA = (
         {
             cv.GenerateID(): cv.declare_id(Itho_Sensor),
             cv.GenerateID(CONF_ITHO_ID): cv.use_id(Itho),
+            cv.Optional(CONF_ERROR): sensor.sensor_schema(
+                accuracy_decimals=0,
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            ),
             cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=1,
@@ -65,6 +70,10 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     
+    if CONF_ERROR in config:
+        sens = await sensor.new_sensor(config[CONF_ERROR])
+        cg.add(var.set_error_sensor(sens))
+
     if CONF_TEMPERATURE in config:
         sens = await sensor.new_sensor(config[CONF_TEMPERATURE])
         cg.add(var.set_temperature_sensor(sens))

@@ -154,6 +154,8 @@ number:
 sensor:
 - platform: itho
   update_interval: 8s
+  error:
+    name: ${friendly_name} error
   temperature:
     name: ${friendly_name} temperatuur
     filters:

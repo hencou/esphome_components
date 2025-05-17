@@ -14,6 +14,7 @@ void Itho_Sensor::dump_config() {
     ESP_LOGCONFIG(TAG, "itho:");
   
     LOG_UPDATE_INTERVAL(this);
+    LOG_SENSOR(TAG, "Error", this->error_sensor_);
     LOG_SENSOR(TAG, "Temperature", this->temperature_sensor_);
     LOG_SENSOR(TAG, "Humidity", this->humidity_sensor_);
     LOG_SENSOR(TAG, "Fan setpoint", this->fan_setpoint_sensor_);
@@ -21,6 +22,11 @@ void Itho_Sensor::dump_config() {
 }
 
 void Itho_Sensor::update() {
+    if (this->error_sensor_ != nullptr) {
+        const float error = parent_->getIthoError();
+        this->error_sensor_->publish_state(error);
+    }
+
     if (this->temperature_sensor_ != nullptr) {
         const float temperature = parent_->getIthoTemperature();
         this->temperature_sensor_->publish_state(temperature);
