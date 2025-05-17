@@ -20,7 +20,7 @@ wifi:
   fast_connect: true
 
 logger:
-  level: INFO
+  level: ERROR
 
 api:
  reboot_timeout: 480min
