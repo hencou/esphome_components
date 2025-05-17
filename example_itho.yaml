@@ -156,6 +156,10 @@ sensor:
   update_interval: 8s
   error:
     name: ${friendly_name} error
+  startup_counter:
+    name: ${friendly_name} startup counter
+  operation_time:
+    name: ${friendly_name} operation time
   temperature:
     name: ${friendly_name} temperatuur
     filters:
