@@ -30,6 +30,7 @@ namespace esphome
       bool setIthoSpeed(uint16_t speed);
 
       double getIthoError() { return ithoSystem->getIthoError(); }
+      double getIthoStartupCounter() { return ithoSystem->getIthoStartupCounter(); }
       double getIthoOperationTime() { return ithoSystem->getIthoOperationTime(); }
       double getIthoTemperature() { return ithoSystem->getIthoTemperature(); }
       double getIthoHumidity() { return ithoSystem->getIthoHumidity(); }

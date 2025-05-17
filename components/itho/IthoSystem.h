@@ -2272,6 +2272,7 @@ namespace esphome
 
     public:
       double getIthoError() { return ithoError; }
+      double getIthoStartupCounter() { return ithoStartupCounter; }
       double getIthoOperationTime() { return ithoOperationTime; }
       double getIthoHumidity() { return ithoHumidity; }
       double getIthoTemperature() { return ithoTemperature; }
@@ -2348,6 +2349,7 @@ namespace esphome
       std::string i2cbuf2string(const uint8_t *data, size_t len);
 
       double ithoError;
+      double ithoStartupCounter;
       double ithoOperationTime;
       double ithoHumidity = 0;
       double ithoTemperature = 0;

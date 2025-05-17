@@ -17,6 +17,7 @@ from esphome.const import (
 from .. import itho_ns, CONF_ITHO_ID, Itho
 
 CONF_ERROR = "error"
+CONF_STARTUP_COUNTER = "startup_counter"
 CONF_OPERATION_TIME = "operation_time"
 CONF_FAN_SETPOINT = "fan_setpoint"
 CONF_FAN_SPEED = "fan_speed"
@@ -33,6 +34,10 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(Itho_Sensor),
             cv.GenerateID(CONF_ITHO_ID): cv.use_id(Itho),
             cv.Optional(CONF_ERROR): sensor.sensor_schema(
+                accuracy_decimals=0,
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            ),
+            cv.Optional(CONF_STARTUP_COUNTER): sensor.sensor_schema(
                 accuracy_decimals=0,
                 entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             ),
@@ -80,6 +85,10 @@ async def to_code(config):
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
         cg.add(var.set_error_sensor(sens))
+
+    if CONF_STARTUP_COUNTER in config:
+        sens = await sensor.new_sensor(config[CONF_STARTUP_COUNTER])
+        cg.add(var.set_startup_counter_sensor(sens))
 
     if CONF_OPERATION_TIME in config:
         sens = await sensor.new_sensor(config[CONF_OPERATION_TIME])
