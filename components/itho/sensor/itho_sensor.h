@@ -10,6 +10,7 @@ namespace itho {
 class Itho_Sensor : public sensor::Sensor, public PollingComponent {
  public:
   void set_error_sensor(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
+  void set_operation_time_sensor(sensor::Sensor *operation_time_sensor) { operation_time_sensor_ = operation_time_sensor; }
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_humidity_sensor(sensor::Sensor *humidity_sensor) { humidity_sensor_ = humidity_sensor; }
   void set_fan_setpoint_sensor(sensor::Sensor *fan_setpoint_sensor) { fan_setpoint_sensor_ = fan_setpoint_sensor; }
@@ -23,6 +24,7 @@ class Itho_Sensor : public sensor::Sensor, public PollingComponent {
 
  protected:
   sensor::Sensor *error_sensor_;
+  sensor::Sensor *operation_time_sensor_;
   sensor::Sensor *temperature_sensor_;
   sensor::Sensor *humidity_sensor_;
   sensor::Sensor *fan_setpoint_sensor_;

@@ -551,6 +551,11 @@ namespace esphome
               ithoError = ithoStat.value.intval;
               ESP_LOGD(TAG, "Error: %f", ithoError);
             }
+            if (strcmp("Total operation (hours)", ithoStat.name) == 0)
+            {
+              ithoOperationTime = ithoStat.value.intval;
+              ESP_LOGD(TAG, "ithoOperationTime: %f", ithoOperationTime);
+            }
             if (strcmp("Fan setpoint (rpm)", ithoStat.name) == 0)
             {
               ithoFanSetpoint = ithoStat.value.intval;
