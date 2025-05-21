@@ -24,7 +24,7 @@ def validate(config):
 
 
 CONFIG_SCHEMA = cv.All(
-    select.SELECT_SCHEMA.extend(
+    select.select_schema(Itho_Select).extend(
         {
             cv.GenerateID(): cv.declare_id(Itho_Select),
             cv.GenerateID(CONF_ITHO_ID): cv.use_id(Itho),
