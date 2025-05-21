@@ -42,7 +42,7 @@ CONF_COMMAND = "command"
 
 MiSwitch = mi_ns.class_("MiSwitch", switch.Switch, cg.Component)
 
-CONFIG_SCHEMA = switch.SWITCH_SCHEMA.extend(
+CONFIG_SCHEMA = switch.switch_schema(MiSwitch).extend(
     {
         cv.GenerateID(): cv.declare_id(MiSwitch),
         cv.GenerateID(CONF_MI_ID): cv.use_id(Mi),
