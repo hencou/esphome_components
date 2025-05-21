@@ -42,7 +42,7 @@ CONF_COMMAND = "command"
 
 MiButton = mi_ns.class_("MiButton", button.Button, cg.Component)
 
-CONFIG_SCHEMA = button.BUTTON_SCHEMA.extend(
+CONFIG_SCHEMA = button.button_schema(MiButton).extend(
     {
         cv.GenerateID(): cv.declare_id(MiButton),
         cv.GenerateID(CONF_MI_ID): cv.use_id(Mi),
