@@ -9,7 +9,7 @@ DEPENDENCIES = ["itho"]
 Itho_Fan = itho_ns.class_("Itho_Fan", fan.Fan, cg.Component)
 
 CONFIG_SCHEMA = cv.All(
-  fan.FAN_SCHEMA.extend(
+  fan.fan_schema(Itho_Fan).extend(
     {
       cv.GenerateID(CONF_ID): cv.declare_id(Itho_Fan),
       cv.GenerateID(CONF_ITHO_ID): cv.use_id(Itho),
