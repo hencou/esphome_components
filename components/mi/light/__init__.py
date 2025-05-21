@@ -32,7 +32,7 @@ CONF_REMOTETYPE = "remote_type"
 MiLight = mi_ns.class_("MiLight", light.LightOutput, cg.Component)
 
 CONFIG_SCHEMA = cv.All(
-    light.RGB_LIGHT_SCHEMA.extend(
+    light.rgb_light_schema(MiLight).extend(
         {
             cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(MiLight),
             cv.GenerateID(CONF_MI_ID): cv.use_id(Mi), 
