@@ -26,9 +26,7 @@ void WiFiManager::loop()
 
     if (needServerInit)
     {
-        //MDNS.begin wants the name we will register as without the .local on the end. That's added automatically.
-        if (!MDNS.begin("ESPHomeGVRET")) Serial.println("Error setting up MDNS responder!");
-        MDNS.addService("telnet", "tcp", 23);// Add service to MDNS-SD
+        //MDNS.addService("telnet", "tcp", 23);// Add service to MDNS-SD
         wifiServer.begin(23); //setup as a telnet server
         wifiServer.setNoDelay(true);
         Serial.println("");
