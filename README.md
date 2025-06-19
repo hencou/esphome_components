@@ -26,4 +26,4 @@ This is an ESPhome implementation of Itho Wifi module: https://github.com/arjenh
 See attached example "example_itho.yaml". This example provides also an integrated standalone PID controller to drive the Itho box, with values from the integrated humidity sensor.
 
 # 4. I2C sniffer for ESPhome
-A I2C sniffer implementation for a ESP32 module, using the code from https://github.com/ozarchie/I2C-sniffer. Will dump all the camptured packets from the I2C interface to the ESPhome logging console.
+A I2C sniffer implementation for a ESP32 module, using the code from https://github.com/ozarchie/I2C-sniffer. Will dump all the captured packets from the I2C interface to the ESPhome logging console.
