@@ -22,6 +22,11 @@ void CanbusGVRET::setup() {
 
   ESP_LOGCONFIG(TAG, "Setting up CanbusGVRET");
 
+  if (!this->setup_internal()) {
+    ESP_LOGE(TAG, "setup error!");
+    this->mark_failed();
+  }
+
   wifiManager.setup();
 
   this->is_initialized = true;
