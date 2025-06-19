@@ -46,15 +46,11 @@ void CanbusGVRET::trigger(uint32_t can_id, bool use_extended_id, bool remote_tra
 }
 
 bool CanbusGVRET::setup_internal() {
-  
-  ESP_LOGI(TAG, "Setup_internal step 1");
 
   if (!this->canbus) {
     return true;
   }
-
-  ESP_LOGI(TAG, "Setup_internal step 2");
-
+  
   Automation<std::vector<uint8_t>, uint32_t, bool> *automation;
   LambdaAction<std::vector<uint8_t>, uint32_t, bool> *lambdaaction;
   canbus::CanbusTrigger *canbus_canbustrigger;
@@ -65,8 +61,7 @@ bool CanbusGVRET::setup_internal() {
   automation = new Automation<std::vector<uint8_t>, uint32_t, bool>(canbus_canbustrigger);
   auto cb = [this](std::vector<uint8_t> x, uint32_t can_id, bool remote_transmission_request) -> void {
     trigger(can_id, this->use_extended_id_, remote_transmission_request, x);
-    //this->displayFrame(can_id, this->use_extended_id_, remote_transmission_request, x);
-    this->send_udp_multicast(can_id, this->use_extended_id_, remote_transmission_request, x);
+    this->displayFrame(can_id, this->use_extended_id_, remote_transmission_request, x);
   };
   lambdaaction = new LambdaAction<std::vector<uint8_t>, uint32_t, bool>(cb);
   automation->add_actions({lambdaaction});
@@ -80,20 +75,11 @@ canbus::Error CanbusGVRET::send_message(struct canbus::CanFrame *frame) {
   if (this->canbus) {
     this->canbus->send_data(frame->can_id, frame->use_extended_id, frame->remote_transmission_request, data);
   }
-  //this->displayFrame(frame->can_id, frame->use_extended_id, frame->remote_transmission_request, data);
-  this->send_udp_multicast(frame->can_id, frame->use_extended_id, frame->remote_transmission_request, data);
+  this->displayFrame(frame->can_id, frame->use_extended_id, frame->remote_transmission_request, data);
   return canbus::ERROR_OK;
 };
 
 canbus::Error CanbusGVRET::read_message(struct canbus::CanFrame *frame) { return canbus::ERROR_NOMSG; };
-
-void CanbusGVRET::send_udp_multicast(uint32_t can_id, bool use_extended_id, bool remote_transmission_request,
-                                            const std::vector<uint8_t> &data) {
-  //if (!is_initialized)
-  //  return;
-
-  ESP_LOGI(TAG, "can_id: %i", can_id);  
-}
 
 void CanbusGVRET::displayFrame(uint32_t can_id, bool use_extended_id, bool remote_transmission_request, const std::vector<uint8_t> &data)
 {
