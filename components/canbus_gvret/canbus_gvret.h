@@ -12,6 +12,8 @@ const char *const TAG = "canbus_gvret";
 
 class CanbusGVRET : public canbus::Canbus {
 
+ bool is_initialized = false;
+ 
  public:
   canbus::Canbus *canbus;
 
@@ -20,6 +22,7 @@ class CanbusGVRET : public canbus::Canbus {
   };
 
   void displayFrame(uint32_t can_id, bool use_extended_id, bool remote_transmission_request, const std::vector<uint8_t> &data);
+  void send_udp_multicast(uint32_t can_id, bool use_extended_id, bool remote_transmission_request, const std::vector<uint8_t> &data);
 
   float get_setup_priority() const override;
   void setup();
