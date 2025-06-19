@@ -41,9 +41,15 @@ void CanbusGVRET::trigger(uint32_t can_id, bool use_extended_id, bool remote_tra
 }
 
 bool CanbusGVRET::setup_internal() {
+  
+  ESP_LOGI(TAG, "Setup_internal step 1");
+
   if (!this->canbus) {
     return true;
   }
+
+  ESP_LOGI(TAG, "Setup_internal step 2");
+
   Automation<std::vector<uint8_t>, uint32_t, bool> *automation;
   LambdaAction<std::vector<uint8_t>, uint32_t, bool> *lambdaaction;
   canbus::CanbusTrigger *canbus_canbustrigger;
@@ -59,7 +65,7 @@ bool CanbusGVRET::setup_internal() {
   };
   lambdaaction = new LambdaAction<std::vector<uint8_t>, uint32_t, bool>(cb);
   automation->add_actions({lambdaaction});
-  ESP_LOGI(TAG, "trigger installed!");
+  ESP_LOGI(TAG, "Trigger installed!");
 
   return true;
 }
@@ -109,7 +115,7 @@ void CanbusGVRET::loop() {
 
   if (!is_initialized)
   return;
-  
+
   int serialCnt;
   uint8_t in_byte;
 
