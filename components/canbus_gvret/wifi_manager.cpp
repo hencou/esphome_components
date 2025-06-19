@@ -17,74 +17,65 @@ WiFiManager::WiFiManager()
 
 void WiFiManager::setup()
 {
-    needServerInit = true; 
+    //MDNS.addService("telnet", "tcp", 23);// Add service to MDNS-SD
+    wifiServer.begin(23); //setup as a telnet server
+    wifiServer.setNoDelay(true);
+    Serial.println("");
+    Serial.println(" ... ready!");
 }
 
 void WiFiManager::loop()
 { 
     int i;    
 
-    if (needServerInit)
+    if (wifiServer.hasClient())
     {
-        //MDNS.addService("telnet", "tcp", 23);// Add service to MDNS-SD
-        wifiServer.begin(23); //setup as a telnet server
-        wifiServer.setNoDelay(true);
-        Serial.println("");
-        Serial.println(" ... ready!");
-    }
-    else
-    {
-
-        if (wifiServer.hasClient())
-        {
-            for(i = 0; i < MAX_CLIENTS; i++)
-            {
-                if (!SysSettings.clientNodes[i] || !SysSettings.clientNodes[i].connected())
-                {
-                    if (SysSettings.clientNodes[i]) SysSettings.clientNodes[i].stop();
-                    SysSettings.clientNodes[i] = wifiServer.available();
-                    if (!SysSettings.clientNodes[i]) Serial.println("Couldn't accept client connection!");
-                    else 
-                    {
-                        Serial.print("New client: ");
-                        Serial.print(i); Serial.print(' ');
-                        Serial.println(SysSettings.clientNodes[i].remoteIP());            
-                    }
-                }
-            }
-            if (i >= MAX_CLIENTS) {
-                //no free/disconnected spot so reject
-                wifiServer.available().stop();
-            }
-        }
-
-        //check clients for data
         for(i = 0; i < MAX_CLIENTS; i++)
         {
-            if (SysSettings.clientNodes[i] && SysSettings.clientNodes[i].connected())
+            if (!SysSettings.clientNodes[i] || !SysSettings.clientNodes[i].connected())
             {
-                if(SysSettings.clientNodes[i].available())
+                if (SysSettings.clientNodes[i]) SysSettings.clientNodes[i].stop();
+                SysSettings.clientNodes[i] = wifiServer.available();
+                if (!SysSettings.clientNodes[i]) Serial.println("Couldn't accept client connection!");
+                else 
                 {
-                    //get data from the telnet client and push it to input processing
-                    while(SysSettings.clientNodes[i].available()) 
-                    {
-                        uint8_t inByt;
-                        inByt = SysSettings.clientNodes[i].read();
-                        wifiGVRET.processIncomingByte(inByt);
-                    }
+                    Serial.print("New client: ");
+                    Serial.print(i); Serial.print(' ');
+                    Serial.println(SysSettings.clientNodes[i].remoteIP());            
                 }
             }
-            else
-            {
-                if (SysSettings.clientNodes[i]) 
-                {
-                    SysSettings.clientNodes[i].stop();
-                }
-            }
-        }                    
-
-        needServerInit = false;
+        }
+        if (i >= MAX_CLIENTS) {
+            //no free/disconnected spot so reject
+            wifiServer.available().stop();
+        }
     }
+
+    //check clients for data
+    for(i = 0; i < MAX_CLIENTS; i++)
+    {
+        if (SysSettings.clientNodes[i] && SysSettings.clientNodes[i].connected())
+        {
+            if(SysSettings.clientNodes[i].available())
+            {
+                //get data from the telnet client and push it to input processing
+                while(SysSettings.clientNodes[i].available()) 
+                {
+                    uint8_t inByt;
+                    inByt = SysSettings.clientNodes[i].read();
+                    wifiGVRET.processIncomingByte(inByt);
+                }
+            }
+        }
+        else
+        {
+            if (SysSettings.clientNodes[i]) 
+            {
+                SysSettings.clientNodes[i].stop();
+            }
+        }
+    }                    
+
 
     if ((micros() - lastBroadcast) > 1000000ul) //every second send out a broadcast ping
     {
