@@ -1,0 +1,188 @@
+substitutions:
+  device_name: remeha
+  friendly_name: Remeha Tzerra
+
+esphome:
+  name: $device_name
+  friendly_name: $friendly_name
+  build_path: "../build/${device_name}"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+external_components:
+- source: github://hencou/esphome_components
+  components: [canbus_gvret]
+  #refresh: 0s
+
+  
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+
+sensor:
+- platform: template
+  name: ${friendly_name} Power
+  id: ${device_name}_power
+- platform: template
+  name: ${friendly_name} Flow temperature
+  id: ${device_name}_flow_temperature
+- platform: template
+  name: ${friendly_name} Setpoint
+  id: ${device_name}_setpoint
+- platform: template
+  name: ${friendly_name} Test1
+  id: ${device_name}_test1
+- platform: template
+  name: ${friendly_name} Test2
+  id: ${device_name}_test2
+
+text_sensor:
+- platform: template
+  name: ${friendly_name} Status
+  id: ${device_name}_status
+
+canbus:
+- platform: esp32_can
+  id: my_canbus
+  tx_pin: GPIO5
+  rx_pin: GPIO35
+  can_id: 42
+  bit_rate: 1000kbps
+  # increase queue sizes for CANOpen block transfer (up to 128 frames can be sent in burst)
+  tx_queue_len: 128
+  rx_queue_len: 128
+  on_frame:
+  - can_id: 0x282
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+          
+          //Byte1 = Power
+          uint8_t power = x[1];
+          id(${device_name}_power).publish_state(power);
+          
+          //Byte 2+3 = Flow temperature
+          uint8_t A = x[2];
+          uint8_t B = x[3];
+          uint16_t temp = (((uint16_t)A << 8) + B) / 100;
+          id(${device_name}_flow_temperature).publish_state(temp);
+        }
+
+  - can_id: 0x381
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+          
+          //Byte 0+1 = To be tested
+          uint8_t A = x[0];
+          uint8_t B = x[1];
+          uint16_t test1 = (((uint16_t)A << 8) + B) / 100;
+          id(${device_name}_test1).publish_state(test1);
+
+          //Byte 2+3 = To be tested
+          A = x[2];
+          B = x[3];
+          uint16_t test2 = (((uint16_t)A << 8) + B) / 100;
+          id(${device_name}_test2).publish_state(test2);
+        }
+
+  - can_id: 0x382
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+
+          //Byte 2+3 = Setpoint
+          uint8_t A = x[2];
+          uint8_t B = x[3];
+          uint16_t setpoint = (((uint16_t)A << 8) + B) / 100;
+          id(${device_name}_setpoint).publish_state(setpoint);
+        }
+        
+  - can_id: 0x481
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+
+          //Byte1 = Status
+          uint8_t status = x[1];
+          String statustext;
+          switch(status) {
+            case 0:
+              statustext="stand-by";
+              break;
+            case 1:
+              statustext="demand";
+              break;
+            case 2:
+              statustext="start generator";
+              break;
+            case 3:
+              statustext="heat active";
+              break;
+            case 4:
+              statustext="dhw active";
+              break;
+            case 5:
+              statustext="stop generator";
+              break;
+            case 6:
+              statustext="pump active";
+              break;
+            case 8:
+              statustext="delay";
+              break;
+            case 9:
+              statustext="block";
+              break;
+            case 10:
+              statustext="lock";
+              break;
+            case 11:
+              statustext="test heat min";
+              break;
+            case 12:
+              statustext="test heat max";
+              break;
+            case 13:
+              statustext="test DWH max";
+              break;
+            case 15:
+              statustext="manual heat";
+              break;
+            case 16:
+              statustext="frost protection";
+              break;
+            case 19:
+              statustext="reset";
+              break;
+            case 21:
+              statustext="paused";
+              break;
+            case 200:
+              statustext="service mode";
+              break;
+            default:
+              statustext="unknown";
+          }
+          id(${device_name}_status).publish_state(statustext.c_str());
+        }
+
+# GVRET component to use with SavvyCAN for remote CANbus message analysis
+- platform: canbus_gvret
+  id: gvret
+  can_id: 0
+  canbus_id: my_canbus
