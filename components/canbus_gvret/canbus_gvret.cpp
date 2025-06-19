@@ -86,7 +86,6 @@ void CanbusGVRET::displayFrame(uint32_t can_id, bool use_extended_id, bool remot
   if (!is_initialized)
   return;
   
-  ESP_LOGI(TAG, "can_id: %i", can_id); 
   CAN_FRAME frame;
 
   frame.id = can_id;
