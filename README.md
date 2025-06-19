@@ -30,3 +30,15 @@ A I2C sniffer implementation for a ESP32 module, using the code from https://git
 
 # 5. ESPHome CANbus implementation to use with Remeha boilers
 A CANbus implementation with use of standard ESPHome components to read CANbus messages from the service bus of newer Remeha boilers. I am using it for a Remeha Tzerra. The service bus needs to be connected with a RJ12 connector. 
+The connection is as follows:
+
+| Pin  | RJ12   |
+| ---- | ------ |
+| 1    | CAN H  |
+| 2    | CAN L  |
+| 3    | NC     |
+| 4    | GND    |
+| 5    | NC     | 
+| 6    | 24V    |
+
+
