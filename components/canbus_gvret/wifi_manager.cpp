@@ -38,7 +38,8 @@ void WiFiManager::loop()
                 if (!SysSettings.clientNodes[i]) ESP_LOGE(TAG, "Couldn't accept client connection!");
                 else 
                 {
-                    ESP_LOGI(TAG, "New client: %s", SysSettings.clientNodes[i].remoteIP());           
+                    IPAddress IP = SysSettings.clientNodes[i].remoteIP();
+                    ESP_LOGI(TAG, "New client: %i: %d.%d.%d.%d", i, IP[0], IP[1], IP[2], IP[3]);           
                 }
             }
         }
