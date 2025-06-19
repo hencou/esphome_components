@@ -1,7 +1,7 @@
 #include "config.h"
 #include "wifi_manager.h"
 #include "gvret_comm.h"
-#include <ESPmDNS.h>
+//#include <ESPmDNS.h>
 #include <WiFi.h>
 
 namespace esphome {
