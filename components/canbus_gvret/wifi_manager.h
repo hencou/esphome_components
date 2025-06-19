@@ -1,6 +1,5 @@
 #pragma once
 #include <WiFi.h>
-#include <ESPmDNS.h>
 #include <WiFiUdp.h>
 
 namespace esphome {

@@ -1,7 +1,7 @@
+#include "esphome.h"
 #include "config.h"
 #include "wifi_manager.h"
 #include "gvret_comm.h"
-//#include <ESPmDNS.h>
 #include <WiFi.h>
 
 namespace esphome {
@@ -20,8 +20,7 @@ void WiFiManager::setup()
     //MDNS.addService("telnet", "tcp", 23);// Add service to MDNS-SD
     wifiServer.begin(23); //setup as a telnet server
     wifiServer.setNoDelay(true);
-    Serial.println("");
-    Serial.println(" ... ready!");
+    ESP_LOGCONFIG(TAG, "Wifi manager ready!");
 }
 
 void WiFiManager::loop()
@@ -36,12 +35,10 @@ void WiFiManager::loop()
             {
                 if (SysSettings.clientNodes[i]) SysSettings.clientNodes[i].stop();
                 SysSettings.clientNodes[i] = wifiServer.available();
-                if (!SysSettings.clientNodes[i]) Serial.println("Couldn't accept client connection!");
+                if (!SysSettings.clientNodes[i]) ESP_LOGE(TAG, "Couldn't accept client connection!");
                 else 
                 {
-                    Serial.print("New client: ");
-                    Serial.print(i); Serial.print(' ');
-                    Serial.println(SysSettings.clientNodes[i].remoteIP());            
+                    ESP_LOGI(TAG, "New client: %s", SysSettings.clientNodes[i].remoteIP());           
                 }
             }
         }
