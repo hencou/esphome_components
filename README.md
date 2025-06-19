@@ -29,7 +29,7 @@ See attached example "example_itho.yaml". This example provides also an integrat
 A I2C sniffer implementation for a ESP32 module, using the code from https://github.com/ozarchie/I2C-sniffer. Will dump all the captured packets from the I2C interface to the ESPhome logging console.
 
 # 5. ESPHome CANbus implementation to use with Remeha boilers
-A CANbus implementation with use of standard ESPHome components to read CANbus messages from the service bus of newer Remeha boilers. I am using it for a Remeha Tzerra. The service bus needs to be connected with a RJ12 connector. 
+A CANbus implementation with use of standard ESPHome components to read CANbus messages from the service bus of newer Remeha boilers, eg. Remeha Tzerra. The service bus needs to be connected with a RJ12 connector. 
 The connection is as follows:
 
 | Pin  | RJ12   |
@@ -41,4 +41,5 @@ The connection is as follows:
 | 5    | NC     | 
 | 6    | 24V    |
 
-
+I am using a Olimex ESP32-EVP board for this, because this board has already a CANbus connection onboard. By a 24V to 5V buck converter inbetween the ESP32 and service connector pin 6 the ESP32 can be power supplied from the Remeha service bus.
+(Use at your own risk)
