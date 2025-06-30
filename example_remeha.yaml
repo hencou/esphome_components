@@ -13,9 +13,9 @@ esp32:
     type: arduino
 
 external_components:
-- source: github://hencou/esphome_components
+- source: github://hencou/esphome_gvret
   components: [canbus_gvret]
-  #refresh: 0s
+  refresh: 0s
 
   
 # Enable logging
@@ -33,22 +33,50 @@ wifi:
   password: !secret wifi_password
   fast_connect: true
 
+#interval:
+#- interval: 10s
+#  then:
+#  - canbus.send:
+#      data: [ 0x40, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00 ]
+#      canbus_id: my_canbus
+#  - canbus.send:
+#      data: [0x40, 0x0b, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00 ]
+#      canbus_id: my_canbus
+#  - canbus.send:
+#      data: [0x40, 0x0c, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00 ]
+#      canbus_id: my_canbus
+
 sensor:
+#- platform: template
+#  name: ${friendly_name} Power
+#  id: ${device_name}_power
 - platform: template
-  name: ${friendly_name} Power
-  id: ${device_name}_power
-- platform: template
-  name: ${friendly_name} Flow temperature
+  name: ${friendly_name} Flow temperatuur
   id: ${device_name}_flow_temperature
+#- platform: template
+#  name: ${friendly_name} Setpoint
+#  id: ${device_name}_setpoint
 - platform: template
-  name: ${friendly_name} Setpoint
-  id: ${device_name}_setpoint
-- platform: template
-  name: ${friendly_name} Test1
-  id: ${device_name}_test1
+  name: ${friendly_name} Buiten temperatuur
+  id: ${device_name}_outside_temp
 - platform: template
   name: ${friendly_name} Test2
   id: ${device_name}_test2
+- platform: template
+  name: ${friendly_name} Test3
+  id: ${device_name}_test3
+- platform: template
+  name: ${friendly_name} Test4
+  id: ${device_name}_test4
+- platform: template
+  name: ${friendly_name} Test5
+  id: ${device_name}_test5
+- platform: template
+  name: ${friendly_name} Test6
+  id: ${device_name}_test6
+- platform: template
+  name: ${friendly_name} Test7
+  id: ${device_name}_test7
 
 text_sensor:
 - platform: template
@@ -60,7 +88,7 @@ canbus:
   id: my_canbus
   tx_pin: GPIO5
   rx_pin: GPIO35
-  can_id: 42
+  can_id: 0x241
   bit_rate: 1000kbps
   # increase queue sizes for CANOpen block transfer (up to 128 frames can be sent in burst)
   tx_queue_len: 128
@@ -71,15 +99,15 @@ canbus:
     - lambda: |-
         if(x.size() > 0) {
           
-          //Byte1 = Power
-          uint8_t power = x[1];
-          id(${device_name}_power).publish_state(power);
+          //Byte1 = Power: klopt niet, is iets anders, loopt langzaam af teller oid
+          //uint8_t power = x[1];
+          //id(${device_name}_power).publish_state(power);
           
           //Byte 2+3 = Flow temperature
           uint8_t A = x[2];
           uint8_t B = x[3];
-          uint16_t temp = (((uint16_t)A << 8) + B) / 100;
-          id(${device_name}_flow_temperature).publish_state(temp);
+          float flow_temp = (((uint16_t)A << 8) + B) / 100.00;
+          id(${device_name}_flow_temperature).publish_state(flow_temp);
         }
 
   - can_id: 0x381
@@ -87,29 +115,11 @@ canbus:
     - lambda: |-
         if(x.size() > 0) {
           
-          //Byte 0+1 = To be tested
+          //Byte 0+1 = Outside temperature
           uint8_t A = x[0];
           uint8_t B = x[1];
-          uint16_t test1 = (((uint16_t)A << 8) + B) / 100;
-          id(${device_name}_test1).publish_state(test1);
-
-          //Byte 2+3 = To be tested
-          A = x[2];
-          B = x[3];
-          uint16_t test2 = (((uint16_t)A << 8) + B) / 100;
-          id(${device_name}_test2).publish_state(test2);
-        }
-
-  - can_id: 0x382
-    then:
-    - lambda: |-
-        if(x.size() > 0) {
-
-          //Byte 2+3 = Setpoint
-          uint8_t A = x[2];
-          uint8_t B = x[3];
-          uint16_t setpoint = (((uint16_t)A << 8) + B) / 100;
-          id(${device_name}_setpoint).publish_state(setpoint);
+          float out_temp = ((((uint16_t)B << 8) + A) / 100.00);
+          id(${device_name}_outside_temp).publish_state(out_temp);
         }
         
   - can_id: 0x481
@@ -172,6 +182,18 @@ canbus:
             case 21:
               statustext="paused";
               break;
+            case 30:
+              statustext="dhw active";
+              break;
+            case 37:
+              statustext="dhw active";
+              break;
+            case 40:
+              statustext="dhw active";
+              break;
+            case 41:
+              statustext="dhw active";
+              break;
             case 200:
               statustext="service mode";
               break;
@@ -180,6 +202,22 @@ canbus:
           }
           id(${device_name}_status).publish_state(statustext.c_str());
         }
+
+  - can_id: 0x482
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+          if(x[0] == 0x01 && x[1] == 0x03) {
+            
+            id(${device_name}_test2).publish_state(float(x[2]));
+            id(${device_name}_test3).publish_state(float(x[3]));
+            id(${device_name}_test4).publish_state(float(x[4]));
+            id(${device_name}_test5).publish_state(float(x[5]));
+            id(${device_name}_test6).publish_state(float(x[6]));
+            id(${device_name}_test7).publish_state(float(x[7]));
+          }
+        }
+        
 
 # GVRET component to use with SavvyCAN for remote CANbus message analysis
 - platform: canbus_gvret
