@@ -83,7 +83,7 @@ light:
   - platform: mi #required
     id: light1 #required
     name: ${friendly_name} #required
-    device_id: 0xAB01 #required, hexadacimal value of MiLight id
+    mi_device_id: 0xAB01 #required, hexadacimal value of MiLight id
     group_id: 1 #required, 1-4 or 1-8, depending on remote type
     remote_type: rgb_cct #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020, s2
     default_transition_length: 0s #optional, but 0s gives a better behaviour instead the default 200ms
@@ -148,7 +148,7 @@ button:
   - platform: mi
     id: pair
     name: ${friendly_name} pair
-    device_id: 0xAB01
+    mi_device_id: 0xAB01
     group_id: 1
     remote_type: rgb_cct
     command: pair
