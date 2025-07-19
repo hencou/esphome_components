@@ -156,7 +156,7 @@ button:
   - platform: mi
     id: unpair
     name: ${friendly_name} unpair
-    device_id: 0xAB01
+    mi_device_id: 0xAB01
     group_id: 1
     remote_type: rgb_cct
     command: unpair
