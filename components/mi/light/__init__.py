@@ -25,7 +25,7 @@ REMOTE_TYPES = {
 
 
 CODEOWNERS = ["@hencou"]
-CONF_DEVICEID = "device_id"
+CONF_DEVICEID = "mi_device_id"
 CONF_GROUPID = "group_id"
 CONF_REMOTETYPE = "remote_type"
 
