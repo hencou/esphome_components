@@ -12,6 +12,17 @@ esphome:
   #     - "-D ALT_SPI_SCLK_PIN=12"
   #     - "-D ALT_SPI_SS_PIN=4"
 
+  # Define areas
+  areas:
+  - id: test_area
+    name: "Test area"
+    
+  # Define devices
+  devices:
+  - id: test_device
+    name: "Test device"
+    area_id: test_area
+    
 external_components:
   - source: github://hencou/esphome_components
     components: mi
@@ -84,6 +95,7 @@ light:
   - platform: mi #required
     id: light1 #required
     name: ${friendly_name} #required
+    device_id: test_device
     mi_device_id: 0xAB01 #required, hexadacimal value of MiLight id
     group_id: 1 #required, 1-4 or 1-8, depending on remote type
     remote_type: rgb_cct #required, possible values: rgb_cct, rgb, cct, rgbw, fut089, fut091, fut020, s2
@@ -97,6 +109,7 @@ light:
 binary_sensor:
   - platform: gpio
     id: d1
+    device_id: test_device
     pin:
       number: D1
       mode: INPUT_PULLUP
@@ -149,6 +162,7 @@ button:
   - platform: mi
     id: pair
     name: ${friendly_name} pair
+    device_id: test_device
     mi_device_id: 0xAB01
     group_id: 1
     remote_type: rgb_cct
@@ -157,6 +171,7 @@ button:
   - platform: mi
     id: unpair
     name: ${friendly_name} unpair
+    device_id: test_device
     mi_device_id: 0xAB01
     group_id: 1
     remote_type: rgb_cct
