@@ -14,10 +14,6 @@ AUTO_LOAD = ["json"]
 itho_ns = cg.esphome_ns.namespace("itho")
 Itho = itho_ns.class_("Itho", cg.Component)
 
-pin_with_input_and_output_support = pins.internal_gpio_pin_number(
-    {CONF_OUTPUT: True, CONF_INPUT: True}
-)
-
 SYSSHT30_VALUES = {
   "enable" : 2,
   "disable" : 1,
@@ -33,8 +29,8 @@ CONFIG_SCHEMA = (
         cv.GenerateID(): cv.declare_id(Itho),
         cv.Optional(CONF_SYSSHT30_VALUE) : cv.enum(SYSSHT30_VALUES),
         cv.Optional(CONF_SYSSHT30_ADDRESS) : cv.i2c_address,
-        cv.Optional(CONF_SDA, default="SDA"): pin_with_input_and_output_support,
-        cv.Optional(CONF_SCL, default="SCL"): pin_with_input_and_output_support,
+        cv.Optional(CONF_SDA, default="SDA"): pins.internal_gpio_pin_number,
+        cv.Optional(CONF_SCL, default="SCL"): pins.internal_gpio_pin_number,
     }
   )
   .extend(cv.COMPONENT_SCHEMA)
