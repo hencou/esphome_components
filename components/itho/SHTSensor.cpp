@@ -113,9 +113,9 @@ namespace esphome
       return c < 10 ? c + '0' : c + 'A' - 10;
     }
 
-    std::string SHTSensor::i2cbuf2string(const uint8_t *data, size_t len)
+    String SHTSensor::i2cbuf2string(const uint8_t *data, size_t len)
     {
-      std::string s;
+      String s;
       s.reserve(len * 3 + 2);
       for (size_t i = 0; i < len; ++i)
       {

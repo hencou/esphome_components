@@ -115,11 +115,11 @@ namespace esphome
     void IthoQueue::get(JsonObject obj)
     {
       // Add "queue" object
-      JsonArray q = obj.createNestedArray("queue");
+      JsonArray q = obj["queue"].to<JsonArray>();
       // Add each queue item in the array
       for (int i = 0; i < MAX_QUEUE; i++)
       {
-        items[i].get(q.createNestedObject(), i);
+        items[i].get(q.add<JsonObject>(), i);
       }
     }
 

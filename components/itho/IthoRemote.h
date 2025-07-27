@@ -77,7 +77,7 @@ namespace esphome
         mutable uint8_t ID[3]{0, 0, 0};
         char name[32];
         mutable RemoteTypes remtype{RemoteTypes::UNSETTYPE};
-        StaticJsonDocument<128> capabilities;
+        JsonDocument capabilities;
         void set(JsonObjectConst);
         void get(JsonObject, const char *root, int index) const;
       };

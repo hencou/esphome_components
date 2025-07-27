@@ -182,7 +182,7 @@ namespace esphome
     bool Itho::loadVirtualRemotesConfig()
     {
 
-      DynamicJsonDocument doc(1000 + (MAX_NUMBER_OF_REMOTES * 400));
+      JsonDocument doc;
       DeserializationError err = deserializeJson(doc, "{\"vremotes\":[{\"index\":0,\"id\":[0,0,0],\"name\":\"remote0\",\"remtype\":0,\"capabilities\":null}],\"remfunc\":0,\"version_of_program\":\"002\"}");
 
       doc.shrinkToFit();

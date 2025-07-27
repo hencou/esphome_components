@@ -61,7 +61,7 @@ namespace esphome
       float mY = 65535;
 
       char toHex(uint8_t c);
-      std::string i2cbuf2string(const uint8_t *data, size_t len);
+      String i2cbuf2string(const uint8_t *data, size_t len);
     };
 
   }
