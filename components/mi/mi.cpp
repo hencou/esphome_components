@@ -23,7 +23,7 @@ namespace esphome {
      * Called when a packet is sent locally
      */
     void  Mi::onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
-      StaticJsonDocument<200> buffer;
+      JsonDocument buffer;
       JsonObject result = buffer.to<JsonObject>();
       
       BulbId bulbId = config.packetFormatter->parsePacket(packet, result);
@@ -42,7 +42,7 @@ namespace esphome {
      */
     void  Mi::onPacketReceivedHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
       
-      StaticJsonDocument<200> buffer;
+      JsonDocument buffer;
       JsonObject result = buffer.to<JsonObject>();
       
       BulbId bulbId = config.packetFormatter->parsePacket(packet, result);
@@ -138,33 +138,33 @@ namespace esphome {
     void Mi::updateOutput(light::LightState *state, JsonObject result) {
 
       MiLight* output = (MiLight*)(state->get_output());
-      if (result.containsKey("state")) {
+      if (result["state"].is<int>()) {
         state->current_values.set_state(result["state"] == "ON");
         state->remote_values.set_state(result["state"] == "ON");
       }
-      if (result.containsKey("color_temp")) {
+      if (result["color_temp"].is<int>()) {
         float color_temp = output->real_color_temperature((float)result["color_temp"]);
         state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
         state->current_values.set_color_temperature(color_temp);
         state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
         state->remote_values.set_color_temperature(color_temp);
       }
-      if (result.containsKey("brightness")) {
+      if (result["brightness"].is<int>()) {
         state->current_values.set_brightness((float)result["brightness"]/255.00);
         state->remote_values.set_brightness((float)result["brightness"]/255.00);
       }
-      if (result.containsKey("command")) {
+      if (result["command"].is<int>()) {
         if(result["command"] == "night_mode"){
           //TODO
         }
       }
       
       bool colorMode = false;
-      if (result.containsKey("hue")) {
+      if (result["hue"].is<int>()) {
         colorMode = true;
         Mi::hue = (int)result["hue"];
       }
-      if (result.containsKey("saturation")) {
+      if (result["saturation"].is<int>()) {
         colorMode = true;
         Mi::saturation = (int)result["saturation"];
       }
@@ -196,7 +196,7 @@ namespace esphome {
      */
     void Mi::handleCommand(BulbId bulbId, String command) {
       
-      StaticJsonDocument<200> buffer;
+      JsonDocument buffer;
       deserializeJson(buffer, command);
       JsonVariant variant = buffer.as<JsonVariant>();
 
@@ -312,7 +312,7 @@ namespace esphome {
         }
       }
       
-      StaticJsonDocument<200> root;
+      JsonDocument root;
       JsonObject requestJson = root.to<JsonObject>();
       
       std::string effect;
@@ -380,7 +380,7 @@ namespace esphome {
           root["brightness"] = uint8_t(values.get_brightness() * 255);
         }
 
-        JsonObject color = root.createNestedObject("color");
+        JsonObject color = root["color"].to<JsonObject>();
 
         if (values.get_color_mode() & light::ColorCapability::RGB) {
           color["r"] = uint8_t(values.get_color_brightness() * values.get_red() * 255);
@@ -424,7 +424,7 @@ namespace esphome {
      */
     void Mi::write_state(BulbId bulbId, std::string command) {
 
-      StaticJsonDocument<400> buffer;
+      JsonDocument buffer;
       deserializeJson(buffer, command.c_str());
       JsonObject requestJson = buffer.as<JsonObject>();
       
@@ -490,7 +490,7 @@ namespace esphome {
         MiLightRemoteType deviceType = MiLightRemoteType((bulbCompactId >> 8) & 0xFF);
         uint8_t groupId = bulbCompactId & 0xFF;
 
-        StaticJsonDocument<400> buffer;
+        JsonDocument buffer;
         deserializeJson(buffer, request.request);
         JsonObject obj = buffer.as<JsonObject>();
 
