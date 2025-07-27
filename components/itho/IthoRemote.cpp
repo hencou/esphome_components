@@ -289,7 +289,7 @@ namespace esphome
         }
       }
 
-      JsonArray id = obj.createNestedArray("id");
+      JsonArray id = obj["id"].to<JsonArray>();
       for (uint8_t y = 0; y < 3; y++)
       {
         id.add(ID[y]);
@@ -377,11 +377,11 @@ namespace esphome
       }
 
       // Add "remotes" object
-      JsonArray rem = obj.createNestedArray(root);
+      JsonArray rem = obj[root].to<JsonArray>();;
       // Add each remote in the array
       for (int i = 0; i < maxRemotes; i++)
       {
-        remotes[i].get(rem.createNestedObject(), root, i);
+        remotes[i].get(rem.add<JsonObject>(), root, i);
       }
       obj["remfunc"] = remfunc;
       obj["version_of_program"] = config_struct_version;
