@@ -748,7 +748,7 @@ bool GroupState::patch(JsonObject state) {
   Serial.println();
 #endif
 
-  if (state.containsKey(GroupStateFieldNames::STATE)) {
+  if (state[GroupStateFieldNames::STATE].is<int>()) {
     bool stateChange = setState(state[GroupStateFieldNames::STATE] == "ON" ? ON : OFF);
     changes |= stateChange;
   }
@@ -756,27 +756,27 @@ bool GroupState::patch(JsonObject state) {
   // Devices do not support changing their state while off, so don't apply state
   // changes to devices we know are off.
 
-  if (isOn() && state.containsKey(GroupStateFieldNames::BRIGHTNESS)) {
+  if (isOn() && state[GroupStateFieldNames::BRIGHTNESS].is<int>()) {
     bool stateChange = setBrightness(Units::rescale(state[GroupStateFieldNames::BRIGHTNESS].as<uint8_t>(), 100, 255));
     changes |= stateChange;
   }
-  if (isOn() && state.containsKey(GroupStateFieldNames::HUE)) {
+  if (isOn() && state[GroupStateFieldNames::HUE].is<int>()) {
     changes |= setHue(state[GroupStateFieldNames::HUE]);
     changes |= setBulbMode(BULB_MODE_COLOR);
   }
-  if (isOn() && state.containsKey(GroupStateFieldNames::SATURATION)) {
+  if (isOn() && state[GroupStateFieldNames::SATURATION].is<int>()) {
     changes |= setSaturation(state[GroupStateFieldNames::SATURATION]);
   }
-  if (isOn() && state.containsKey(GroupStateFieldNames::MODE)) {
+  if (isOn() && state[GroupStateFieldNames::MODE].is<int>()) {
     changes |= setMode(state[GroupStateFieldNames::MODE]);
     changes |= setBulbMode(BULB_MODE_SCENE);
   }
-  if (isOn() && state.containsKey(GroupStateFieldNames::COLOR_TEMP)) {
+  if (isOn() && state[GroupStateFieldNames::COLOR_TEMP].is<int>()) {
     changes |= setMireds(state[GroupStateFieldNames::COLOR_TEMP]);
     changes |= setBulbMode(BULB_MODE_WHITE);
   }
 
-  if (state.containsKey(GroupStateFieldNames::COMMAND)) {
+  if (state[GroupStateFieldNames::COMMAND].is<int>()) {
     const String& command = state[GroupStateFieldNames::COMMAND];
 
     if (isOn() && command == MiLightCommandNames::SET_WHITE) {
@@ -812,7 +812,8 @@ void GroupState::applyColor(JsonObject state) const {
 }
 
 void GroupState::applyColor(JsonObject state, uint8_t r, uint8_t g, uint8_t b) const {
-  JsonObject color = state.createNestedObject(GroupStateFieldNames::COLOR);
+  
+  JsonObject color = state[GroupStateFieldNames::COLOR].to<JsonObject>();
   color["r"] = r;
   color["g"] = g;
   color["b"] = b;
