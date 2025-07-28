@@ -328,6 +328,7 @@ namespace esphome
       ithoQueue = new IthoQueue();
 
       scl_pin = systemConfig->getI2C_SCL_Pin();
+      pinMode(scl_pin, INPUT);
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();
