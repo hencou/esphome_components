@@ -81,7 +81,7 @@ namespace esphome {
 
       parent_->add_child(state_->get_object_id_hash(), bulbId);
 
-      state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[0], [=](bool initial_run) -> void {
+      state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[0], [=, this](bool initial_run) -> void {
         auto call = state_->make_call();
         call.set_effect(DISCO_MODE_NAMES[0]);
         call.perform();
@@ -97,7 +97,7 @@ namespace esphome {
         
         // Add the 9 built-in effects with descriptive names...
         for (int i = 1; i < 10; i++) {
-          state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[i], [=](bool initial_run) -> void {
+          state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[i], [=, this](bool initial_run) -> void {
             auto call = state_->make_call();
             call.set_effect(DISCO_MODE_NAMES[i]);
             call.perform();
