@@ -138,33 +138,33 @@ namespace esphome {
     void Mi::updateOutput(light::LightState *state, JsonObject result) {
 
       MiLight* output = (MiLight*)(state->get_output());
-      if (result["state"].is<int>()) {
+      if (result["state"]) {
         state->current_values.set_state(result["state"] == "ON");
         state->remote_values.set_state(result["state"] == "ON");
       }
-      if (result["color_temp"].is<int>()) {
+      if (result["color_temp"]) {
         float color_temp = output->real_color_temperature((float)result["color_temp"]);
         state->current_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
         state->current_values.set_color_temperature(color_temp);
         state->remote_values.set_color_mode(light::ColorMode::COLOR_TEMPERATURE);
         state->remote_values.set_color_temperature(color_temp);
       }
-      if (result["brightness"].is<int>()) {
+      if (result["brightness"]) {
         state->current_values.set_brightness((float)result["brightness"]/255.00);
         state->remote_values.set_brightness((float)result["brightness"]/255.00);
       }
-      if (result["command"].is<int>()) {
+      if (result["command"]) {
         if(result["command"] == "night_mode"){
           //TODO
         }
       }
       
       bool colorMode = false;
-      if (result["hue"].is<int>()) {
+      if (result["hue"]) {
         colorMode = true;
         Mi::hue = (int)result["hue"];
       }
-      if (result["saturation"].is<int>()) {
+      if (result["saturation"]) {
         colorMode = true;
         Mi::saturation = (int)result["saturation"];
       }
