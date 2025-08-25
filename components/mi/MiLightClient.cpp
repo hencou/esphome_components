@@ -322,12 +322,12 @@ void MiLightClient::update(JsonObject request) {
   }
 
   //<Added by HC remove ON/OFF state commands when receiving night mode command>
-  if (request[GroupStateFieldNames::EFFECT].is<int>()) {
+  if (request[GroupStateFieldNames::EFFECT]) {
     if (request[GroupStateFieldNames::EFFECT] == MiLightCommandNames::NIGHT_MODE) {
-      if (request[GroupStateFieldNames::STATE].is<int>()) {
+      if (request[GroupStateFieldNames::STATE]) {
         request.remove(GroupStateFieldNames::STATE);
       }
-      if (request[GroupStateFieldNames::STATUS].is<int>()) {
+      if (request[GroupStateFieldNames::STATUS]) {
         request.remove(GroupStateFieldNames::STATUS);
       }
     }
@@ -336,7 +336,7 @@ void MiLightClient::update(JsonObject request) {
       request.remove(GroupStateFieldNames::EFFECT);
     }
 
-    if (request[GroupStateFieldNames::COLOR_TEMP].is<int>() || request[GroupStateFieldNames::TEMPERATURE].is<int>()) {
+    if (request[GroupStateFieldNames::COLOR_TEMP] || request[GroupStateFieldNames::TEMPERATURE]) {
       this->updateColorWhite();
     }
   }
@@ -355,7 +355,7 @@ void MiLightClient::update(JsonObject request) {
   }
 
   for (const char* fieldName : FIELD_ORDERINGS) {
-    if (request[fieldName].is<int>()) {
+    if (request[fieldName]) {
       auto handler = FIELD_SETTERS.find(fieldName);
       JsonVariant value = request[fieldName];
 
@@ -366,7 +366,7 @@ void MiLightClient::update(JsonObject request) {
   }
 
   // Raw packet command/args
-  if (request["button_id"].is<int>() && request["argument"].is<int>()) {
+  if (request["button_id"] && request["argument"]) {
     this->command(request["button_id"], request["argument"]);
   }
 
@@ -461,7 +461,7 @@ void MiLightClient::handleEffect(const String& effect) {
 JsonVariant MiLightClient::extractStatus(JsonObject object) {
   JsonVariant status;
 
-  if (object[FPSTR(GroupStateFieldNames::STATUS)].is<int>()) {
+  if (object[FPSTR(GroupStateFieldNames::STATUS)]) {
     return object[FPSTR(GroupStateFieldNames::STATUS)];
   } else {
     return object[FPSTR(GroupStateFieldNames::STATE)];
