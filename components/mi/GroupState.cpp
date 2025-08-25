@@ -748,7 +748,7 @@ bool GroupState::patch(JsonObject state) {
   Serial.println();
 #endif
 
-  if (state[GroupStateFieldNames::STATE].is<int>()) {
+  if (state[GroupStateFieldNames::STATE]) {
     bool stateChange = setState(state[GroupStateFieldNames::STATE] == "ON" ? ON : OFF);
     changes |= stateChange;
   }
@@ -756,27 +756,27 @@ bool GroupState::patch(JsonObject state) {
   // Devices do not support changing their state while off, so don't apply state
   // changes to devices we know are off.
 
-  if (isOn() && state[GroupStateFieldNames::BRIGHTNESS].is<int>()) {
+  if (isOn() && state[GroupStateFieldNames::BRIGHTNESS]) {
     bool stateChange = setBrightness(Units::rescale(state[GroupStateFieldNames::BRIGHTNESS].as<uint8_t>(), 100, 255));
     changes |= stateChange;
   }
-  if (isOn() && state[GroupStateFieldNames::HUE].is<int>()) {
+  if (isOn() && state[GroupStateFieldNames::HUE]) {
     changes |= setHue(state[GroupStateFieldNames::HUE]);
     changes |= setBulbMode(BULB_MODE_COLOR);
   }
-  if (isOn() && state[GroupStateFieldNames::SATURATION].is<int>()) {
+  if (isOn() && state[GroupStateFieldNames::SATURATION]) {
     changes |= setSaturation(state[GroupStateFieldNames::SATURATION]);
   }
-  if (isOn() && state[GroupStateFieldNames::MODE].is<int>()) {
+  if (isOn() && state[GroupStateFieldNames::MODE]) {
     changes |= setMode(state[GroupStateFieldNames::MODE]);
     changes |= setBulbMode(BULB_MODE_SCENE);
   }
-  if (isOn() && state[GroupStateFieldNames::COLOR_TEMP].is<int>()) {
+  if (isOn() && state[GroupStateFieldNames::COLOR_TEMP]) {
     changes |= setMireds(state[GroupStateFieldNames::COLOR_TEMP]);
     changes |= setBulbMode(BULB_MODE_WHITE);
   }
 
-  if (state[GroupStateFieldNames::COMMAND].is<int>()) {
+  if (state[GroupStateFieldNames::COMMAND]) {
     const String& command = state[GroupStateFieldNames::COMMAND];
 
     if (isOn() && command == MiLightCommandNames::SET_WHITE) {
