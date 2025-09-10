@@ -65,6 +65,7 @@ namespace esphome {
 
     struct MiOutput {
       uint32_t key;
+      uint32_t deviceId;
       BulbId bulbId;
     };
     
@@ -85,7 +86,7 @@ namespace esphome {
           this->data_callback_.add(std::move(callback));
         }
         
-        void add_child(uint32_t objectId, BulbId bulbId) {miOutputs.push_back({objectId, bulbId});}
+        void add_child(uint32_t objectId, uint32_t deviceId, BulbId bulbId) {miOutputs.push_back({objectId, deviceId, bulbId});}
 
         void set_ce_pin(InternalGPIOPin *pin) {settings.cePin = pin->get_pin();}
         void set_csn_pin(InternalGPIOPin *pin) {settings.csnPin = pin->get_pin();}

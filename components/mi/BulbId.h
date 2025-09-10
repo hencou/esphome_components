@@ -13,7 +13,7 @@ struct BulbId {
   BulbId();
   BulbId(const BulbId& other);
   BulbId(const uint16_t deviceId, const uint8_t groupId, const MiLightRemoteType deviceType);
-  bool operator==(const BulbId& other);
+  bool operator==(const BulbId& other) const;
   void operator=(const BulbId& other);
 
   uint32_t getCompactId() const;

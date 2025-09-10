@@ -112,13 +112,13 @@ namespace esphome {
             if (bulbId.groupId == 0) {
               for (MiOutput miOutput : Mi::miOutputs) {
                 if (bulbId.deviceId == miOutput.bulbId.deviceId) {
-                  state = App.get_light_by_key(miOutput.key);
+                  state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
                   Mi::updateOutput(state, requestJson);
                 }
               }
             } else {
               if (local == false) {
-                state = App.get_light_by_key(miOutput.key);
+                state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
                 Mi::updateOutput(state, requestJson);
               }
             }
@@ -307,7 +307,7 @@ namespace esphome {
 
       for (MiOutput miOutput : Mi::miOutputs) {
         if (bulbId == miOutput.bulbId) {
-           light::LightState* state = App.get_light_by_key(miOutput.key);
+           light::LightState* state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
            break;
         }
       }

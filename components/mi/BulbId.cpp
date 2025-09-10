@@ -30,7 +30,7 @@ void BulbId::operator=(const BulbId &other) {
 // determine if now BulbId's are the same.  This compared deviceID (the controller/remote ID) and
 // groupId (the group number on the controller, 1-4 or 1-8 depending), but ignores the deviceType
 // (type of controller/remote) as this doesn't directly affect the identity of the bulb
-bool BulbId::operator==(const BulbId &other) {
+bool BulbId::operator==(const BulbId &other) const {
   return deviceId == other.deviceId
     && groupId == other.groupId
     && deviceType == other.deviceType;
