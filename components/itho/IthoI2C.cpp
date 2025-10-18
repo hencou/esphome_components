@@ -13,7 +13,7 @@ namespace esphome
     {
       while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
-        vTaskDelay(10 / portTICK_RATE_MS);
+        vTaskDelay(10);
       }
       
       #ifdef ESPRESSIF32_3_5_0
@@ -45,7 +45,7 @@ namespace esphome
     {
        while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
-        vTaskDelay(10 / portTICK_RATE_MS);
+        vTaskDelay(10);
       }
       
       #ifdef ESPRESSIF32_3_5_0
@@ -90,7 +90,7 @@ namespace esphome
       i2c_master_start(link);
       i2c_master_write(link, (uint8_t *)buf, len, true);
       i2c_master_stop(link);
-      rc = i2c_master_cmd_begin(I2C_MASTER_NUM, link, 200 / portTICK_RATE_MS);
+      rc = i2c_master_cmd_begin(I2C_MASTER_NUM, link, 200);
       i2c_cmd_link_delete(link);
 
       i2c_master_deinit();
@@ -110,7 +110,7 @@ namespace esphome
       i2c_master_write_byte(link, (addr << 1) | WRITE_BIT, ACK_CHECK_EN);
       i2c_master_write(link, (uint8_t *)cmd, len, true);
       i2c_master_stop(link);
-      rc = i2c_master_cmd_begin(I2C_MASTER_NUM, link, 200 / portTICK_RATE_MS);
+      rc = i2c_master_cmd_begin(I2C_MASTER_NUM, link, 200);
       i2c_cmd_link_delete(link);
 
       i2c_master_deinit();
@@ -154,7 +154,7 @@ namespace esphome
 
       while (1)
       {
-        int len1 = i2c_slave_read_buffer(I2C_SLAVE_NUM, i2cbuf + buflen, sizeof(i2cbuf) - buflen, 50 / portTICK_RATE_MS);
+        int len1 = i2c_slave_read_buffer(I2C_SLAVE_NUM, i2cbuf + buflen, sizeof(i2cbuf) - buflen, 50);
         if (len1 <= 0)
           break;
         buflen += len1;

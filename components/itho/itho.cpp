@@ -112,7 +112,7 @@ namespace esphome
         // //ESP_LOGD(TAG, "Set FanInfo on auto...");
         this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
 
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(1000);
 
         uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
         uint8_t b = (uint8_t)speed;

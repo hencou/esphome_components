@@ -23,7 +23,7 @@ namespace esphome
       rc = mIthoI2C->i2c_master_send_command(mI2cAddress, i2cCommand, commandLength);
       if (rc) {return false;}
 
-      vTaskDelay(duration / portTICK_RATE_MS);
+      vTaskDelay(duration);
 
       rc = mIthoI2C->i2c_master_read_slave(mI2cAddress, data, dataLength);
       if (rc) {return false;}
