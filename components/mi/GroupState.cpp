@@ -144,9 +144,9 @@ bool GroupState::isEqualIgnoreDirty(const GroupState& other) const {
   return meCopy == otherCopy;
 }
 
-void GroupState::print(Stream& stream) const {
-  stream.printf("State: %08X %08X\n", state.rawData[0], state.rawData[1]);
-}
+//void GroupState::print(Stream& stream) const {
+//  stream.printf("State: %08X %08X\n", state.rawData[0], state.rawData[1]);
+//}
 
 bool GroupState::clearField(GroupStateField field) {
   bool clearedAny = false;
@@ -204,7 +204,7 @@ bool GroupState::clearField(GroupStateField field) {
       break;
 
     default:
-      Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
+      //Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
       break;
   }
 
@@ -611,18 +611,18 @@ bool GroupState::clearMqttDirty() {
   return true;
 }
 
-void GroupState::load(Stream& stream) {
-  for (size_t i = 0; i < DATA_LONGS; i++) {
-    stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
-  }
-  clearDirty();
-}
+//void GroupState::load(Stream& stream) {
+ // for (size_t i = 0; i < DATA_LONGS; i++) {
+//    stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
+//  }
+//  clearDirty();
+//}
 
-void GroupState::dump(Stream& stream) const {
-  for (size_t i = 0; i < DATA_LONGS; i++) {
-    stream.write(reinterpret_cast<const uint8_t*>(&state.rawData[i]), 4);
-  }
-}
+//void GroupState::dump(Stream& stream) const {
+//  for (size_t i = 0; i < DATA_LONGS; i++) {
+//    stream.write(reinterpret_cast<const uint8_t*>(&state.rawData[i]), 4);
+//  }
+//}
 
 bool GroupState::applyIncrementCommand(GroupStateField field, IncrementDirection dir) {
   if (field != GroupStateField::KELVIN && field != GroupStateField::BRIGHTNESS) {
@@ -965,7 +965,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
         break;
 
       default:
-        Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
+        //Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
         break;
     }
   }
