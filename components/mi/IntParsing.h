@@ -1,8 +1,6 @@
 #ifndef _INTPARSING_H
 #define _INTPARSING_H
 
-#include <Arduino.h>
-
 template <typename T>
 const T strToHex(const char* s, size_t length) {
   T value = 0;

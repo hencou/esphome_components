@@ -36,7 +36,7 @@ public:
   const size_t numGroups;
 
   static const MiLightRemoteConfig* fromType(MiLightRemoteType type);
-  static const MiLightRemoteConfig* fromType(const String& type);
+  static const MiLightRemoteConfig* fromType(const std::string& type);
   static const MiLightRemoteConfig* fromReceivedPacket(const MiLightRadioConfig& radioConfig, const uint8_t* packet, const size_t len);
 
   static const size_t NUM_REMOTES;

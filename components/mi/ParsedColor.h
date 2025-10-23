@@ -1,5 +1,3 @@
-#include <stdint.h>
-//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 
 #pragma once

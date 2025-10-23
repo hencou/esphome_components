@@ -1,4 +1,3 @@
-//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 #include <vector>
 #include <functional>

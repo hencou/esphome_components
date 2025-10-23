@@ -15,7 +15,7 @@
 /**************************************************************************/
 // Constructor
 /**************************************************************************/
-LT8900MiLightRadio::LT8900MiLightRadio(byte byCSPin, byte byResetPin, byte byPktFlag, const MiLightRadioConfig& config)
+LT8900MiLightRadio::LT8900MiLightRadio(char byCSPin, char byResetPin, char byPktFlag, const MiLightRadioConfig& config)
   : _config(config),
     _channel(0),
     _currentPacketLen(0),
@@ -149,7 +149,7 @@ void LT8900MiLightRadio::vSetSyncWord(uint16_t syncWord3, uint16_t syncWord2, ui
 /**************************************************************************/
 // Low level register write with delay
 /**************************************************************************/
-void LT8900MiLightRadio::regWrite16(byte ADDR, byte V1, byte V2, byte WAIT)
+void LT8900MiLightRadio::regWrite16(char ADDR, char V1, char V2, char WAIT)
 {
 	digitalWrite(_csPin, LOW);
 	SPI.transfer(ADDR);
@@ -395,7 +395,7 @@ int LT8900MiLightRadio::write(uint8_t frame[], size_t frame_length)
 /**************************************************************************/
 int LT8900MiLightRadio::resend()
 {
-  byte Length =  _out_packet[0];
+  char Length =  _out_packet[0];
 
   for (size_t i = 0; i < MiLightRadioConfig::NUM_CHANNELS; i++)
   {
@@ -409,7 +409,7 @@ int LT8900MiLightRadio::resend()
 /**************************************************************************/
 // The actual transmit happens here
 /**************************************************************************/
-bool LT8900MiLightRadio::sendPacket(uint8_t *data, size_t packetSize, byte byChannel)
+bool LT8900MiLightRadio::sendPacket(uint8_t *data, size_t packetSize, char byChannel)
 {
   if(_bConnected) // Must be connected to module otherwise it might lookup waiting for _pin_pktflag
   {
@@ -425,7 +425,7 @@ bool LT8900MiLightRadio::sendPacket(uint8_t *data, size_t packetSize, byte byCha
     SPI.transfer(R_FIFO);             // Start writing PL1167's FIFO Data register
     SPI.transfer(packetSize);         // Length of data buffer: x bytes
 
-    for (byte iCounter = 0; iCounter < packetSize; iCounter++)
+    for (char iCounter = 0; iCounter < packetSize; iCounter++)
     {
       SPI.transfer((data[1+iCounter]));
     }

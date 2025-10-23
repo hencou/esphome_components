@@ -5,9 +5,9 @@
  *      Author: henryk
  */
 
-#ifdef ARDUINO
-#include "Arduino.h"
-#endif
+//#ifdef ARDUINO
+//#include "Arduino.h"
+//#endif
 
 #include "RF24.h"
 

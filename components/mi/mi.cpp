@@ -194,7 +194,7 @@ namespace esphome {
     /**
      * Send milight commands
      */
-    void Mi::handleCommand(BulbId bulbId, String command) {
+    void Mi::handleCommand(BulbId bulbId, std::string command) {
       
       JsonDocument buffer;
       deserializeJson(buffer, command);

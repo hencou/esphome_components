@@ -1,5 +1,4 @@
 #include "MiLightStatus.h"
-//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 
 MiLightStatus parseMilightStatus(JsonVariant val) {

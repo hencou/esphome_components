@@ -17,7 +17,7 @@ const MiLightRemoteConfig* MiLightRemoteConfig::ALL_REMOTES[] = {
 
 const size_t MiLightRemoteConfig::NUM_REMOTES = size(ALL_REMOTES);
 
-const MiLightRemoteConfig* MiLightRemoteConfig::fromType(const String& type) {
+const MiLightRemoteConfig* MiLightRemoteConfig::fromType(const std::string& type) {
   return fromType(MiLightRemoteTypeHelpers::remoteTypeFromString(type));
 }
 

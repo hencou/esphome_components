@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <RF24.h>
 
 #ifndef _RF24_POWER_LEVEL_H
@@ -13,8 +12,8 @@ enum class RF24PowerLevel {
 
 class RF24PowerLevelHelpers {
 public:
-  static String nameFromValue(const RF24PowerLevel& value);
-  static RF24PowerLevel valueFromName(const String& name);
+  static std::string nameFromValue(const RF24PowerLevel& value);
+  static RF24PowerLevel valueFromName(const std::string& name);
   static RF24PowerLevel defaultValue();
   static uint8_t rf24ValueFromValue(const RF24PowerLevel& vlaue);
 };

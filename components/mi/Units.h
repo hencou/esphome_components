@@ -1,6 +1,3 @@
-#include <Arduino.h>
-#include <inttypes.h>
-
 #ifndef _UNITS_H
 #define _UNITS_H
 
