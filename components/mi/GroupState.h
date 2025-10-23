@@ -42,7 +42,7 @@ public:
 
   bool operator==(const GroupState& other) const;
   bool isEqualIgnoreDirty(const GroupState& other) const;
-  void print(Stream& stream) const;
+  //void print(Stream& stream) const;
 
   bool isSetField(GroupStateField field) const;
   uint16_t getFieldValue(GroupStateField field) const;
@@ -148,8 +148,8 @@ public:
   bool isSetColor() const;
   ParsedColor getColor() const;
 
-  void load(Stream& stream);
-  void dump(Stream& stream) const;
+  //void load(Stream& stream);
+  //void dump(Stream& stream) const;
 
   void debugState(char const *debugMessage) const;
 
