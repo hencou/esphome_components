@@ -1,6 +1,8 @@
 #pragma once
 
+#include <stdint.h>
 #include "MiLightRemoteType.h"
+//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 
 struct BulbId {
@@ -15,9 +17,9 @@ struct BulbId {
   void operator=(const BulbId& other);
 
   uint32_t getCompactId() const;
-  std::string getHexDeviceId() const;
+  String getHexDeviceId() const;
   void serialize(JsonObject json) const;
   void serialize(JsonArray json) const;
-  //void load(Stream& stream);
-  //void dump(Stream& stream) const;
+  void load(Stream& stream);
+  void dump(Stream& stream) const;
 };

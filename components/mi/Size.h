@@ -1,4 +1,4 @@
-#include <stddef.h>
+#include <Arduino.h>
 
 #ifndef _SIZE_H
 #define _SIZE_H

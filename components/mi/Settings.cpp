@@ -1,21 +1,19 @@
 #include "Settings.h"
+//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 #include "IntParsing.h"
+#include <algorithm>
 #include "JsonHelpers.h"
 
-RadioInterfaceType Settings::typeFromString(const std::string& s) {
-
-  if (s.compare("lt8900")) {
+RadioInterfaceType Settings::typeFromString(const String& s) {
+  if (s.equalsIgnoreCase("lt8900")) {
     return LT8900;
-  } else if (s.compare("LT8900")) {
-    return LT8900;
-  }
-  else{
+  } else {
     return nRF24;
   }
 }
 
-std::string Settings::typeToString(RadioInterfaceType type) {
+String Settings::typeToString(RadioInterfaceType type) {
   switch (type) {
     case LT8900:
       return "LT8900";

@@ -1,3 +1,11 @@
+
+#ifdef ARDUINO
+#include "Arduino.h"
+#else
+#include <stdint.h>
+#include <stdlib.h>
+#endif
+
 #include "MiLightRadioConfig.h"
 
 #ifndef _MILIGHT_RADIO_H_

@@ -13,7 +13,7 @@ namespace esphome {
     MiLight();
     ~MiLight();
 
-    void set_bulb_id(uint16_t deviceId, uint8_t groupId, std::string remoteType);
+    void set_bulb_id(uint16_t deviceId, uint8_t groupId, String remoteType);
 
     void setup() override;
     void dump_config() override;

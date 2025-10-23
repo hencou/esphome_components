@@ -5,7 +5,11 @@
  *      Author: henryk
  */
 
-#include <RF24.h>
+#ifdef ARDUINO
+#include "Arduino.h"
+#endif
+
+#include "RF24.h"
 
 // #define DEBUG_PRINTF
 

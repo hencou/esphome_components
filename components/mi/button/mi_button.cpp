@@ -16,7 +16,7 @@ namespace esphome {
       LOG_BUTTON("", "Mi Button", this);
     }
     
-    void MiButton::set_button(uint16_t deviceId, uint8_t groupId, std::string remoteType, std::string command) {
+    void MiButton::set_button(uint16_t deviceId, uint8_t groupId, String remoteType, String command) {
       MiButton::bulbId = {
         deviceId, 
         groupId, 

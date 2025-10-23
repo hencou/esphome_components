@@ -1,11 +1,14 @@
 #include <functional>
+#include <Arduino.h>
 #include "MiLightRadio.h"
 #include "MiLightRadioFactory.h"
 #include "MiLightRemoteConfig.h"
 #include "Settings.h"
 #include "GroupStateStore.h"
 #include "PacketSender.h"
+#include <cstring>
 #include <map>
+#include <set>
 
 #ifndef _MILIGHTCLIENT_H
 #define _MILIGHTCLIENT_H

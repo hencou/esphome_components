@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include "PacketFormatter.h"
 
 #ifndef _V2_PACKET_FORMATTER

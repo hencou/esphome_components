@@ -1,3 +1,11 @@
+#ifdef ARDUINO
+#include "Arduino.h"
+#else
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #include "MiLightRadioConfig.h"
 #include "MiLightRadio.h"
 
@@ -34,7 +42,7 @@
 
 class LT8900MiLightRadio : public MiLightRadio {
   public:
-    LT8900MiLightRadio(char byCSPin, char byResetPin, char byPktFlag, const MiLightRadioConfig& config);
+    LT8900MiLightRadio(byte byCSPin, byte byResetPin, byte byPktFlag, const MiLightRadioConfig& config);
 
     virtual int begin();
     virtual bool available();
@@ -49,7 +57,7 @@ class LT8900MiLightRadio : public MiLightRadio {
     void vInitRadioModule();
     void vSetSyncWord(uint16_t syncWord3, uint16_t syncWord2, uint16_t syncWord1, uint16_t syncWord0);
     uint16_t uiReadRegister(uint8_t reg);
-    void regWrite16(char ADDR, char V1, char V2, char WAIT);
+    void regWrite16(byte ADDR, byte V1, byte V2, byte WAIT);
     uint8_t uiWriteRegister(uint8_t reg, uint16_t data);
 
     bool bAvailablePin(void);
@@ -58,12 +66,12 @@ class LT8900MiLightRadio : public MiLightRadio {
     void vResumeRX(void);
     int iReadRXBuffer(uint8_t *buffer, size_t maxBuffer);
     void vSetChannel(uint8_t channel);
-    void vGenericSendPacket(int iMode, int iLength, char *pbyFrame, char byChannel );
+    void vGenericSendPacket(int iMode, int iLength, byte *pbyFrame, byte byChannel );
     bool bCheckRadioConnection(void);
-    bool sendPacket(uint8_t *data, size_t packetSize,char byChannel);
+    bool sendPacket(uint8_t *data, size_t packetSize,byte byChannel);
 
-    char _pin_pktflag;
-    char _csPin;
+    byte _pin_pktflag;
+    byte _csPin;
     bool _bConnected;
 
     const MiLightRadioConfig& _config;

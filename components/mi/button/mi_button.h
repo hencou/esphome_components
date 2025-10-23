@@ -15,14 +15,14 @@ namespace esphome {
 
       void set_mi_parent(Mi *parent) { this->parent_ = parent; }
       
-      void set_button(uint16_t deviceId, uint8_t groupId, std::string remoteType, std::string command);
+      void set_button(uint16_t deviceId, uint8_t groupId, String remoteType, String command);
 
      protected:
       void press_action() override;
       
       BulbId bulbId = {0, 0, REMOTE_TYPE_RGB_CCT};
       Mi *parent_;
-      std::string command_;
+      String command_;
       uint8_t button_id_{0};
     };
   }  // namespace mi

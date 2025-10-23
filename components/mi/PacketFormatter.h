@@ -1,4 +1,8 @@
+#include <Arduino.h>
+#include <inttypes.h>
+#include <functional>
 #include "MiLightRemoteType.h"
+//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 #include "GroupState.h"
 #include "GroupStateStore.h"

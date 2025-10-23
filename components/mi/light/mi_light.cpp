@@ -12,7 +12,7 @@ namespace esphome {
 
     MiLight::MiLight() {}
 
-    void MiLight::set_bulb_id(uint16_t deviceId, uint8_t groupId, std::string remoteType) 
+    void MiLight::set_bulb_id(uint16_t deviceId, uint8_t groupId, String remoteType) 
     {
       MiLight::bulbId = {
         deviceId, 
@@ -121,3 +121,8 @@ namespace esphome {
     }
   }  // namespace mi
 }  // namespace esphome
+
+
+
+
+

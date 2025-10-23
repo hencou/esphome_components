@@ -1,5 +1,6 @@
 #include "MiLightClient.h"
 #include "MiLightRadioConfig.h"
+#include <Arduino.h>
 #include "Units.h"
 #include <TokenIterator.h>
 #include "ParsedColor.h"

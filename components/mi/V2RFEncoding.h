@@ -1,4 +1,5 @@
-#include <cstring>
+#include <Arduino.h>
+#include <inttypes.h>
 
 #ifndef _V2_RF_ENCODING_H
 #define _V2_RF_ENCODING_H

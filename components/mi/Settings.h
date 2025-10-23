@@ -1,7 +1,6 @@
 #include "RF24PowerLevel.h"
 #include "RF24Channel.h"
 #include <vector>
-#include <string>
 
 #ifndef _SETTINGS_H_INCLUDED
 #define _SETTINGS_H_INCLUDED
@@ -36,8 +35,8 @@ public:
   ~Settings() { }
 
 
-  static RadioInterfaceType typeFromString(const std::string& s);
-  static std::string typeToString(RadioInterfaceType type);
+  static RadioInterfaceType typeFromString(const String& s);
+  static String typeToString(RadioInterfaceType type);
   static std::vector<RF24Channel> defaultListenChannels();
 
   uint8_t cePin;

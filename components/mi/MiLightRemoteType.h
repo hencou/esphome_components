@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <Arduino.h>
 
 enum MiLightRemoteType {
   REMOTE_TYPE_UNKNOWN = 255,
@@ -16,8 +16,8 @@ enum MiLightRemoteType {
 
 class MiLightRemoteTypeHelpers {
 public:
-  static const MiLightRemoteType remoteTypeFromString(const std::string& type);
-  static const std::string remoteTypeToString(const MiLightRemoteType type);
+  static const MiLightRemoteType remoteTypeFromString(const String& type);
+  static const String remoteTypeToString(const MiLightRemoteType type);
   static const bool supportsRgb(const MiLightRemoteType type);
   static const bool supportsRgbw(const MiLightRemoteType type);
   static const bool supportsColorTemp(const MiLightRemoteType type);
