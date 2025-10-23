@@ -93,7 +93,7 @@ async def to_code(config):
     await cg.register_component(var, config)
     
     cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
-    cg.add_library("nrf24/RF24", None)
+    cg.add_library("nrf24/RF24", "1.4.5")
     cg.add_library("PathVariableHandlers", None)
     ##cg.add_library("StreamUtils", None)
     
@@ -151,6 +151,7 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
 
 
