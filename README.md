@@ -1,4 +1,4 @@
-# esphome_components ####
+# esphome_components ####ESP-IDF
 This is my collection of ESPhome custom componenents
 
 # 1. MiLight for ESPhome
