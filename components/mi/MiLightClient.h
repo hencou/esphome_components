@@ -1,22 +1,18 @@
 #include <functional>
-#include <Arduino.h>
+//#include <Arduino.h>
 #include "MiLightRadio.h"
 #include "MiLightRadioFactory.h"
 #include "MiLightRemoteConfig.h"
 #include "Settings.h"
 #include "GroupStateStore.h"
 #include "PacketSender.h"
-#include <cstring>
 #include <map>
-#include <set>
 
 #ifndef _MILIGHTCLIENT_H
 #define _MILIGHTCLIENT_H
 
 //#define DEBUG_PRINTF
 //#define DEBUG_CLIENT_COMMANDS     // enable to show each individual change command (like hue, brightness, etc)
-
-
 
 // Used to determine RGB colros that are approximately white
 #define RGB_WHITE_THRESHOLD 10
@@ -78,7 +74,7 @@ public:
   void update(JsonObject object);
   void handleCommand(JsonVariant command);
   void handleCommands(JsonArray commands);
-  void handleEffect(const String& effect);
+  void handleEffect(const std::string& effect);
 
   void onUpdateBegin(EventHandler handler);
   void onUpdateEnd(EventHandler handler);

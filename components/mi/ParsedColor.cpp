@@ -1,9 +1,9 @@
 #include "ParsedColor.h"
-#include <TokenIterator.h>
+#include "TokenIterator.h"
 #include "GroupStateField.h"
 #include "IntParsing.h"
-#include <cmath>
-#include <algorithm>
+//#include <cmath>
+//#include <algorithm>
 
 ParsedColor ParsedColor::fromRgb(uint16_t r, uint16_t g, uint16_t b) {
   int hue = 0;

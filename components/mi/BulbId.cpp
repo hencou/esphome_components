@@ -41,7 +41,7 @@ uint32_t BulbId::getCompactId() const {
   return id;
 }
 
-String BulbId::getHexDeviceId() const {
+std::string BulbId::getHexDeviceId() const {
   char hexDeviceId[7];
   sprintf_P(hexDeviceId, PSTR("0x%X"), deviceId);
   return hexDeviceId;
@@ -60,20 +60,20 @@ void BulbId::serialize(JsonArray json) const {
 }
 
 // reads a BulbId in the format of "deviceType,deviceId,groupId"
-void BulbId::load(Stream &stream) {
-  deviceType = MiLightRemoteTypeHelpers::remoteTypeFromString(stream.readStringUntil('\0'));
-  deviceId = stream.parseInt();
-  groupId = stream.parseInt();
-}
+//void BulbId::load(Stream &stream) {
+//  deviceType = MiLightRemoteTypeHelpers::remoteTypeFromString(stream.readStringUntil('\0'));
+//  deviceId = stream.parseInt();
+//  groupId = stream.parseInt();
+//}
 
 // writes a BulbId in the format of "deviceType,deviceId,groupId"
-void BulbId::dump(Stream &stream) const {
-  stream.print(MiLightRemoteTypeHelpers::remoteTypeToString(deviceType).c_str());
-  stream.print(static_cast<char>(0));
+//void BulbId::dump(Stream &stream) const {
+//  stream.print(MiLightRemoteTypeHelpers::remoteTypeToString(deviceType).c_str());
+//  stream.print(static_cast<char>(0));
 
-  stream.print(deviceId);
-  stream.print(static_cast<char>(0));
+//  stream.print(deviceId);
+//  stream.print(static_cast<char>(0));
 
-  stream.print(groupId);
-  stream.print(static_cast<char>(0));
-}
+//  stream.print(groupId);
+//  stream.print(static_cast<char>(0));
+//}

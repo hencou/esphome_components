@@ -1,6 +1,7 @@
 #include "MiLightStatus.h"
 //#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
+#include "esphome/core/helpers.h"
 
 MiLightStatus parseMilightStatus(JsonVariant val) {
   if (val.is<bool>()) {
@@ -8,7 +9,7 @@ MiLightStatus parseMilightStatus(JsonVariant val) {
   } else if (val.is<uint16_t>()) {
     return static_cast<MiLightStatus>(val.as<uint16_t>());
   } else {
-    String strStatus(val.as<const char*>());
-    return (strStatus.equalsIgnoreCase("on") || strStatus.equalsIgnoreCase("true")) ? ON : OFF;
+    std::string strStatus(val.as<const char*>());
+    return (esphome::str_equals_case_insensitive(strStatus, "on") || esphome::str_equals_case_insensitive(strStatus, "true")) ? ON : OFF;
   }
 }

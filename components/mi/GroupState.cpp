@@ -204,7 +204,7 @@ bool GroupState::clearField(GroupStateField field) {
       break;
 
     default:
-      Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
+      //Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
       break;
   }
 
@@ -777,7 +777,7 @@ bool GroupState::patch(JsonObject state) {
   }
 
   if (state[GroupStateFieldNames::COMMAND]) {
-    const String& command = state[GroupStateFieldNames::COMMAND];
+    const std::string& command = state[GroupStateFieldNames::COMMAND];
 
     if (isOn() && command == MiLightCommandNames::SET_WHITE) {
       changes |= setBulbMode(BULB_MODE_WHITE);
@@ -927,7 +927,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
 
       case GroupStateField::EFFECT:
         if (getBulbMode() == BULB_MODE_SCENE) {
-          partialState[GroupStateFieldNames::EFFECT] = String(getMode());
+          partialState[GroupStateFieldNames::EFFECT] = std::to_string(getMode());
         } else if (isSetBulbMode() && getBulbMode() == BULB_MODE_WHITE) {
           partialState[GroupStateFieldNames::EFFECT] = "white_mode";
         } else if (getBulbMode() == BULB_MODE_NIGHT) {
@@ -965,7 +965,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
         break;
 
       default:
-        Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
+        //Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
         break;
     }
   }
