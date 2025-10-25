@@ -79,13 +79,11 @@ namespace esphome {
     void MiLight::setup_state(light::LightState *state) { 
       state_ = state;
 
-      #ifdef USE_ESP32
+      #ifdef USE_DEVICES
         parent_->add_child(state_->get_object_id_hash(), state_->get_device_id(), bulbId);
-      #endif  
-
-      #ifdef USE_ESP8266
+      #else
         parent_->add_child(state_->get_object_id_hash(), 0, bulbId);
-      #endif  
+      #endif
       
       state_->add_effects({new light::LambdaLightEffect(DISCO_MODE_NAMES[0], [=, this](bool initial_run) -> void {
         auto call = state_->make_call();
@@ -121,6 +119,7 @@ namespace esphome {
     }
   }  // namespace mi
 }  // namespace esphome
+
 
 
 
