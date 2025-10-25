@@ -9,6 +9,13 @@
  *  https://bitbucket.org/robvanderveer/lt8900lib
  */
 
+ #ifdef ARDUINO
+#include "Arduino.h"
+#else
+#include <stdint.h>
+#include <stdlib.h>
+#endif
+
 #include "LT8900MiLightRadio.h"
 #include <SPI.h>
 

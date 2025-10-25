@@ -1,9 +1,7 @@
 #include "Settings.h"
-//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 #include "esphome/core/helpers.h"
 #include "IntParsing.h"
-//#include <algorithm>
 #include "JsonHelpers.h"
 
 RadioInterfaceType Settings::typeFromString(const std::string& s) {

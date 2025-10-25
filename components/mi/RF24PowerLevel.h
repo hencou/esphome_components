@@ -1,4 +1,5 @@
 #include <RF24.h>
+#include <string>
 
 #ifndef _RF24_POWER_LEVEL_H
 #define _RF24_POWER_LEVEL_H
