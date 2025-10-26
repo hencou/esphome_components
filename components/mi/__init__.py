@@ -91,8 +91,11 @@ CONFIG_SCHEMA = (
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    
-    cg.add_library("nrf24/RF24", None)
+
+    if core.CORE.using_arduino:
+        cg.add_library("nrf24/RF24", None)
+    if core.CORE.using_esp_idf:
+        cg.add_library("nrf24/RF24#esp-idf", None)
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
     cg.add(var.set_ce_pin(ce_pin))
@@ -148,5 +151,6 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
 
