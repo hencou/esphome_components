@@ -4,10 +4,15 @@
 #include "esphome/core/component.h"
 #include "esphome/components/light/light_state.h"
 #include "esphome/core/automation.h"
+#include "esphome/core/helpers.h"
+#include "esphome/core/util.h"
+#include "esphome/core/hal.h"
+#include "esphome/core/defines.h"
+#include <esp_timer.h>
 
 #include "PL1167_nRF24.h"
 #include "NRF24MiLightRadio.h"
-#include "LT8900MiLightRadio.h"
+//#include "LT8900MiLightRadio.h"
 #include "RadioUtils.h"
 #include "MiLightRadioFactory.h"
 #include "MiLightRadio.h"
@@ -46,6 +51,7 @@
 #include "MiLightRemoteConfig.h"
 #include "FUT020PacketFormatter.h"
 #include "Settings.h"
+#include "MiHelpers.h"
 
 #include "ListLib.h"
 
@@ -68,7 +74,7 @@ namespace esphome {
       uint32_t deviceId;
       BulbId bulbId;
     };
-    
+
     class Mi : public Component {
       public:
 
@@ -108,6 +114,7 @@ namespace esphome {
       private:
 
         Settings settings;
+        MiHelpers miHelpers;
 
         MiLightClient* milightClient = NULL;
         RadioSwitchboard* radios = nullptr;

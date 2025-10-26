@@ -1,5 +1,6 @@
 #include "GroupStateStore.h"
 #include "MiLightRemoteConfig.h"
+#include "MiHelpers.h"
 
 GroupStateStore::GroupStateStore(const size_t maxSize, const size_t flushRate)
   : cache(GroupStateCache(maxSize)),
@@ -140,8 +141,9 @@ bool GroupStateStore::flush() {
 }
 
 void GroupStateStore::limitedFlush() {
-  unsigned long now = millis();
-
+  
+  unsigned long now = miHelpers.mi_millis();
+  
   if ((lastFlush + flushRate) < now) {
     if (flush()) {
       lastFlush = now;

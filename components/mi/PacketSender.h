@@ -4,6 +4,7 @@
 #include "MiLightRemoteConfig.h"
 #include "PacketQueue.h"
 #include "RadioSwitchboard.h"
+#include "MiHelpers.h"
 
 class PacketSender {
 public:
@@ -31,6 +32,7 @@ private:
   Settings& settings;
   GroupStateStore* stateStore;
   PacketQueue queue;
+  MiHelpers miHelpers;
 
   // The current packet we're sending and the number of repeats left
   std::shared_ptr<QueuedPacket> currentPacket;

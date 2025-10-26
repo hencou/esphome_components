@@ -43,7 +43,7 @@ uint32_t BulbId::getCompactId() const {
 
 std::string BulbId::getHexDeviceId() const {
   char hexDeviceId[7];
-  sprintf_P(hexDeviceId, PSTR("0x%X"), deviceId);
+  sprintf(hexDeviceId, "0x%X", deviceId);
   return hexDeviceId;
 }
 

@@ -23,8 +23,8 @@ const MiLightRemoteConfig* MiLightRemoteConfig::fromType(const std::string& type
 
 const MiLightRemoteConfig* MiLightRemoteConfig::fromType(MiLightRemoteType type) {
   if (type == REMOTE_TYPE_UNKNOWN || type >= size(ALL_REMOTES)) {
-    Serial.print(F("MiLightRemoteConfig::fromType: ERROR - tried to fetch remote config for unknown type: "));
-    Serial.println(type);
+    //Serial.print(F("MiLightRemoteConfig::fromType: ERROR - tried to fetch remote config for unknown type: "));
+    //Serial.println(type);
     return NULL;
   }
 

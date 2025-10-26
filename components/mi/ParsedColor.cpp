@@ -84,7 +84,7 @@ ParsedColor ParsedColor::fromJson(JsonVariant json) {
       b = parsedRgbColors[2];
     }
   } else {
-    Serial.println(F("GroupState::parseJsonColor - unknown format for color"));
+    //Serial.println(F("GroupState::parseJsonColor - unknown format for color"));
     return ParsedColor{ .success = false };
   }
 

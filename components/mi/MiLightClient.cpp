@@ -298,7 +298,7 @@ void MiLightClient::updateColor(JsonVariant json) {
   ParsedColor color = ParsedColor::fromJson(json);
 
   if (!color.success) {
-    Serial.println(F("Error parsing color field, unrecognized format"));
+    //Serial.println(F("Error parsing color field, unrecognized format"));
     return;
   }
 
@@ -459,10 +459,10 @@ void MiLightClient::handleEffect(const std::string& effect) {
 JsonVariant MiLightClient::extractStatus(JsonObject object) {
   JsonVariant status;
 
-  if (object[FPSTR(GroupStateFieldNames::STATUS)]) {
-    return object[FPSTR(GroupStateFieldNames::STATUS)];
+  if (object[GroupStateFieldNames::STATUS]) {
+    return object[GroupStateFieldNames::STATUS];
   } else {
-    return object[FPSTR(GroupStateFieldNames::STATE)];
+    return object[GroupStateFieldNames::STATE];
   }
 }
 

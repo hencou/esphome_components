@@ -5,6 +5,10 @@
 #define COLOR_TEMP_MAX_MIREDS 370
 #define COLOR_TEMP_MIN_MIREDS 153
 
+#ifndef constrain
+#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#endif
+
 class Units {
 public:
   template <typename T, typename V>
