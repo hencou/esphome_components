@@ -15,7 +15,7 @@ mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
 
 INTERFACE_TYPES = {
-  "lt8900" : "lt8900",
+  #"lt8900" : "lt8900",
   "nrf24" : "nrf24",
 }
 
@@ -148,4 +148,5 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
