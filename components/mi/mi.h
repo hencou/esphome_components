@@ -8,11 +8,9 @@
 #include "esphome/core/util.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/defines.h"
-#include <esp_timer.h>
 
 #include "PL1167_nRF24.h"
 #include "NRF24MiLightRadio.h"
-//#include "LT8900MiLightRadio.h"
 #include "RadioUtils.h"
 #include "MiLightRadioFactory.h"
 #include "MiLightRadio.h"

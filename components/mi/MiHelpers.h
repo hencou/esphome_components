@@ -8,7 +8,10 @@
 #include "esphome/core/util.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/defines.h"
+
+#ifndef USE_ARDUINO
 #include <esp_timer.h>
+#endif
 
 
 class MiHelpers {
