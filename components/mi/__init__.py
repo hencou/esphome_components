@@ -62,7 +62,7 @@ CONFIG_SCHEMA = (
       cv.Required(CONF_CE_PIN): pins.gpio_output_pin_schema,
       cv.Required(CONF_CSN_PIN): pins.gpio_output_pin_schema,
       cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
-      cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
+      #cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
       cv.Optional(CONF_PACKET_REPEATS) : cv.uint16_t,
       cv.Optional(CONF_LISTEN_REPEATS) : cv.uint8_t,
       cv.Optional(CONF_STATE_FLUSH_INTERVAL): cv.int_range(min=1000, max=20000),
@@ -154,6 +154,7 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
 
 
