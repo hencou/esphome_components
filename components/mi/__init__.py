@@ -1,7 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import pins
-from esphome import automation
+from esphome import core, pins, automation
 from esphome.const import (
   CONF_ID,
   CONF_TRIGGER_ID,
@@ -151,6 +150,7 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
 
 
