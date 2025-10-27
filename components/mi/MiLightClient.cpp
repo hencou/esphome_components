@@ -1,8 +1,6 @@
 #include "MiLightClient.h"
 #include "MiLightRadioConfig.h"
-#include <Arduino.h>
 #include "Units.h"
-#include <TokenIterator.h>
 #include "ParsedColor.h"
 #include "MiLightCommands.h"
 #include <functional>
@@ -300,7 +298,7 @@ void MiLightClient::updateColor(JsonVariant json) {
   ParsedColor color = ParsedColor::fromJson(json);
 
   if (!color.success) {
-    Serial.println(F("Error parsing color field, unrecognized format"));
+    //Serial.println(F("Error parsing color field, unrecognized format"));
     return;
   }
 
@@ -389,7 +387,7 @@ void MiLightClient::handleCommands(JsonArray commands) {
 }
 
 void MiLightClient::handleCommand(JsonVariant command) {
-  String cmdName;
+  std::string cmdName;
   JsonObject args;
 
   if (command.is<JsonObject>()) {
@@ -433,18 +431,18 @@ void MiLightClient::handleCommand(JsonVariant command) {
   }
 }
 
-void MiLightClient::handleEffect(const String& effect) {
+void MiLightClient::handleEffect(const std::string& effect) {
   #ifdef DEBUG_CLIENT_COMMANDS
   Serial.printf_P(PSTR("Request to handle effect '%s' in MiLight component."), effect);
   #endif
-  if (effect.startsWith("Mi ") != true) {
+  if (effect.starts_with("Mi ") != true) {
     // This is not a MiLight built-in effect. We don't need to handle it here.
     #ifdef DEBUG_CLIENT_COMMANDS
     Serial.printf_P(PSTR("This is not a MiLight built-in effect."));
     #endif
     return;
   }
-  int effectId = effect.substring(3, 5).toInt();
+  int effectId = atoi(effect.substr(3, 2).c_str());
   if (effectId < 0 || effectId > 9) {
     #ifdef DEBUG_CLIENT_COMMANDS
     Serial.printf_P(PSTR("Invalid effect ID at position 3-4: %d. MiLights only support effect ids 1-9."), effectId);
@@ -461,10 +459,10 @@ void MiLightClient::handleEffect(const String& effect) {
 JsonVariant MiLightClient::extractStatus(JsonObject object) {
   JsonVariant status;
 
-  if (object[FPSTR(GroupStateFieldNames::STATUS)]) {
-    return object[FPSTR(GroupStateFieldNames::STATUS)];
+  if (object[GroupStateFieldNames::STATUS]) {
+    return object[GroupStateFieldNames::STATUS];
   } else {
-    return object[FPSTR(GroupStateFieldNames::STATE)];
+    return object[GroupStateFieldNames::STATE];
   }
 }
 

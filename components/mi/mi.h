@@ -4,10 +4,13 @@
 #include "esphome/core/component.h"
 #include "esphome/components/light/light_state.h"
 #include "esphome/core/automation.h"
+#include "esphome/core/helpers.h"
+#include "esphome/core/util.h"
+#include "esphome/core/hal.h"
+#include "esphome/core/defines.h"
 
 #include "PL1167_nRF24.h"
 #include "NRF24MiLightRadio.h"
-#include "LT8900MiLightRadio.h"
 #include "RadioUtils.h"
 #include "MiLightRadioFactory.h"
 #include "MiLightRadio.h"
@@ -46,6 +49,7 @@
 #include "MiLightRemoteConfig.h"
 #include "FUT020PacketFormatter.h"
 #include "Settings.h"
+#include "MiHelpers.h"
 
 #include "ListLib.h"
 
@@ -55,8 +59,8 @@ namespace esphome {
     struct MiBridgeData {
       uint16_t device_id;
       uint8_t group_id;
-      String remote_type;
-      String command;
+      std::string remote_type;
+      std::string command;
     };
 
     struct Request {
@@ -68,14 +72,14 @@ namespace esphome {
       uint32_t deviceId;
       BulbId bulbId;
     };
-    
+
     class Mi : public Component {
       public:
 
         Mi();
         ~Mi();
 
-        void handleCommand(BulbId bulbId, String command);
+        void handleCommand(BulbId bulbId, std::string command);
 
         void setup() override;
         void loop() override;
@@ -91,7 +95,7 @@ namespace esphome {
         void set_ce_pin(InternalGPIOPin *pin) {settings.cePin = pin->get_pin();}
         void set_csn_pin(InternalGPIOPin *pin) {settings.csnPin = pin->get_pin();}
         void set_reset_pin(InternalGPIOPin *pin) {settings.resetPin = pin->get_pin();}
-        void set_radio_interface_type(String value) {settings.radioInterfaceType = Settings::typeFromString(value);}
+        void set_radio_interface_type(std::string value) {settings.radioInterfaceType = Settings::typeFromString(value);}
         void set_packet_repeats(size_t value) {settings.packetRepeats = value;}
         void set_listen_repeats(uint8_t value) {settings.listenRepeats = value;}
         void set_state_flush_interval(size_t value) {settings.stateFlushInterval = value;}
@@ -99,15 +103,16 @@ namespace esphome {
         void set_packet_repeat_throttle_sensitivity(size_t value) {settings.packetRepeatThrottleSensitivity = value;}
         void set_packet_repeat_minimum(size_t value) {settings.packetRepeatMinimum = value;}
         void set_enable_automatic_mode_switching(bool value) {settings.enableAutomaticModeSwitching = value;}
-        void set_rf24_power_level(String value) {settings.rf24PowerLevel = RF24PowerLevelHelpers::valueFromName(value);}
+        void set_rf24_power_level(std::string value) {settings.rf24PowerLevel = RF24PowerLevelHelpers::valueFromName(value);}
         void del_rf24_channels() {settings.rf24Channels.clear();}
-        void add_rf24_channel(String value) {settings.rf24Channels.push_back(RF24ChannelHelpers::valueFromName(value));}
-        void set_rf24_listen_channel(String value) {settings.rf24ListenChannel = RF24ChannelHelpers::valueFromName(value);}
+        void add_rf24_channel(std::string value) {settings.rf24Channels.push_back(RF24ChannelHelpers::valueFromName(value));}
+        void set_rf24_listen_channel(std::string value) {settings.rf24ListenChannel = RF24ChannelHelpers::valueFromName(value);}
         void set_packet_repeats_per_loop(size_t value) {settings.packetRepeatsPerLoop = value;}
         void set_resend_last_command(bool value) {settings.resendLastCommand = value;}
       private:
 
         Settings settings;
+        MiHelpers miHelpers;
 
         MiLightClient* milightClient = NULL;
         RadioSwitchboard* radios = nullptr;

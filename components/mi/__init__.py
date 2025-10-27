@@ -1,7 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import pins
-from esphome import automation
+from esphome import core, pins, automation
 from esphome.const import (
   CONF_ID,
   CONF_TRIGGER_ID,
@@ -15,7 +14,7 @@ mi_ns = cg.esphome_ns.namespace("mi")
 Mi = mi_ns.class_("Mi", cg.Component)
 
 INTERFACE_TYPES = {
-  "lt8900" : "lt8900",
+  #"lt8900" : "lt8900",
   "nrf24" : "nrf24",
 }
 
@@ -63,7 +62,7 @@ CONFIG_SCHEMA = (
       cv.Required(CONF_CE_PIN): pins.gpio_output_pin_schema,
       cv.Required(CONF_CSN_PIN): pins.gpio_output_pin_schema,
       cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
-      cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
+      #cv.Optional(CONF_RADIO_INTERFACE_TYPE) : cv.enum(INTERFACE_TYPES),
       cv.Optional(CONF_PACKET_REPEATS) : cv.uint16_t,
       cv.Optional(CONF_LISTEN_REPEATS) : cv.uint8_t,
       cv.Optional(CONF_STATE_FLUSH_INTERVAL): cv.int_range(min=1000, max=20000),
@@ -91,11 +90,15 @@ CONFIG_SCHEMA = (
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    
-    cg.add_library("https://github.com/luisllamasbinaburo/Arduino-List", None)
-    cg.add_library("nrf24/RF24", "1.4.5")
-    cg.add_library("PathVariableHandlers", None)
-    cg.add_library("StreamUtils", None)
+
+    if core.CORE.using_arduino:
+      cg.add_library("nrf24/RF24", None)
+    if core.CORE.using_esp_idf:
+      cg.add_library(
+        "RF24",
+        None,
+        "https://github.com/nrf24/RF24.git#esp-idf",
+      )
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
     cg.add(var.set_ce_pin(ce_pin))
@@ -151,3 +154,10 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
+
+
+
+
+
+

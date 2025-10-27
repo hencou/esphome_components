@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include <vector>
+#include <string>
 
 #ifndef _RF24_CHANNELS_H
 #define _RF24_CHANNELS_H
@@ -12,8 +12,8 @@ enum class RF24Channel {
 
 class RF24ChannelHelpers {
 public:
-  static String nameFromValue(const RF24Channel& value);
-  static RF24Channel valueFromName(const String& name);
+  static std::string nameFromValue(const RF24Channel& value);
+  static RF24Channel valueFromName(const std::string& name);
   static RF24Channel defaultValue();
   static std::vector<RF24Channel> allValues();
 };

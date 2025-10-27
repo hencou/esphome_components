@@ -1,5 +1,6 @@
 #include "GroupStateField.h"
 #include "Size.h"
+#include <cstring>
 
 static const char* STATE_NAMES[] = {
   GroupStateFieldNames::UNKNOWN,
@@ -26,7 +27,7 @@ static const char* STATE_NAMES[] = {
 
 GroupStateField GroupStateFieldHelpers::getFieldByName(const char* name) {
   for (size_t i = 0; i < size(STATE_NAMES); i++) {
-    if (0 == strcmp(name, STATE_NAMES[i])) {
+    if (0 == std::strcmp(name, STATE_NAMES[i])) {
       return static_cast<GroupStateField>(i);
     }
   }

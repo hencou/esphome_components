@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "MiLightRemoteType.h"
 #include "Size.h"
 #include "RadioUtils.h"

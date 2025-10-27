@@ -1,8 +1,6 @@
 #ifndef _INTPARSING_H
 #define _INTPARSING_H
 
-#include <Arduino.h>
-
 template <typename T>
 const T strToHex(const char* s, size_t length) {
   T value = 0;
@@ -28,16 +26,16 @@ const T strToHex(const char* s, size_t length) {
 }
 
 template <typename T>
-const T strToHex(const String& s) {
+const T strToHex(const std::string& s) {
   return strToHex<T>(s.c_str(), s.length());
 }
 
 template <typename T>
-const T parseInt(const String& s) {
-  if (s.startsWith("0x")) {
-    return strToHex<T>(s.substring(2));
+const T parseInt(const std::string& s) {
+  if (s.starts_with("0x")) {
+    return strToHex<T>(s.substr(2));
   } else {
-    return s.toInt();
+    return atoi(s.c_str());
   }
 }
 

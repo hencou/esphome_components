@@ -1,5 +1,9 @@
 #include "V2PacketFormatter.h"
 
+#ifndef constrain
+#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#endif
+
 #ifndef _FUT089_PACKET_FORMATTER_H
 #define _FUT089_PACKET_FORMATTER_H
 

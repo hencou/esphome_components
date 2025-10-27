@@ -1,12 +1,13 @@
-#include <Arduino.h>
-#include <inttypes.h>
-
 #ifndef _UNITS_H
 #define _UNITS_H
 
 // MiLight CCT bulbs range from 2700K-6500K, or ~370.3-153.8 mireds.
 #define COLOR_TEMP_MAX_MIREDS 370
 #define COLOR_TEMP_MIN_MIREDS 153
+
+#ifndef constrain
+#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#endif
 
 class Units {
 public:

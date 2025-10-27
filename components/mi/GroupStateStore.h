@@ -1,5 +1,6 @@
 #include "GroupState.h"
 #include "GroupStateCache.h"
+#include "MiHelpers.h"
 
 #ifndef _GROUP_STATE_STORE_H
 #define _GROUP_STATE_STORE_H
@@ -44,6 +45,7 @@ private:
   LinkedList_espMH<BulbId> evictedIds;
   const size_t flushRate;
   unsigned long lastFlush;
+  MiHelpers miHelpers;
 
   void trackEviction();
 };

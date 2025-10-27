@@ -3,7 +3,7 @@
 #include "MiLightRadioConfig.h"
 #include "MiLightRadio.h"
 #include "NRF24MiLightRadio.h"
-#include "LT8900MiLightRadio.h"
+//#include "LT8900MiLightRadio.h"
 #include "RF24PowerLevel.h"
 #include "RF24Channel.h"
 #include "Settings.h"

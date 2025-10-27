@@ -14,6 +14,10 @@
 #define RGB_CCT_KELVIN_REMOTE_START  0x94
 #define RGB_CCT_KELVIN_REMOTE_END    0xCC
 
+#ifndef constrain
+#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#endif
+
 enum MiLightRgbCctCommand {
   RGB_CCT_ON = 0x01,
   RGB_CCT_OFF = 0x01,

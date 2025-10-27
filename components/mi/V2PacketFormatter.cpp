@@ -103,7 +103,7 @@ void V2PacketFormatter::switchMode(const GroupState& currentState, BulbMode desi
       updateColorWhite();
       break;
     default:
-      Serial.printf_P(PSTR("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n"), desiredMode);
+      //Serial.printf_P(PSTR("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n"), desiredMode);
       break;
   }
 

@@ -1,5 +1,6 @@
 #include "PacketSender.h"
 #include "MiLightRadioConfig.h"
+#include "MiHelpers.h"
 
 PacketSender::PacketSender(
   RadioSwitchboard& radioSwitchboard,
@@ -93,7 +94,7 @@ void PacketSender::sendRepeats(size_t num) {
     Serial.printf_P(PSTR("%02X "), currentPacket->packet[i]);
   }
   Serial.println();
-  int iStart = millis();
+  int iStart = miHelpers.mi_millis();
 #endif
 
   for (size_t i = 0; i < num; ++i) {
@@ -101,14 +102,14 @@ void PacketSender::sendRepeats(size_t num) {
   }
 
 #ifdef DEBUG_PRINTF
-  int iElapsed = millis() - iStart;
+  int iElapsed = miHelpers.mi_millis() - iStart;
   Serial.print("Elapsed: ");
   Serial.println(iElapsed);
 #endif
 }
 
 void PacketSender::updateResendCount() {
-  unsigned long now = millis();
+  unsigned long now = miHelpers.mi_millis();
   long millisSinceLastSend = now - lastSend;
   long x = (millisSinceLastSend - settings.packetRepeatThrottleThreshold);
   long delta = x * throttleMultiplier;
@@ -122,4 +123,5 @@ void PacketSender::updateResendCount() {
 
   this->currentResendCount = signedResends;
   this->lastSend = now;
+
 }

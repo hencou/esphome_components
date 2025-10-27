@@ -5,6 +5,10 @@
 #include "esphome/components/light/light_output.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/util.h"
+#include "esphome/core/hal.h"
+#include "esphome/core/defines.h"
+#include <iostream>
+#include <random>
 
 namespace esphome {
   namespace mi {
@@ -194,7 +198,7 @@ namespace esphome {
     /**
      * Send milight commands
      */
-    void Mi::handleCommand(BulbId bulbId, String command) {
+    void Mi::handleCommand(BulbId bulbId, std::string command) {
       
       JsonDocument buffer;
       deserializeJson(buffer, command);
@@ -294,7 +298,15 @@ namespace esphome {
 
       Mi::applySettings();
 
-      repeatTimer = random(2000, 3000);
+      #ifdef USE_ARDUINO
+      #include <Arduino.h>
+        repeatTimer = random(2000, 3000);
+      #else
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(2000, 3000);
+        repeatTimer = dist(gen);
+      #endif
 
       ESP_LOGD(TAG, "Setup complete"); 
     }
@@ -438,14 +450,14 @@ namespace esphome {
     void Mi::writeState(BulbId bulbId, JsonObject requestJson) {
       
       writingState = true;
-      
-      if (millis() - lastRequestTime < 2000) {
+
+      if (miHelpers.mi_millis() - lastRequestTime < 2000) {
         //ESP_LOGD(TAG, "Milight setRepeatsOverride to 10");
         milightClient->setRepeatsOverride(10);
       }
 
       //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
-      if (millis() > 5000) {
+      if (miHelpers.mi_millis() > 5000) {
         milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
         milightClient->update(requestJson);
       }
@@ -466,7 +478,7 @@ namespace esphome {
         }
       }
       
-      lastRequestTime = millis();
+      lastRequestTime = miHelpers.mi_millis();
       writingState = false;
     }
 
@@ -478,7 +490,7 @@ namespace esphome {
       stateStore->limitedFlush();
       packetSender->loop();
       
-       while (millis() - lastRequestTime > repeatTimer && bulbCompactIds.Count() > 0) {
+       while (miHelpers.mi_millis() - lastRequestTime > repeatTimer && bulbCompactIds.Count() > 0) {
 
         uint32_t bulbCompactId = bulbCompactIds.First();
         bulbCompactIds.RemoveFirst();
@@ -499,7 +511,7 @@ namespace esphome {
         }
         
         //dont write anything the first 5 seconds after boot to prevent wrong device assignment after power loss
-        if (millis() > 5000) {
+        if (miHelpers.mi_millis() > 5000) {
           milightClient->prepare(deviceType, deviceId, groupId);
           milightClient->update(obj);
         }
@@ -507,3 +519,4 @@ namespace esphome {
     }
   }  // namespace mi
 }  // namespace esphome
+

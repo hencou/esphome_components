@@ -144,9 +144,9 @@ bool GroupState::isEqualIgnoreDirty(const GroupState& other) const {
   return meCopy == otherCopy;
 }
 
-void GroupState::print(Stream& stream) const {
-  stream.printf("State: %08X %08X\n", state.rawData[0], state.rawData[1]);
-}
+//void GroupState::print(Stream& stream) const {
+//  stream.printf("State: %08X %08X\n", state.rawData[0], state.rawData[1]);
+//}
 
 bool GroupState::clearField(GroupStateField field) {
   bool clearedAny = false;
@@ -204,7 +204,7 @@ bool GroupState::clearField(GroupStateField field) {
       break;
 
     default:
-      Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
+      //Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
       break;
   }
 
@@ -245,8 +245,8 @@ bool GroupState::isSetField(GroupStateField field) const {
     case GroupStateField::COLOR_MODE:
       return isSetBulbMode();
     default:
-      Serial.print(F("WARNING: tried to check if unknown field was set: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to check if unknown field was set: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -260,8 +260,8 @@ bool GroupState::isSetScratchField(GroupStateField field) const {
     case GroupStateField::KELVIN:
       return scratchpad.fields._isSetKelvinScratch;
     default:
-      Serial.print(F("WARNING: tried to check if unknown scratch field was set: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to check if unknown scratch field was set: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -286,8 +286,8 @@ uint16_t GroupState::getFieldValue(GroupStateField field) const {
     case GroupStateField::BULB_MODE:
       return getBulbMode();
     default:
-      Serial.print(F("WARNING: tried to fetch value for unknown field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to fetch value for unknown field: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -314,8 +314,8 @@ uint16_t GroupState::getScratchFieldValue(GroupStateField field) const {
     case GroupStateField::KELVIN:
       return scratchpad.fields._kelvinScratch;
     default:
-      Serial.print(F("WARNING: tried to fetch value for unknown scratch field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to fetch value for unknown scratch field: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -347,8 +347,8 @@ void GroupState::setFieldValue(GroupStateField field, uint16_t value) {
       setBulbMode(static_cast<BulbMode>(value));
       break;
     default:
-      Serial.print(F("WARNING: tried to set value for unknown field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to set value for unknown field: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 }
@@ -364,8 +364,8 @@ void GroupState::setScratchFieldValue(GroupStateField field, uint16_t value) {
       scratchpad.fields._kelvinScratch = value;
       break;
     default:
-      Serial.print(F("WARNING: tried to set value for unknown scratch field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      //Serial.print(F("WARNING: tried to set value for unknown scratch field: "));
+      //Serial.println(static_cast<unsigned int>(field));
       break;
   }
 }
@@ -611,23 +611,23 @@ bool GroupState::clearMqttDirty() {
   return true;
 }
 
-void GroupState::load(Stream& stream) {
-  for (size_t i = 0; i < DATA_LONGS; i++) {
-    stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
-  }
-  clearDirty();
-}
+//void GroupState::load(Stream& stream) {
+//  for (size_t i = 0; i < DATA_LONGS; i++) {
+//    stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
+//  }
+//  clearDirty();
+//}
 
-void GroupState::dump(Stream& stream) const {
-  for (size_t i = 0; i < DATA_LONGS; i++) {
-    stream.write(reinterpret_cast<const uint8_t*>(&state.rawData[i]), 4);
-  }
-}
+//void GroupState::dump(Stream& stream) const {
+//  for (size_t i = 0; i < DATA_LONGS; i++) {
+//    stream.write(reinterpret_cast<const uint8_t*>(&state.rawData[i]), 4);
+//  }
+//}
 
 bool GroupState::applyIncrementCommand(GroupStateField field, IncrementDirection dir) {
   if (field != GroupStateField::KELVIN && field != GroupStateField::BRIGHTNESS) {
-    Serial.print(F("WARNING: tried to apply increment for unsupported field: "));
-    Serial.println(static_cast<uint8_t>(field));
+    //Serial.print(F("WARNING: tried to apply increment for unsupported field: "));
+    //Serial.println(static_cast<uint8_t>(field));
     return false;
   }
 
@@ -777,7 +777,7 @@ bool GroupState::patch(JsonObject state) {
   }
 
   if (state[GroupStateFieldNames::COMMAND]) {
-    const String& command = state[GroupStateFieldNames::COMMAND];
+    const std::string& command = state[GroupStateFieldNames::COMMAND];
 
     if (isOn() && command == MiLightCommandNames::SET_WHITE) {
       changes |= setBulbMode(BULB_MODE_WHITE);
@@ -823,7 +823,7 @@ void GroupState::applyOhColor(JsonObject state) const {
   ParsedColor color = getColor();
 
   char ohColorStr[13];
-  snprintf_P(ohColorStr, sizeof(ohColorStr), PSTR("%d,%d,%d"), color.r, color.g, color.b);
+  printf(ohColorStr, "%d,%d,%d", color.r, color.g, color.b);
 
   state[GroupStateFieldNames::COLOR] = ohColorStr;
 }
@@ -832,7 +832,7 @@ void GroupState::applyHexColor(JsonObject state) const {
   ParsedColor color = getColor();
 
   char hexColor[8];
-  snprintf_P(hexColor, sizeof(hexColor), PSTR("#%02X%02X%02X"), color.r, color.g, color.b);
+  printf(hexColor, "#%02X%02X%02X", color.r, color.g, color.b);
 
   state[GroupStateFieldNames::COLOR] = hexColor;
 }
@@ -868,16 +868,16 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
           MiLightRemoteTypeHelpers::supportsRgb(bulbId.deviceType) 
           && getBulbMode() == BULB_MODE_COLOR
         ) {
-          partialState[GroupStateFieldNames::COLOR_MODE] = F("rgb");
+          partialState[GroupStateFieldNames::COLOR_MODE] = "rgb";
         } else if (
           MiLightRemoteTypeHelpers::supportsColorTemp(bulbId.deviceType) 
           && getBulbMode() == BULB_MODE_WHITE
         ) {
-          partialState[GroupStateFieldNames::COLOR_MODE] = F("color_temp");
+          partialState[GroupStateFieldNames::COLOR_MODE] = "color_temp";
         } else if (getBulbMode() == BULB_MODE_NIGHT) {
-          partialState[GroupStateFieldNames::COLOR_MODE] = F("onoff");
+          partialState[GroupStateFieldNames::COLOR_MODE] = "onoff";
         } else {
-          partialState[GroupStateFieldNames::COLOR_MODE] = F("brightness");
+          partialState[GroupStateFieldNames::COLOR_MODE] = "brightness";
         }
         break;
 
@@ -927,7 +927,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
 
       case GroupStateField::EFFECT:
         if (getBulbMode() == BULB_MODE_SCENE) {
-          partialState[GroupStateFieldNames::EFFECT] = String(getMode());
+          partialState[GroupStateFieldNames::EFFECT] = std::to_string(getMode());
         } else if (isSetBulbMode() && getBulbMode() == BULB_MODE_WHITE) {
           partialState[GroupStateFieldNames::EFFECT] = "white_mode";
         } else if (getBulbMode() == BULB_MODE_NIGHT) {
@@ -965,7 +965,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
         break;
 
       default:
-        Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
+        //Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
         break;
     }
   }

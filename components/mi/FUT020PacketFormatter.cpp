@@ -58,23 +58,23 @@ BulbId FUT020PacketFormatter::parsePacket(const uint8_t* packet, JsonObject resu
 
   switch (command) {
     case FUT020Command::ON_OFF:
-      result[F("state")] = F("ON");
+      result["state"] = "ON";
       break;
 
     case FUT020Command::BRIGHTNESS_DOWN:
-      result[F("command")] = F("brightness_down");
+      result["command"] = "brightness_down";
       break;
 
     case FUT020Command::BRIGHTNESS_UP:
-      result[F("command")] = F("brightness_up");
+      result["command"] = "brightness_up";
       break;
 
     case FUT020Command::MODE_SWITCH:
-      result[F("command")] = F("next_mode");
+      result["command"] = "next_mode";
       break;
 
     case FUT020Command::COLOR_WHITE_TOGGLE:
-      result[F("command")] = F("color_white_toggle");
+      result["command"] = "color_white_toggle";
       break;
 
     case FUT020Command::COLOR:
