@@ -24,8 +24,12 @@ esphome:
     area_id: test_area
     
 external_components:
-  - source: github://hencou/esphome_components
-    components: mi
+- source:
+    type: git
+    url: https://github.com/hencou/esphome_components
+    ref: main
+  components: mi
+  refresh: 0s
 
 esp8266:
   board: d1_mini
