@@ -94,7 +94,7 @@ void PacketSender::sendRepeats(size_t num) {
     Serial.printf_P(PSTR("%02X "), currentPacket->packet[i]);
   }
   Serial.println();
-  int iStart = esphome::mi::mi_millis();
+  int iStart = miHelpers.mi_millis();
 #endif
 
   for (size_t i = 0; i < num; ++i) {
@@ -123,4 +123,5 @@ void PacketSender::updateResendCount() {
 
   this->currentResendCount = signedResends;
   this->lastSend = now;
+
 }
