@@ -298,10 +298,15 @@ namespace esphome {
 
       Mi::applySettings();
 
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<> dist(2000, 3000);
-      repeatTimer = dist(gen);
+      #ifdef USE_ARDUINO
+      #include <Arduino.h>
+        repeatTimer = random(2000, 3000);
+      #else
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(2000, 3000);
+        repeatTimer = dist(gen);
+      #endif
 
       ESP_LOGD(TAG, "Setup complete"); 
     }
@@ -514,3 +519,4 @@ namespace esphome {
     }
   }  // namespace mi
 }  // namespace esphome
+
