@@ -1,8 +1,6 @@
 #pragma once
 
-//#include <stdint.h>
 #include "MiLightRemoteType.h"
-//#include <ArduinoJson.h>
 #include "esphome/components/json/json_util.h"
 
 struct BulbId {
@@ -22,4 +20,5 @@ struct BulbId {
   void serialize(JsonArray json) const;
   //void load(Stream& stream);
   //void dump(Stream& stream) const;
+
 };
