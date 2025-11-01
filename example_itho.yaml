@@ -1,18 +1,21 @@
 substitutions:
-  device_name: test
-  friendly_name: Test
+  device_name: doucheventilatie
+  friendly_name: Douche ventilatie
 
 esphome:
-  name: $device_name
+  name: ${device_name}
+  friendly_name: ${friendly_name}
 
 esp32:
   board: esp32dev
   framework:
+    #type: esp-idf
     type: arduino
     
 external_components:
 - source: github://hencou/esphome_components
   components: [itho]
+  refresh: 0s
     
 wifi:
   ssid: !secret wifi_ssid
@@ -20,38 +23,26 @@ wifi:
   fast_connect: true
 
 logger:
-  level: ERROR
+  level: WARN
 
 api:
  reboot_timeout: 480min
 
 ota:
-  - platform: esphome
-
-light:
-  - platform: status_led
-    name: "Status LED"
-    id: board_status_led
-    pin:
-      number: 17
-      inverted: true
-    entity_category: diagnostic
+  platform: esphome
 
 itho:
-  syssht30: disable       ##Optional, default enabled: enable or disable Itho build in sensor and automation, set to disable when using own automation logic
-  syssht30_address: 0x44  ##Optional, default 0x44, I2C SHT30 sensor address
-  sda: 21                 ##Optional, default to default SDA pin of ESP module (21)
-  scl: 22                 ##Optional, default to default SCL pin of ESP module (22)
+  syssht30: disable
 
 fan:
 - platform: itho
-  id: itho_fan
-  name: $friendly_name
+  id: ${device_name}_fan
+  name: Fan
   
 select:
 - platform: itho
-  name: ${friendly_name} stand
-  id: itho_select
+  id: ${device_name}_stand
+  name: Stand
   on_value:
     then:
     - globals.set:
@@ -92,8 +83,8 @@ globals:
   
 number:
 - platform: template
-  name: $friendly_name minimum output
-  id: minimal_output
+  name: Minimum output
+  id: ${device_name}_minimal_output
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
@@ -104,8 +95,8 @@ number:
   step: 1
   
 - platform: template
-  name: $friendly_name Kp
-  id: kp
+  name: Kp
+  id: ${device_name}_kp
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
@@ -116,8 +107,8 @@ number:
   step: 0.1
 
 - platform: template
-  name: $friendly_name Ki
-  id: ki
+  name: Ki
+  id: ${device_name}_ki
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
@@ -128,8 +119,8 @@ number:
   step: 0.0001
 
 - platform: template
-  name: $friendly_name max i term
-  id: max_i_term
+  name: Max I term
+  id: ${device_name}_max_i_term
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
@@ -140,8 +131,8 @@ number:
   step: 1
 
 - platform: template
-  name: $friendly_name Kd
-  id: kd
+  name: Kd
+  id: ${device_name}_kd
   entity_category: config
   icon: mdi:chart-bell-curve
   restore_value: true
@@ -155,29 +146,33 @@ sensor:
 - platform: itho
   update_interval: 8s
   error:
-    name: ${friendly_name} error
+    name: Error
+    id: ${device_name}_error
   startup_counter:
-    name: ${friendly_name} startup counter
+    name: Startup counter
+    id: ${device_name}_startup_counter
   operation_time:
-    name: ${friendly_name} operation time
+    name: Operation time
+    id: ${device_name}_operation_time
   temperature:
-    name: ${friendly_name} temperatuur
+    name: Temperatuur
+    id: ${device_name}_temperature
     filters:
     - or:
       - delta: 1.0
       - heartbeat: 60s
   humidity:
-    name: ${friendly_name} luchtvochtigheid
+    name: Luchtvochtigheid
+    id: ${device_name}_humidity
     filters:
     - or:
       - delta: 1.0
       - heartbeat: 60s
-    id: "humidity"
     on_raw_value:
       if:
         condition:
           sensor.in_range:
-            id: humidity
+            id: ${device_name}_humidity
             above: 0.1
             below: 120.0
         then:
@@ -194,18 +189,18 @@ sensor:
         - globals.set:
             id: p_term
             value: !lambda |-
-              return id(e_term) * id(kp).state;
+              return id(e_term) * id(${device_name}_kp).state;
         - globals.set:
             id: i_term
             value: !lambda |-
-              float value = id(i_term) + (id(e_term) * id(ki).state);
-              if (value > id(max_i_term).state) {value = id(max_i_term).state;}
+              float value = id(i_term) + (id(e_term) * id(${device_name}_ki).state);
+              if (value > id(${device_name}_max_i_term).state) {value = id(${device_name}_max_i_term).state;}
               if (value < 0) {value = 0;}
               return value;
         - globals.set:
             id: d_term
             value: !lambda |-
-              float value = (id(e_term) - id(old_e_term)) * id(kd).state;
+              float value = (id(e_term) - id(old_e_term)) * id(${device_name}_kd).state;
               return value;
         - globals.set:
             id: old_e_term
@@ -216,7 +211,7 @@ sensor:
             value: !lambda |-
               float value = id(p_term) + id(i_term) + ((id(d_term) < 0)? 0 : id(d_term));
               value = (id(o_term) < value) ? value : id(o_term) -1; //Fast speed up, slow speed down
-              return (value < id(minimal_output).state) ? id(minimal_output).state : value;
+              return (value < id(${device_name}_minimal_output).state) ? id(${device_name}_minimal_output).state : value;
         - lambda: !lambda |-
             if (id(faninfo) == "auto") {
               int speed = 0;
@@ -225,7 +220,7 @@ sensor:
                 id(max_speed) = true;
                 speed = 254;
 
-                auto call = id(itho_fan).make_call();
+                auto call = id(${device_name}_fan).make_call();
                 call.set_speed(speed);
                 call.perform();
               }
@@ -243,94 +238,113 @@ sensor:
                 }
 
                 if (speed > 254) {speed = 254;}
-                auto call = id(itho_fan).make_call();
+                auto call = id(${device_name}_fan).make_call();
                 call.set_speed(speed);
                 call.perform();
               }
             }
   fan_setpoint:
-    name: ${friendly_name} fan setpoint
+    name: Fan setpoint
+    id: ${device_name}_fan_setpoint
+    entity_category: "diagnostic"
     filters:
     - or:
       - delta: 1.0
       - heartbeat: 60s
   fan_speed:
-    name: ${friendly_name} fan speed
+    name: Fan speed
+    id: ${device_name}_fan_speed
+    entity_category: "diagnostic"
     filters:
     - or:
       - delta: 1.0
       - heartbeat: 60s
 
 - platform: template
-  name: ${friendly_name} gem. luchtvochtigheid
+  name: Gem. luchtvochtigheid
+  id: ${device_name}_gem_luchtvochtigheid
   unit_of_measurement: "%"
   lambda: !lambda |-
     return id(humidity_mean);
 
 - platform: template
-  name: $friendly_name error value
+  name: Error value
+  id: ${device_name}_error_value
   lambda: !lambda |-
     return id(e_term);
   
 - platform: template
-  name: $friendly_name p term
+  name: P term
+  id: ${device_name}_p_term
   lambda: !lambda |-
     return id(p_term);
 
 - platform: template
-  name: $friendly_name i term
+  name: I term
+  id: ${device_name}_i_term
   lambda: !lambda |-
     return id(i_term);
 
 - platform: template
-  name: $friendly_name d term
-  id: d_term_t
+  name: D term
+  id: ${device_name}_d_term
   lambda: !lambda |-
     return id(d_term);
 
 - platform: template
-  name: $friendly_name output term
+  name: Output term
+  id: ${device_name}_output_term
   lambda: !lambda |-
     return id(o_term);
         
 - platform: uptime
-  name: ${friendly_name} uptime
+  name: Uptime
+  id: ${device_name}_uptime
   filters:
     - throttle: 300s
 
 - platform: wifi_signal
-  name: ${friendly_name} WiFi signaal
+  name: WiFi signal
+  id: ${device_name}_wifi_signal
   filters:
     - delta: 0.01
     - throttle: 300s
     
 binary_sensor:
 - platform: analog_threshold
-  name: ${friendly_name} douchen
-  sensor_id: d_term_t
+  name: Douchen
+  id: ${device_name}_douchen
+  sensor_id: ${device_name}_d_term
   threshold:
     upper: 5
     lower: -1.4
         
 button:
-- platform: restart
+- platform: factory_reset
+  name: Factory reset
+  id: ${device_name}_factory_restart
   entity_category: config
-  name: ${friendly_name} restart
+- platform: restart
+  name: Restart
+  id: ${device_name}_restart
+  entity_category: config
 - platform: safe_mode
   entity_category: config
-  name: ${friendly_name} safemode
-- platform: factory_reset
-  name: ${friendly_name} factory reset
-  entity_category: config
+  name: Safemode
+  id: ${device_name}_safemode
 
 text_sensor:
 - platform: version
-  name: ${friendly_name} ESPHome versie
-
+  id: ${device_name}_esphome_versie
+  name: ESPHome versie
 - platform: wifi_info
   ip_address:
-    name: ${friendly_name} ipadres
+    name: IP address
+    id: ${device_name}_ipaddress
   ssid:
-    name: ${friendly_name} SSID
+    name: SSID
+    id: ${device_name}_ssid
   bssid:
-    name: ${friendly_name} BSSID
+    name: BSSID
+    id: ${device_name}_bssid
+
