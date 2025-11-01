@@ -3,7 +3,8 @@ substitutions:
   friendly_name: i2csniffer
 
 esphome:
-  name: $device_name
+  name: ${device_name}
+  friendly_name: ${friendly_name}
 
 esp32:
   board: esp32dev
