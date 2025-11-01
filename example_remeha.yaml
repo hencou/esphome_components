@@ -3,8 +3,8 @@ substitutions:
   friendly_name: Remeha Tzerra
 
 esphome:
-  name: $device_name
-  friendly_name: $friendly_name
+  name: ${device_name}
+  friendly_name: ${friendly_name}
   build_path: "../build/${device_name}"
 
 esp32:
