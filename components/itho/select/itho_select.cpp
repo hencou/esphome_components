@@ -58,7 +58,7 @@ void Itho_Select::control(const std::string &value) {
   }
   
 if (value == "manual" || value == "auto") {
-    const std::string s = "auto";
+    const std::string s = "medium";
     bool success = parent_->ithoI2CCommand(0, s);
     this->publish_state(value);
   } else {
