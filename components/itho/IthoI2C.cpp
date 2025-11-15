@@ -13,7 +13,7 @@ namespace esphome
     {
       while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
-        vTaskDelay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
       }
       
       #ifdef ESPRESSIF32_3_5_0
@@ -45,7 +45,7 @@ namespace esphome
     {
        while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
       {
-        vTaskDelay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
       }
       
       #ifdef ESPRESSIF32_3_5_0
@@ -172,3 +172,4 @@ namespace esphome
 
   }
 }
+
