@@ -27,6 +27,7 @@ void Itho_Select::setup() {
       ESP_LOGD(TAG, "State from restore: %s", value.c_str());
     }
   }
+  if (value == "medium") value = "auto";
 
   this->publish_state(value);
 }
