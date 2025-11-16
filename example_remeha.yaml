@@ -31,7 +31,14 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  fast_connect: true
+  enable_btm: True
+  enable_rrm: True
+  #fast_connect: true
+  power_save_mode: none #prevent reconnecting every minute op 802.11ax router
+
+## mdns off to prevent kernel panic on ESP32 module
+mdns:
+  disabled: true
 
 #interval:
 #- interval: 10s
