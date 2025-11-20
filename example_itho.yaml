@@ -20,6 +20,7 @@ external_components:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  min_auth_mode: WPA2
   enable_btm: True
   enable_rrm: True
   #fast_connect: true
@@ -354,5 +355,6 @@ text_sensor:
   bssid:
     name: BSSID
     id: ${device_name}_bssid
+
 
 
