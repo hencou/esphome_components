@@ -19,7 +19,7 @@ namespace MiLightCommandNames {
   static const char TRANSITION[] = "transition";
 };
 
-static const std::string DISCO_MODE_NAMES[] = {
+static const char* DISCO_MODE_NAMES[] = {
     "Mi 00: Night Mode",
     "Mi 01: Rainbow",
     "Mi 02: Low-Sat Rainbow",
