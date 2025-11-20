@@ -37,7 +37,7 @@ void Itho_Select::loop() {
     ESP_LOGD(TAG, "Updated ithoFanInfo this->state: %s", this->state.c_str());
     ESP_LOGD(TAG, "Updated ithoFanInfo parent_->getIthoFanInfo(): %s", parent_->getIthoFanInfo().c_str());
     ithoFanInfo = parent_->getIthoFanInfo();
-    if (this->state == "manual" && parent_->getIthoFanInfo() == "auto") {
+    if (this->current_option() == "manual" && parent_->getIthoFanInfo() == "auto") {
       this->publish_state("manual");
     } else {
       this->publish_state(ithoFanInfo);
@@ -52,7 +52,7 @@ void Itho_Select::control(const std::string &value) {
   this->set_trigger_->trigger(value);
 
   if (this->restore_value_) {
-    auto options = this->traits.get_options();
+    const auto &options = traits.get_options();
     size_t index = std::find(options.begin(), options.end(), value) - options.begin();
 
     this->pref_.save(&index);
