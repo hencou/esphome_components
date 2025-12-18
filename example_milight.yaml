@@ -32,6 +32,7 @@ external_components:
   components: mi
   refresh: 0s
 
+#For esp32 boards:  only arduino framework is supported, esp-idf framework will give compiling errors
 esp8266:
   board: d1_mini
 
