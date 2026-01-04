@@ -5,22 +5,22 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  build_path: "../build/${device_name}"
+  #build_path: "../build/${device_name}"
 
 esp32:
   board: esp32dev
   framework:
+    #type: esp-idf
     type: arduino
 
 external_components:
 - source: github://hencou/esphome_gvret
   components: [canbus_gvret]
   refresh: 0s
-
   
 # Enable logging
 logger:
-  level: INFO
+  level: WARN
 
 # Enable Home Assistant API
 api:
@@ -29,68 +29,104 @@ ota:
   - platform: esphome
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  ssid: !secret wifi_ssidC
+  password: !secret wifi_passwordC
   min_auth_mode: WPA2
   enable_btm: True
   enable_rrm: True
 
-#interval:
-#- interval: 10s
-#  then:
-#  - canbus.send:
-#      data: [ 0x40, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00 ]
-#      canbus_id: my_canbus
-#  - canbus.send:
-#      data: [0x40, 0x0b, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00 ]
-#      canbus_id: my_canbus
-#  - canbus.send:
-#      data: [0x40, 0x0c, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00 ]
-#      canbus_id: my_canbus
-
 sensor:
+- platform: uptime
+  name: Uptime
+  id: ${device_name}_uptime
+  filters:
+    - throttle: 300s
+- platform: wifi_signal
+  name: WiFi signal
+  id: ${device_name}_wifi_signal
+  filters:
+    - delta: 0.01
+    - throttle: 300s
+
 #- platform: template
-#  name: ${friendly_name} Power
+#  name: Power
 #  id: ${device_name}_power
 - platform: template
-  name: ${friendly_name} Flow temperatuur
+  name: Flow temperatuur
   id: ${device_name}_flow_temperature
-#- platform: template
-#  name: ${friendly_name} Setpoint
-#  id: ${device_name}_setpoint
 - platform: template
-  name: ${friendly_name} Buiten temperatuur
+  name: Setpoint
+  id: ${device_name}_setpoint
+- platform: template
+  name: Buiten temperatuur
   id: ${device_name}_outside_temp
 - platform: template
-  name: ${friendly_name} Test2
+  name: Relative Power
+  id: ${device_name}_rel_power
+- platform: template
+  name: AM012 Status
+  id: ${device_name}_am012_status
+- platform: template
+  name: AM014 SubStatus
+  id: ${device_name}_am014_substatus
+- platform: template
+  name: Test2
   id: ${device_name}_test2
 - platform: template
-  name: ${friendly_name} Test3
+  name: Test3
   id: ${device_name}_test3
 - platform: template
-  name: ${friendly_name} Test4
+  name: Test4
   id: ${device_name}_test4
 - platform: template
-  name: ${friendly_name} Test5
+  name: Test5
   id: ${device_name}_test5
 - platform: template
-  name: ${friendly_name} Test6
+  name: Test6
   id: ${device_name}_test6
 - platform: template
-  name: ${friendly_name} Test7
+  name: Test7
   id: ${device_name}_test7
-
+  
 text_sensor:
+- platform: version
+  id: ${device_name}_esphome_versie
+  name: ESPHome versie
+- platform: wifi_info
+  ip_address:
+    name: IP address
+    id: ${device_name}_ipaddress
+  ssid:
+    name: SSID
+    id: ${device_name}_ssid
+  bssid:
+    name: BSSID
+    id: ${device_name}_bssid
+    
 - platform: template
-  name: ${friendly_name} Status
+  name: Status
   id: ${device_name}_status
+
+button:
+- platform: factory_reset
+  name: Factory reset
+  id: ${device_name}_factory_restart
+  entity_category: config
+- platform: restart
+  name: Restart
+  id: ${device_name}_restart
+  entity_category: config
+- platform: safe_mode
+  entity_category: config
+  name: Safemode
+  id: ${device_name}_safemode
 
 canbus:
 - platform: esp32_can
-  id: my_canbus
+  id: can1
   tx_pin: GPIO5
   rx_pin: GPIO35
-  can_id: 0x241
+  can_id: 0x100
   bit_rate: 1000kbps
   # increase queue sizes for CANOpen block transfer (up to 128 frames can be sent in burst)
   tx_queue_len: 128
@@ -123,11 +159,41 @@ canbus:
           float out_temp = ((((uint16_t)B << 8) + A) / 100.00);
           id(${device_name}_outside_temp).publish_state(out_temp);
         }
+
+  - can_id: 0x382
+    then:
+    - lambda: |-
+        if(x.size() > 0) {
+          
+          //Byte 0+1 = am024_power Relative power
+          uint8_t A = x[0];
+          uint8_t B = x[1];
+          float rel_power = ((((uint16_t)B << 8) + A));
+          id(${device_name}_rel_power).publish_state(rel_power);
+
+          //Byte 2+3 = Setpoint
+          A = x[2];
+          B = x[3];
+          float setpoint = (((uint16_t)A << 8) + B) / 100.00;
+          id(${device_name}_setpoint).publish_state(setpoint);
+        }
         
   - can_id: 0x481
     then:
     - lambda: |-
         if(x.size() > 0) {
+
+          //Byte 0+1 = am012_status
+          uint8_t A = x[0];
+          uint8_t B = x[1];
+          float am012_status = ((((uint16_t)B << 8) + A));
+          id(${device_name}_am012_status).publish_state(am012_status);
+
+          //Byte 0+1 = am014_substatus
+          A = x[2];
+          B = x[3];
+          float am014_substatus = ((((uint16_t)B << 8) + A));
+          id(${device_name}_am014_substatus).publish_state(am014_substatus);
 
           //Byte1 = Status
           uint8_t status = x[1];
@@ -222,7 +288,6 @@ canbus:
         
 
 # GVRET component to use with SavvyCAN for remote CANbus message analysis
-- platform: canbus_gvret
-  id: gvret
-  can_id: 0
-  canbus_id: my_canbus
+canbus_gvret:
+  can:
+  - canbus_id: can1
