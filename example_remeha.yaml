@@ -1,6 +1,6 @@
 substitutions:
   device_name: remeha
-  friendly_name: Remeha Tzerra
+  friendly_name: Remeha Tzerra Ace Matic
 
 esphome:
   name: ${device_name}
@@ -13,10 +13,10 @@ esp32:
     #type: esp-idf
     type: arduino
 
-external_components:
-- source: github://hencou/esphome_gvret
-  components: [canbus_gvret]
-  refresh: 0s
+#external_components:
+#- source: github://hencou/esphome_gvret
+#  components: [canbus_gvret]
+#  refresh: 0s
   
 # Enable logging
 logger:
@@ -35,6 +35,18 @@ wifi:
   enable_btm: True
   enable_rrm: True
 
+time:
+  - platform: homeassistant
+#    on_time:
+#      - seconds: /1
+#        then:
+#          - canbus.send:
+#              canbus_id: can1
+#              data: [0x40, 0x1d, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00]
+#          - canbus.send:
+#              canbus_id: can1
+#             data: [0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+
 sensor:
 - platform: uptime
   name: Uptime
@@ -48,45 +60,48 @@ sensor:
     - delta: 0.01
     - throttle: 300s
 
-#- platform: template
-#  name: Power
-#  id: ${device_name}_power
 - platform: template
   name: Flow temperatuur
   id: ${device_name}_flow_temperature
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
 - platform: template
   name: Setpoint
   id: ${device_name}_setpoint
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
 - platform: template
-  name: Buiten temperatuur
-  id: ${device_name}_outside_temp
+  name: AM027 Buiten temperatuur
+  id: ${device_name}_am027_outside_temp
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
 - platform: template
-  name: Relative Power
-  id: ${device_name}_rel_power
+  name: Buiten temperatuur 3min avg
+  id: ${device_name}_outside_temp_3m_avg
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+- platform: template
+  name: Buiten temperatuur 2h avg
+  id: ${device_name}_outside_temp_2h_avg
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+- platform: template
+  name: AM024 Relative Power
+  id: ${device_name}_am024_rel_power
+- platform: template
+  name: Relative Power2
+  id: ${device_name}_rel_power2
 - platform: template
   name: AM012 Status
   id: ${device_name}_am012_status
 - platform: template
-  name: AM014 SubStatus
+  name: AM014 Substatus
   id: ${device_name}_am014_substatus
-- platform: template
-  name: Test2
-  id: ${device_name}_test2
-- platform: template
-  name: Test3
-  id: ${device_name}_test3
-- platform: template
-  name: Test4
-  id: ${device_name}_test4
-- platform: template
-  name: Test5
-  id: ${device_name}_test5
-- platform: template
-  name: Test6
-  id: ${device_name}_test6
-- platform: template
-  name: Test7
-  id: ${device_name}_test7
   
 text_sensor:
 - platform: version
@@ -104,8 +119,11 @@ text_sensor:
     id: ${device_name}_bssid
     
 - platform: template
-  name: Status
-  id: ${device_name}_status
+  name: AM012 Status tekst
+  id: ${device_name}_am012_statustext
+- platform: template
+  name: AM014 Substatus tekst
+  id: ${device_name}_am014_substatustext
 
 button:
 - platform: factory_reset
@@ -126,7 +144,7 @@ canbus:
   id: can1
   tx_pin: GPIO5
   rx_pin: GPIO35
-  can_id: 0x100
+  can_id: 0x241
   bit_rate: 1000kbps
   # increase queue sizes for CANOpen block transfer (up to 128 frames can be sent in burst)
   tx_queue_len: 128
@@ -136,14 +154,16 @@ canbus:
     then:
     - lambda: |-
         if(x.size() > 0) {
-          
-          //Byte1 = Power: klopt niet, is iets anders, loopt langzaam af teller oid
-          //uint8_t power = x[1];
-          //id(${device_name}_power).publish_state(power);
+          uint8_t A;
+          uint8_t B;
+
+          //Byte0 = AM024 Relative Power
+          uint8_t rel_power = x[0];
+          id(${device_name}_am024_rel_power).publish_state(rel_power);
           
           //Byte 2+3 = Flow temperature
-          uint8_t A = x[2];
-          uint8_t B = x[3];
+          A = x[2];
+          B = x[3];
           float flow_temp = (((uint16_t)A << 8) + B) / 100.00;
           id(${device_name}_flow_temperature).publish_state(flow_temp);
         }
@@ -152,24 +172,34 @@ canbus:
     then:
     - lambda: |-
         if(x.size() > 0) {
-          
-          //Byte 0+1 = Outside temperature
-          uint8_t A = x[0];
-          uint8_t B = x[1];
-          float out_temp = ((((uint16_t)B << 8) + A) / 100.00);
-          id(${device_name}_outside_temp).publish_state(out_temp);
+          uint8_t A;
+          uint8_t B;
+
+          //Byte 0+1 = AM027 Outside temperature //converts to int16 can be negative
+          A = x[0];
+          B = x[1];
+          float out_temp = (int16_t(((uint16_t)B << 8) + A) / 100.00);
+          id(${device_name}_am027_outside_temp).publish_state(out_temp);
+
+          //Byte 2+3 = Outside temperature 3min avg //converts to int16 can be negative
+          A = x[2];
+          B = x[3];
+          float out_temp_3min_avg = (int16_t(((uint16_t)B << 8) + A) / 100.00);
+          id(${device_name}_outside_temp_3m_avg).publish_state(out_temp_3min_avg);
+
+          //Byte 4+5 = Outside temperature 2h avg //converts to int16 can be negative
+          A = x[4];
+          B = x[5];
+          float out_temp_2h_avg = (int16_t(((uint16_t)B << 8) + A) / 100.00);
+          id(${device_name}_outside_temp_2h_avg).publish_state(out_temp_2h_avg);
         }
 
   - can_id: 0x382
     then:
     - lambda: |-
         if(x.size() > 0) {
-          
-          //Byte 0+1 = am024_power Relative power
-          uint8_t A = x[0];
-          uint8_t B = x[1];
-          float rel_power = ((((uint16_t)B << 8) + A));
-          id(${device_name}_rel_power).publish_state(rel_power);
+          uint8_t A;
+          uint8_t B;
 
           //Byte 2+3 = Setpoint
           A = x[2];
@@ -182,112 +212,196 @@ canbus:
     then:
     - lambda: |-
         if(x.size() > 0) {
+          uint8_t A;
+          uint8_t B;
 
-          //Byte 0+1 = am012_status
-          uint8_t A = x[0];
-          uint8_t B = x[1];
-          float am012_status = ((((uint16_t)B << 8) + A));
+          //Byte 0 = AM012_status
+          A = x[0];
+          float am012_status = A;
           id(${device_name}_am012_status).publish_state(am012_status);
 
-          //Byte 0+1 = am014_substatus
-          A = x[2];
-          B = x[3];
-          float am014_substatus = ((((uint16_t)B << 8) + A));
+          //Byte 1 = AM014_substatus
+          B = x[1];
+          float am014_substatus = B;
           id(${device_name}_am014_substatus).publish_state(am014_substatus);
 
-          //Byte1 = Status
-          uint8_t status = x[1];
-          String statustext;
+          //Byte0 = AM012 Status
+          uint8_t status = x[0];
+          String am012_statustext;
           switch(status) {
             case 0:
-              statustext="stand-by";
+              am012_statustext="Standby";
               break;
             case 1:
-              statustext="demand";
+              am012_statustext="Heat request";
               break;
             case 2:
-              statustext="start generator";
+              am012_statustext="Burner ignition";
               break;
             case 3:
-              statustext="heat active";
+              am012_statustext="Heating mode";
               break;
             case 4:
-              statustext="dhw active";
+              am012_statustext="DHW mode";
               break;
             case 5:
-              statustext="stop generator";
+              am012_statustext="Burner off";
               break;
             case 6:
-              statustext="pump active";
+              am012_statustext="Pump active";
               break;
             case 8:
-              statustext="delay";
+              am012_statustext="Burner shut down";
               break;
             case 9:
-              statustext="block";
+              am012_statustext="Temporary fault";
               break;
             case 10:
-              statustext="lock";
+              am012_statustext="Permanent fault";
               break;
             case 11:
-              statustext="test heat min";
+              am012_statustext="Test heat min";
               break;
             case 12:
-              statustext="test heat max";
+              am012_statustext="Test heat max";
               break;
             case 13:
-              statustext="test DWH max";
+              am012_statustext="Test DWH max";
               break;
             case 15:
-              statustext="manual heat";
+              am012_statustext="Manual heat";
               break;
             case 16:
-              statustext="frost protection";
+              am012_statustext="Frost protection";
+              break;
+            case 17:
+              am012_statustext="Bleed air";
               break;
             case 19:
-              statustext="reset";
+              am012_statustext="Reset";
               break;
-            case 21:
-              statustext="paused";
+            case 20:
+              am012_statustext="Automatic filling";
               break;
-            case 30:
-              statustext="dhw active";
-              break;
-            case 37:
-              statustext="dhw active";
-              break;
-            case 40:
-              statustext="dhw active";
-              break;
-            case 41:
-              statustext="dhw active";
+            case 22:
+              am012_statustext="Forced calibration";
               break;
             case 200:
-              statustext="service mode";
+              am012_statustext="Service mode";
               break;
             default:
-              statustext="unknown";
+              am012_statustext="Unknown";
           }
-          id(${device_name}_status).publish_state(statustext.c_str());
+          id(${device_name}_am012_statustext).publish_state(am012_statustext.c_str());
+
+          //Byte1 = AM014 Substatus
+          uint8_t substatus = x[1];
+          String am014_substatustext;
+          switch(substatus) {
+            case 0:
+              am014_substatustext="Standby";
+              break;
+            case 1:
+              am014_substatustext="Waiting ignition";
+              break;
+            case 4:
+              am014_substatustext="Waiting for temperature";
+              break;
+            case 13:
+              am014_substatustext="Pre-ventilation";
+              break;
+            case 15:
+              am014_substatustext="Ignition signal sent";
+              break;
+            case 17:
+              am014_substatustext="Burner pre-ignition";
+              break;
+            case 18:
+              am014_substatustext="Burner ignition";
+              break;
+            case 19:
+              am014_substatustext="Flame check";
+              break;
+            case 20:
+              am014_substatustext="Fan operation at ign";
+              break;
+            case 30:
+              am014_substatustext="Operation at setpoint";
+              break;
+            case 31:
+              am014_substatustext="Operation reduced setpoint";
+              break;
+            case 32:
+              am014_substatustext="Operation required setpoint";
+              break;
+            case 33:
+              am014_substatustext="Level1 ramp";
+              break;
+            case 34:
+              am014_substatustext="Level2 ramp";
+              break;
+            case 35:
+              am014_substatustext="Level3 ramp";
+              break;
+            case 36:
+              am014_substatustext="Flame protection";
+              break;
+            case 37:
+              am014_substatustext="Stabilization time";
+              break;
+            case 38:
+              am014_substatustext="Start min output";
+              break;
+            case 39:
+              am014_substatustext="Heating mode interupted by DWH";
+              break;
+            case 41:
+              am014_substatustext="Post-ventilation";
+              break;
+            case 44:
+              am014_substatustext="Fan off";
+              break;
+            case 45:
+              am014_substatustext="Power reduction";
+              break;
+            case 46:
+              am014_substatustext="Automatic filling: empty";
+              break;
+            case 47:
+              am014_substatustext="Automatic filling: low";
+              break;
+            case 60:
+              am014_substatustext="Pump post-ventilation";
+              break;
+            case 95:
+              am014_substatustext="Standby due water pressure";
+              break;
+            default:
+              am014_substatustext="Unknown";
+          }
+          id(${device_name}_am014_substatustext).publish_state(am014_substatustext.c_str());
         }
 
   - can_id: 0x482
     then:
     - lambda: |-
         if(x.size() > 0) {
+          uint8_t A;
+          uint8_t B;
+
           if(x[0] == 0x01 && x[1] == 0x03) {
             
-            id(${device_name}_test2).publish_state(float(x[2]));
-            id(${device_name}_test3).publish_state(float(x[3]));
-            id(${device_name}_test4).publish_state(float(x[4]));
-            id(${device_name}_test5).publish_state(float(x[5]));
-            id(${device_name}_test6).publish_state(float(x[6]));
-            id(${device_name}_test7).publish_state(float(x[7]));
+            id(${device_name}_rel_power2).publish_state(float(x[3])); //Relative Power2
+          }
+
+          if(x[0] == 0x01 && x[1] == 0x01) {
+            
+          //??
           }
         }
         
 
 # GVRET component to use with SavvyCAN for remote CANbus message analysis
-canbus_gvret:
-  can:
-  - canbus_id: can1
+#canbus_gvret:
+#  can:
+#  - canbus_id: can1
