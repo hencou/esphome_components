@@ -227,7 +227,7 @@ canbus:
 
           //Byte0 = AM012 Status
           uint8_t status = x[0];
-          String am012_statustext;
+          std::string am012_statustext;
           switch(status) {
             case 0:
               am012_statustext="Standby";
@@ -296,7 +296,7 @@ canbus:
 
           //Byte1 = AM014 Substatus
           uint8_t substatus = x[1];
-          String am014_substatustext;
+          std::string am014_substatustext;
           switch(substatus) {
             case 0:
               am014_substatustext="Standby";
