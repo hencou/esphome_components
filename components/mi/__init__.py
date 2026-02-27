@@ -93,6 +93,7 @@ async def to_code(config):
 
     if core.CORE.using_arduino:
       cg.add_library("nrf24/RF24", None)
+      cg.add_library("SPI", None)
     else:
       cg.add_library(
         "RF24",
@@ -154,6 +155,7 @@ async def to_code(config):
       for conf in config.get(CONF_ON_COMMAND_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(MiBridgeData, "data")], conf)
+
 
 
 
