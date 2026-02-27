@@ -23,7 +23,11 @@ esphome:
   - id: test_device
     name: "Test device"
     area_id: test_area
-    
+
+  # See breaking changes for ESPhome 2026.2.1, libraries must now be specified.
+  libraries:
+    - SPI  
+
 external_components:
 - source:
     type: git
