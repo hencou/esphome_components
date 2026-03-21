@@ -40,14 +40,14 @@ void MiLight::setup() {}
 
 void MiLight::dump_config() {
   ESP_LOGCONFIG(TAG, "MiLight:");
-  ESP_LOGCONFIG(TAG, " ObjectId: %s", state_->get_object_id().c_str());
+  ESP_LOGCONFIG(TAG, " ObjectId: %s", state_->get_object_id_to().c_str());
   ESP_LOGCONFIG(TAG, " bulbId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
   ESP_LOGCONFIG(TAG, " bulbId.deviceId: %04X", bulbId.deviceId);
   ESP_LOGCONFIG(TAG, " bulbId.groupId: %i", bulbId.groupId);
 
   const auto &effects = state_->get_effects();
   for (size_t i = 0; i < effects.size(); i++) {
-    ESP_LOGCONFIG(TAG, "Registered effect: %s", effect->get_name().c_str());
+    ESP_LOGCONFIG(TAG, "Registered effect: %s", effects[i]->get_name().c_str());
   }
 }
 
