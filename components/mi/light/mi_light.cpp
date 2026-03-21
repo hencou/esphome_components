@@ -40,7 +40,7 @@ void MiLight::setup() {}
 
 void MiLight::dump_config() {
   ESP_LOGCONFIG(TAG, "MiLight:");
-  ESP_LOGCONFIG(TAG, " DeviceId: %s", state_->get_device_id().c_str());
+  ESP_LOGCONFIG(TAG, " Name: %s", state_->get_name().c_str());
   ESP_LOGCONFIG(TAG, " bulbId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
   ESP_LOGCONFIG(TAG, " bulbId.deviceId: %04X", bulbId.deviceId);
   ESP_LOGCONFIG(TAG, " bulbId.groupId: %i", bulbId.groupId);
