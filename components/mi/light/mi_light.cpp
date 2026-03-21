@@ -47,7 +47,7 @@ void MiLight::dump_config() {
 
   const auto &effects = state_->get_effects();
   for (size_t i = 0; i < effects.size(); i++) {
-    ESP_LOGCONFIG(TAG, "Registered effect: %s", effects[i]->get_name().c_str());
+    ESP_LOGCONFIG(TAG, " Registered effect: %s", effects[i]->get_name().c_str());
   }
 }
 
