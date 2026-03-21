@@ -105,8 +105,12 @@ void MiLight::setup_state(light::LightState *state) {
 #endif
 
   // ---- STATELESS EFFECT SYSTEM ACTIVATION ----
-  g_state = state_;
+  //g_state = state_;
 
+  for (int i = 0; i < MAX_DISCO_EFFECTS; i++) {
+    g_names[i] = DISCO_MODE_NAMES[i];
+  }
+  
   // effects (0..MAX_DISCO_EFFECTS)
   if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT ||
       MiLight::bulbId.deviceType == REMOTE_TYPE_RGB ||
@@ -114,10 +118,7 @@ void MiLight::setup_state(light::LightState *state) {
       MiLight::bulbId.deviceType == REMOTE_TYPE_FUT089 ||
       MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020) {
 
-    for (int i = 0; i < MAX_DISCO_EFFECTS; i++) {
-      g_names[i] = DISCO_MODE_NAMES[i];
-    }
-    g_state->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff),
+    state_->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff),
                            new light::LambdaLightEffect(g_names[1], disco_fn<1>, 0xffffffff),
                            new light::LambdaLightEffect(g_names[2], disco_fn<2>, 0xffffffff),
                            new light::LambdaLightEffect(g_names[3], disco_fn<3>, 0xffffffff),
@@ -130,8 +131,8 @@ void MiLight::setup_state(light::LightState *state) {
                           });
   } else {
     // effect 0
-    g_names[0] = DISCO_MODE_NAMES[0];
-    g_state->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff) });
+    //g_names[0] = DISCO_MODE_NAMES[0];
+    state_->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff) });
   }
 }
 
