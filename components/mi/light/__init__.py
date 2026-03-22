@@ -109,38 +109,38 @@ async def to_code(config):
         "Mi 09: Slow Blue-Green Fade",
     ]
     
-    if remote_type in rgb_types:
-        for i, effect_name in enumerate(effect_names):
-            lambda_code = cg.RawExpression(f"""
-                [](bool initial_run) -> void {{
-                  auto call = {light_var}->make_call();
-                  call.set_effect("{effect_name}");
-                  call.perform();
-              }}, 0xffffffff
-            """)
+    # if remote_type in rgb_types:
+        # for i, effect_name in enumerate(effect_names):
+            # lambda_code = cg.RawExpression(f"""
+                # [](bool initial_run) -> void {{
+                  # auto call = {light_var}->make_call();
+                  # call.set_effect("{effect_name}");
+                  # call.perform();
+              # }}, 0xffffffff
+            # """)
 
-            var_effect = cg.new_Pvariable(
-                config[CONF_EFFECT_ID],
-                effect_name,
-                lambda_code
-            )
+            # var_effect = cg.new_Pvariable(
+                # config[CONF_EFFECT_ID],
+                # effect_name,
+                # lambda_code
+            # )
 
-            cg.add(light_var.add_effects([var_effect]))
-    else:
-        effect_name = effect_names[0]
+            # cg.add(light_var.add_effects([var_effect]))
+    # else:
+        # effect_name = effect_names[0]
         
-        lambda_code = cg.RawExpression(f"""
-            [](bool initial_run) -> void {{
-              auto call = {light_var}->make_call();
-              call.set_effect("{effect_name}");
-              call.perform();
-          }}, 0xffffffff
-        """)
+        # lambda_code = cg.RawExpression(f"""
+            # [](bool initial_run) -> void {{
+              # auto call = {light_var}->make_call();
+              # call.set_effect("{effect_name}");
+              # call.perform();
+          # }}, 0xffffffff
+        # """)
 
-        var_effect = cg.new_Pvariable(
-            config[CONF_EFFECT_ID],
-            effect_name,
-            lambda_code
-        )
+        # var_effect = cg.new_Pvariable(
+            # config[CONF_EFFECT_ID],
+            # effect_name,
+            # lambda_code
+        # )
 
-        cg.add(light_var.add_effects([var_effect]))
+        # cg.add(light_var.add_effects([var_effect]))
