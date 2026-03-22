@@ -9,23 +9,6 @@ namespace mi {
 
 static const char *const TAG = "mi.light";
 
-// ---- EFFECT SYSTEM (STATLESS, ESPHOME 2025.11.0 COMPATIBLE) ----
-constexpr int MAX_DISCO_EFFECTS = 10;
-//global storage for effects
-static light::LightState *g_state = nullptr;
-static const char *g_names[MAX_DISCO_EFFECTS] = {nullptr};
-
-// template function (template → functiepointer per effect)
-template<int IDX>
-static void disco_fn(bool initial_run) {
-  if (!g_state) return;
-  if (!g_names[IDX]) return;
-
-  auto call = g_state->make_call();
-  call.set_effect(g_names[IDX]);
-  call.perform();
-}
-
 MiLight::MiLight() {}
 
 void MiLight::set_bulb_id(uint16_t deviceId, uint8_t groupId, std::string remoteType) {
@@ -104,35 +87,6 @@ void MiLight::setup_state(light::LightState *state) {
   parent_->add_child(state_->get_object_id_hash(), 0, bulbId);
 #endif
 
-  // ---- STATELESS EFFECT SYSTEM ACTIVATION ----
-  g_state = state_;
-
-  for (int i = 0; i < MAX_DISCO_EFFECTS; i++) {
-    g_names[i] = DISCO_MODE_NAMES[i];
-  }
-  
-  // effects (0..MAX_DISCO_EFFECTS)
-  if (MiLight::bulbId.deviceType == REMOTE_TYPE_RGB_CCT ||
-      MiLight::bulbId.deviceType == REMOTE_TYPE_RGB ||
-      MiLight::bulbId.deviceType == REMOTE_TYPE_RGBW ||
-      MiLight::bulbId.deviceType == REMOTE_TYPE_FUT089 ||
-      MiLight::bulbId.deviceType == REMOTE_TYPE_FUT020) {
-
-    g_state->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[1], disco_fn<1>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[2], disco_fn<2>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[3], disco_fn<3>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[4], disco_fn<4>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[5], disco_fn<5>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[6], disco_fn<6>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[7], disco_fn<7>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[8], disco_fn<8>, 0xffffffff),
-                           new light::LambdaLightEffect(g_names[9], disco_fn<9>, 0xffffffff)
-                          });
-  } else {
-    // effect 0
-    g_state->add_effects({ new light::LambdaLightEffect(g_names[0], disco_fn<0>, 0xffffffff) });
-  }
 }
 
 void MiLight::write_state(light::LightState *state) {
