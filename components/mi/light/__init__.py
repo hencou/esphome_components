@@ -95,10 +95,8 @@ async def mi_light_effect_to_code(config, effect_id):
 
 def _inject_mi_effects(value):
     
-    print("DEBUG value:", value)
+    #print("DEBUG value:", value)
     remote_type = value.get("remote_type")
-    print("DEBUG remote_type:", remote_type)
-    
     effects = list(value.get(CONF_EFFECTS, []))
 
     existing = {
