@@ -5,23 +5,54 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  #build_path: "../build/${device_name}"
+  on_boot:
+    then:
+    - delay: 10s
+
+    # NMT reset node
+    - canbus.send:
+        canbus_id: can1
+        can_id: 0x000
+        data: [0x81, 0x00]
+
+    - delay: 500ms
+
+    # NMT start node
+    - canbus.send:
+        canbus_id: can1
+        can_id: 0x000
+        data: [0x01, 0x00]
+
+    - delay: 500ms
+
+    # Read 0x4004 sub 0 via standard SDO to enable custom SDO gateway (0x241/0x1C1)
+    - canbus.send:
+        canbus_id: can1
+        can_id: 0x601
+        data: [0x40, 0x04, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00]
+
+    # Fallback: if read does not return ready within 2s, try write approach
+    - delay: 2s
+    - lambda: |-
+        if (!id(sdo_node1_enabled)) {
+          ESP_LOGW("remeha", "0x4004 read did not return ready, trying write...");
+          uint8_t data[8] = {0x2F, 0x04, 0x40, 0x00, 0x01, 0x00, 0x00, 0x00};
+          id(can1).send_data(0x601, false, false, std::vector<uint8_t>(data, data + 8));
+        }
 
 esp32:
   board: esp32dev
   framework:
     type: esp-idf
 
-#external_components:
-#- source: github://hencou/esphome_gvret
-#  components: [canbus_gvret]
-#  refresh: 0s
-  
-# Enable logging
-logger:
-  level: WARN
+external_components:
+- source: github://hencou/esphome_gvret
+  components: [canbus_gvret]
+  refresh: 0s
 
-# Enable Home Assistant API
+logger:
+  level: INFO
+
 api:
 
 ota:
@@ -34,17 +65,131 @@ wifi:
   enable_btm: True
   enable_rrm: True
 
+globals:
+  - id: sdo_node1_enabled
+    type: bool
+    initial_value: 'false'
+  - id: sdo_authenticated
+    type: bool
+    initial_value: 'false'
+  - id: auth_step
+    type: int
+    initial_value: '0'
+  - id: auth_serial
+    type: uint32_t
+    initial_value: '0'
+  - id: auth_sub1
+    type: uint32_t
+    initial_value: '0'
+  - id: auth_sub2
+    type: uint32_t
+    initial_value: '0'
+  - id: sdo_read_step
+    type: int
+    initial_value: '0'
+  - id: auth_start_ms
+    type: uint32_t
+    initial_value: '0'
+  # --- SDO write state ---
+  - id: sdo_write_pending
+    type: bool
+    initial_value: 'false'
+  - id: sdo_write_start_ms
+    type: uint32_t
+    initial_value: '0'
+  # --- Segmented SDO read state (for water pressure via 0x501D) ---
+  - id: seg_read_active
+    type: bool
+    initial_value: 'false'
+  - id: seg_read_segment
+    type: int
+    initial_value: '0'
+  - id: seg_read_start_ms
+    type: uint32_t
+    initial_value: '0'
+
 time:
   - platform: homeassistant
-#    on_time:
-#      - seconds: /1
-#        then:
-#          - canbus.send:
-#              canbus_id: can1
-#              data: [0x40, 0x1d, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00]
-#          - canbus.send:
-#              canbus_id: can1
-#             data: [0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    on_time:
+      # Heartbeat every second
+      - seconds: /1
+        then:
+          - canbus.send:
+              canbus_id: can1
+              can_id: 0x281
+              data: [0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+
+      # Every 10 seconds: gateway check + auth retry + SDO reads
+      - seconds: /10
+        then:
+          - lambda: |-
+              // Auth timeout: if stuck for >10s, reset
+              if (id(auth_step) > 0 && (millis() - id(auth_start_ms)) > 10000) {
+                ESP_LOGW("remeha", "Auth timeout at step %d, resetting", id(auth_step));
+                id(auth_step) = 0;
+                id(sdo_authenticated) = false;
+              }
+
+              // Write timeout: if pending for >5s, clear
+              if (id(sdo_write_pending) && (millis() - id(sdo_write_start_ms)) > 5000) {
+                ESP_LOGW("remeha", "SDO write timeout");
+                id(sdo_write_pending) = false;
+                id(${device_name}_write_status).publish_state("Timeout");
+              }
+
+              // Segmented read timeout: if stuck for >5s, cancel
+              if (id(seg_read_active) && (millis() - id(seg_read_start_ms)) > 5000) {
+                ESP_LOGW("remeha", "Segmented read timeout at segment %d", id(seg_read_segment));
+                id(seg_read_active) = false;
+                id(seg_read_segment) = 0;
+              }
+
+              // Don't send reads while a write or segmented read is pending
+              if (id(sdo_write_pending) || id(seg_read_active)) return;
+
+              // Re-check gateway if not yet enabled
+              if (!id(sdo_node1_enabled)) {
+                uint8_t gw[8] = {0x40, 0x04, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
+                id(can1).send_data(0x601, false, false, std::vector<uint8_t>(gw, gw + 8));
+                return;
+              }
+
+              // If not authenticated, start auth (SERVICE level for parameter writes)
+              if (!id(sdo_authenticated) && id(auth_step) == 0) {
+                ESP_LOGI("remeha", "Attempting authentication (SERVICE)...");
+                uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
+                id(can1).send_data(0x241, false, false, std::vector<uint8_t>(rd, rd + 8));
+                id(auth_step) = 1;
+                id(auth_start_ms) = millis();
+                return;
+              }
+
+              // SDO reads (one object per cycle, round-robin)
+              if (!id(sdo_authenticated) || id(auth_step) != 0) return;
+              static const uint16_t sdo_objects[][2] = {
+                {0x500F, 0x00},  // Locking mode
+                {0x5011, 0x00},  // Blocking mode
+                {0x1003, 0x01},  // Error history
+                {0x2004, 0x01},  // Diagnostics
+                {0x502C, 0x00},  // Appliance type
+                {0x5037, 0x00},  // Appliance variant
+                {0x3451, 0x01},  // CP510 Temporary room setpoint
+                {0x3654, 0x01},  // DHW comfort setpoint
+                {0x3655, 0x01},  // DHW reduced setpoint
+                {0x3402, 0x01},  // Flow setpoint
+                {0x340C, 0x01},  // Room activity setpoint 1
+                {0x341F, 0x01},  // Zone mode
+                {0x3661, 0x01},  // DHW mode
+                {0x501D, 0x00},  // Water pressure (trending string, segmented)
+              };
+              static const int NUM_SDO = sizeof(sdo_objects) / sizeof(sdo_objects[0]);
+              int step = id(sdo_read_step) % NUM_SDO;
+              uint16_t idx = sdo_objects[step][0];
+              uint8_t sub = sdo_objects[step][1];
+              uint8_t data[8] = {0x40, (uint8_t)(idx & 0xFF), (uint8_t)(idx >> 8), sub,
+                                 0x00, 0x00, 0x00, 0x00};
+              id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+              id(sdo_read_step) = (step + 1) % NUM_SDO;
 
 sensor:
 - platform: uptime
@@ -59,9 +204,16 @@ sensor:
     - delta: 0.01
     - throttle: 300s
 
+# --- PDO sensors (no auth needed) ---
 - platform: template
   name: Flow temperatuur
   id: ${device_name}_flow_temperature
+  icon: "mdi:thermometer"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+- platform: template
+  name: Return temperatuur
+  id: ${device_name}_return_temperature
   icon: "mdi:thermometer"
   unit_of_measurement: "°C"
   device_class: "temperature"
@@ -101,7 +253,309 @@ sensor:
 - platform: template
   name: AM014 Substatus
   id: ${device_name}_am014_substatus
-  
+- platform: template
+  name: Water Pressure
+  id: ${device_name}_water_pressure
+  icon: "mdi:gauge"
+  unit_of_measurement: "bar"
+  device_class: "pressure"
+  accuracy_decimals: 1
+
+# --- SDO sensors (via 0x241/0x1C1, requires auth) ---
+- platform: template
+  name: Locking mode
+  id: ${device_name}_locking_mode
+- platform: template
+  name: Blocking mode
+  id: ${device_name}_blocking_mode
+- platform: template
+  name: Error history
+  id: ${device_name}_error_history
+- platform: template
+  name: Diagnostics
+  id: ${device_name}_diagnostics
+- platform: template
+  name: Appliance type
+  id: ${device_name}_appliance_type
+- platform: template
+  name: Appliance variant
+  id: ${device_name}_appliance_variant
+
+# ============================================================
+# Writable parameters (number inputs)
+# Set value in Home Assistant, it writes to boiler via SDO
+# Current boiler values are read back via round-robin polling
+# ============================================================
+number:
+- platform: template
+  name: "CP510 Temporary Room Setpoint"
+  id: ${device_name}_cp510_setpoint
+  min_value: 5.0
+  max_value: 30.0
+  step: 0.5
+  unit_of_measurement: "°C"
+  icon: "mdi:home-thermometer"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // CP510: index=0x3451, sub=1, uint16, scale x0.1
+        uint16_t raw = (uint16_t)(x * 10);
+        uint8_t data[8] = {0x2B, 0x51, 0x34, 0x01,
+          (uint8_t)(raw & 0xFF), (uint8_t)(raw >> 8), 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE CP510=%.1f C (raw=%u) to 0x3451/1", x, raw);
+
+- platform: template
+  name: "DHW Comfort Setpoint"
+  id: ${device_name}_dhw_comfort_setpoint
+  min_value: 40
+  max_value: 65
+  step: 1
+  unit_of_measurement: "°C"
+  icon: "mdi:water-thermometer"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // DHW comfort: index=0x3654, sub=1, uint8
+        uint8_t raw = (uint8_t)x;
+        uint8_t data[8] = {0x2F, 0x54, 0x36, 0x01,
+          raw, 0x00, 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE DHW comfort=%d C to 0x3654/1", raw);
+
+- platform: template
+  name: "DHW Reduced Setpoint"
+  id: ${device_name}_dhw_reduced_setpoint
+  min_value: 10
+  max_value: 60
+  step: 1
+  unit_of_measurement: "°C"
+  icon: "mdi:water-thermometer-outline"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // DHW reduced: index=0x3655, sub=1, uint8
+        uint8_t raw = (uint8_t)x;
+        uint8_t data[8] = {0x2F, 0x55, 0x36, 0x01,
+          raw, 0x00, 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE DHW reduced=%d C to 0x3655/1", raw);
+
+- platform: template
+  name: "Flow Setpoint"
+  id: ${device_name}_flow_setpoint_param
+  min_value: 7
+  max_value: 90
+  step: 1
+  unit_of_measurement: "°C"
+  icon: "mdi:thermometer-water"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // Flow setpoint: index=0x3402, sub=1, uint8
+        uint8_t raw = (uint8_t)x;
+        uint8_t data[8] = {0x2F, 0x02, 0x34, 0x01,
+          raw, 0x00, 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE Flow setpoint=%d C to 0x3402/1", raw);
+
+- platform: template
+  name: "Room Activity Setpoint 1"
+  id: ${device_name}_room_setpoint1
+  min_value: 5.0
+  max_value: 30.0
+  step: 0.5
+  unit_of_measurement: "°C"
+  icon: "mdi:home-thermometer-outline"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // Room activity setpoint 1: index=0x340C, sub=1, uint16, scale x0.1
+        uint16_t raw = (uint16_t)(x * 10);
+        uint8_t data[8] = {0x2B, 0x0C, 0x34, 0x01,
+          (uint8_t)(raw & 0xFF), (uint8_t)(raw >> 8), 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE Room setpoint 1=%.1f C (raw=%u) to 0x340C/1", x, raw);
+
+# --- Generic SDO write inputs ---
+- platform: template
+  name: "SDO Write Index"
+  id: ${device_name}_sdo_write_index
+  min_value: 0
+  max_value: 65535
+  step: 1
+  icon: "mdi:identifier"
+  optimistic: true
+  entity_category: config
+
+- platform: template
+  name: "SDO Write Subindex"
+  id: ${device_name}_sdo_write_subindex
+  min_value: 0
+  max_value: 255
+  step: 1
+  icon: "mdi:format-subscript"
+  optimistic: true
+  entity_category: config
+
+- platform: template
+  name: "SDO Write Value"
+  id: ${device_name}_sdo_write_value
+  min_value: 0
+  max_value: 65535
+  step: 1
+  icon: "mdi:numeric"
+  optimistic: true
+  entity_category: config
+
+# ============================================================
+# Mode selects
+# ============================================================
+select:
+- platform: template
+  name: "Zone Mode"
+  id: ${device_name}_zone_mode
+  icon: "mdi:home-switch"
+  options:
+    - "Off"
+    - "Heat"
+    - "Auto"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // Zone mode: index=0x341F, sub=1, uint8 (0=Off, 1=Heat, 2=Auto)
+        uint8_t val = 0;
+        if (x == "Heat") val = 1;
+        else if (x == "Auto") val = 2;
+        uint8_t data[8] = {0x2F, 0x1F, 0x34, 0x01,
+          val, 0x00, 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE Zone mode=%s (%d) to 0x341F/1", x.c_str(), val);
+
+- platform: template
+  name: "DHW Mode"
+  id: ${device_name}_dhw_mode
+  icon: "mdi:water-boiler"
+  options:
+    - "Off"
+    - "On"
+    - "Auto"
+  optimistic: false
+  set_action:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        // DHW mode: index=0x3661, sub=1, uint8 (0=Off, 1=On, 2=Auto)
+        uint8_t val = 0;
+        if (x == "On") val = 1;
+        else if (x == "Auto") val = 2;
+        uint8_t data[8] = {0x2F, 0x61, 0x36, 0x01,
+          val, 0x00, 0x00, 0x00};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE DHW mode=%s (%d) to 0x3661/1", x.c_str(), val);
+
+# --- Generic write size selector ---
+- platform: template
+  name: "SDO Write Size"
+  id: ${device_name}_sdo_write_size
+  icon: "mdi:resize"
+  options:
+    - "1 byte"
+    - "2 bytes"
+    - "4 bytes"
+  initial_option: "2 bytes"
+  optimistic: true
+  entity_category: config
+
 text_sensor:
 - platform: version
   id: ${device_name}_esphome_versie
@@ -116,13 +570,19 @@ text_sensor:
   bssid:
     name: BSSID
     id: ${device_name}_bssid
-    
+
 - platform: template
   name: AM012 Status tekst
   id: ${device_name}_am012_statustext
 - platform: template
   name: AM014 Substatus tekst
   id: ${device_name}_am014_substatustext
+
+# --- SDO write status feedback ---
+- platform: template
+  name: "SDO Write Status"
+  id: ${device_name}_write_status
+  icon: "mdi:clipboard-check-outline"
 
 button:
 - platform: factory_reset
@@ -138,269 +598,470 @@ button:
   name: Safemode
   id: ${device_name}_safemode
 
+# --- Generic SDO write execute button ---
+- platform: template
+  name: "SDO Write Execute"
+  id: ${device_name}_sdo_write_execute
+  icon: "mdi:send"
+  entity_category: config
+  on_press:
+    - lambda: |-
+        if (!id(sdo_authenticated)) {
+          ESP_LOGW("remeha", "Cannot write: not authenticated");
+          id(${device_name}_write_status).publish_state("Not authenticated");
+          return;
+        }
+        if (id(sdo_write_pending)) {
+          ESP_LOGW("remeha", "Write busy, try again later");
+          id(${device_name}_write_status).publish_state("Busy");
+          return;
+        }
+        uint16_t idx = (uint16_t)id(${device_name}_sdo_write_index).state;
+        uint8_t sub = (uint8_t)id(${device_name}_sdo_write_subindex).state;
+        uint32_t val = (uint32_t)id(${device_name}_sdo_write_value).state;
+        std::string size_str = id(${device_name}_sdo_write_size).state;
+        uint8_t cmd;
+        if (size_str == "1 byte") cmd = 0x2F;
+        else if (size_str == "2 bytes") cmd = 0x2B;
+        else cmd = 0x23;
+        uint8_t data[8] = {cmd, (uint8_t)(idx & 0xFF), (uint8_t)(idx >> 8), sub,
+          (uint8_t)(val & 0xFF), (uint8_t)((val >> 8) & 0xFF),
+          (uint8_t)((val >> 16) & 0xFF), (uint8_t)((val >> 24) & 0xFF)};
+        id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+        id(sdo_write_pending) = true;
+        id(sdo_write_start_ms) = millis();
+        id(${device_name}_write_status).publish_state("Sending...");
+        ESP_LOGI("remeha", "WRITE SDO 0x%04X sub %d = %u (cmd=0x%02X)", idx, sub, val, cmd);
+
 canbus:
 - platform: esp32_can
   id: can1
   tx_pin: GPIO5
   rx_pin: GPIO35
-  can_id: 0x241
+  can_id: 0x100
   bit_rate: 1000kbps
-  # increase queue sizes for CANOpen block transfer (up to 128 frames can be sent in burst)
-  tx_queue_len: 128
-  rx_queue_len: 128
+  mode: NORMAL
   on_frame:
+
+  # --- Standard SDO response (0x581): gateway ready detection ---
+  - can_id: 0x581
+    then:
+    - lambda: |-
+        if (x.size() < 4) return;
+        uint8_t cmd = x[0];
+        uint16_t index = ((uint16_t)x[2] << 8) | x[1];
+        uint8_t sub = x[3];
+
+        if (index == 0x4004 && sub == 0x00) {
+          if ((cmd == 0x4F || cmd == 0x4B || cmd == 0x43) && x[4] > 0) {
+            if (!id(sdo_node1_enabled)) {
+              ESP_LOGI("remeha", "0x4004=0x%02X: custom SDO gateway READY", x[4]);
+              id(sdo_node1_enabled) = true;
+              // Immediately start auth
+              if (!id(sdo_authenticated) && id(auth_step) == 0) {
+                uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
+                id(can1).send_data(0x241, false, false, std::vector<uint8_t>(rd, rd + 8));
+                id(auth_step) = 1;
+                id(auth_start_ms) = millis();
+              }
+            }
+          } else if (cmd == 0x60) {
+            if (!id(sdo_node1_enabled)) {
+              ESP_LOGI("remeha", "Write to 0x4004 confirmed, gateway enabled");
+              id(sdo_node1_enabled) = true;
+              if (!id(sdo_authenticated) && id(auth_step) == 0) {
+                uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
+                id(can1).send_data(0x241, false, false, std::vector<uint8_t>(rd, rd + 8));
+                id(auth_step) = 1;
+                id(auth_start_ms) = millis();
+              }
+            }
+          } else if (cmd == 0x80) {
+            ESP_LOGW("remeha", "SDO abort on 0x4004: %02X%02X%02X%02X", x[7], x[6], x[5], x[4]);
+          }
+        }
+
+  # --- Custom SDO response (0x1C1): authentication state machine + data parsing ---
+  - can_id: 0x1C1
+    then:
+    - lambda: |-
+        if (x.size() < 4) return;
+
+        // --- Segmented SDO read handler (for 0x501D water pressure) ---
+        if (id(seg_read_active)) {
+          uint8_t seg_cmd = x[0];
+          // Segment upload response: bits 7-5 = 000
+          if ((seg_cmd & 0xE0) == 0x00) {
+            int seg = id(seg_read_segment);
+            bool is_last = (seg_cmd & 0x01) != 0;
+            // Segment 3 = bytes 21-27; byte 22 = x[2]
+            if (seg == 3 && x.size() >= 3) {
+              uint8_t raw = x[2];
+              float wp = raw * 0.01f;
+              id(${device_name}_water_pressure).publish_state(wp);
+              ESP_LOGI("remeha", "Water pressure=%.1f bar (raw=%d)", wp, raw);
+            }
+            if (is_last) {
+              id(seg_read_active) = false;
+              id(seg_read_segment) = 0;
+              ESP_LOGD("remeha", "Segmented read complete");
+            } else {
+              id(seg_read_segment) = seg + 1;
+              uint8_t toggle = ((seg + 1) & 1) ? 0x70 : 0x60;
+              uint8_t req[8] = {toggle, 0, 0, 0, 0, 0, 0, 0};
+              id(can1).send_data(0x241, false, false, std::vector<uint8_t>(req, req + 8));
+            }
+            return;
+          }
+          // Abort during segmented read
+          if (x[0] == 0x80) {
+            ESP_LOGW("remeha", "Segmented read aborted by boiler");
+            id(seg_read_active) = false;
+            id(seg_read_segment) = 0;
+          }
+        }
+
+        uint8_t cmd = x[0];
+        uint16_t index = ((uint16_t)x[2] << 8) | x[1];
+        uint8_t sub = x[3];
+
+        // ============================================================
+        // TEA (Tiny Encryption Algorithm) authentication
+        // Key = [0x15EFA43F, serialNumber, token, userLevel]
+        // Plaintext = [userLevel, userLevel]
+        // ============================================================
+        auto tea_encrypt = [](uint32_t v[2], const uint32_t k[4]) {
+          uint32_t v0 = v[0], v1 = v[1];
+          uint32_t sum = 0;
+          const uint32_t delta = 0x9E3779B9u;
+          for (int i = 0; i < 32; i++) {
+            sum += delta;
+            v0 += ((v1 << 4) + k[0]) ^ (v1 + sum) ^ ((v1 >> 5) + k[1]);
+            v1 += ((v0 << 4) + k[2]) ^ (v0 + sum) ^ ((v0 >> 5) + k[3]);
+          }
+          v[0] = v0;
+          v[1] = v1;
+        };
+
+        // ---------- ABORT handling ----------
+        if (cmd == 0x80) {
+          uint32_t abort_code = ((uint32_t)x[7] << 24) | ((uint32_t)x[6] << 16) |
+                                ((uint32_t)x[5] << 8) | x[4];
+
+          // If a parameter write was pending, report write failure
+          if (id(sdo_write_pending)) {
+            const char* reason = "unknown error";
+            if (abort_code == 0x06010000) reason = "access denied";
+            else if (abort_code == 0x06010002) reason = "write-only object";
+            else if (abort_code == 0x06020000) reason = "object does not exist";
+            else if (abort_code == 0x06040043) reason = "parameter incompatibility";
+            else if (abort_code == 0x06090030) reason = "value out of range";
+            else if (abort_code == 0x06090031) reason = "value too high";
+            else if (abort_code == 0x06090032) reason = "value too low";
+            ESP_LOGW("remeha", "WRITE FAILED 0x%04X sub %d: %s (0x%08X)",
+                     index, sub, reason, abort_code);
+            id(sdo_write_pending) = false;
+            char status[64];
+            snprintf(status, sizeof(status), "FAILED: %s", reason);
+            id(${device_name}_write_status).publish_state(status);
+            return;
+          }
+
+          // Auth/read related aborts
+          if (abort_code == 0x06010000) {
+            ESP_LOGW("remeha", "Access denied for 0x%04X sub %d, re-auth needed", index, sub);
+            if (id(auth_step) == 0) {
+              id(sdo_authenticated) = false;
+            }
+          } else if (abort_code == 0x06040043) {
+            ESP_LOGW("remeha", "Auth rejected (param incompatibility), will retry");
+            id(auth_step) = 0;
+            id(sdo_authenticated) = false;
+          } else {
+            ESP_LOGD("remeha", "SDO ABORT 0x%04X sub %d code 0x%08X", index, sub, abort_code);
+          }
+          return;
+        }
+
+        // ---------- WRITE ACK handling (auth steps) ----------
+        if (cmd == 0x60) {
+          if (index == 0x4003 && sub == 0x03 && id(auth_step) == 3) {
+            ESP_LOGI("remeha", "Auth step3: sub3 ack, writing sub1=0x%08X", id(auth_sub1));
+            uint32_t s1 = id(auth_sub1);
+            uint8_t data[8] = {0x23, 0x03, 0x40, 0x01,
+              (uint8_t)(s1 & 0xFF), (uint8_t)((s1>>8)&0xFF),
+              (uint8_t)((s1>>16)&0xFF), (uint8_t)((s1>>24)&0xFF)};
+            id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+            id(auth_step) = 4;
+          }
+          else if (index == 0x4003 && sub == 0x01 && id(auth_step) == 4) {
+            ESP_LOGI("remeha", "Auth step4: sub1 ack, writing sub2=0x%08X", id(auth_sub2));
+            uint32_t s2 = id(auth_sub2);
+            uint8_t data[8] = {0x23, 0x03, 0x40, 0x02,
+              (uint8_t)(s2 & 0xFF), (uint8_t)((s2>>8)&0xFF),
+              (uint8_t)((s2>>16)&0xFF), (uint8_t)((s2>>24)&0xFF)};
+            id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+            id(auth_step) = 5;
+          }
+          else if (index == 0x4003 && sub == 0x02 && id(auth_step) == 5) {
+            ESP_LOGI("remeha", "Auth step5: sub2 ack, reading access level (0x4002)");
+            uint8_t data[8] = {0x40, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
+            id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+            id(auth_step) = 6;
+          }
+          else {
+            // Parameter write ACK - read back to confirm
+            if (id(sdo_write_pending)) {
+              ESP_LOGI("remeha", "WRITE OK: 0x%04X sub %d", index, sub);
+              id(sdo_write_pending) = false;
+              id(${device_name}_write_status).publish_state("OK");
+              // Read back the written parameter to confirm new value
+              uint8_t rd[8] = {0x40, (uint8_t)(index & 0xFF), (uint8_t)(index >> 8), sub,
+                               0x00, 0x00, 0x00, 0x00};
+              id(can1).send_data(0x241, false, false, std::vector<uint8_t>(rd, rd + 8));
+            } else {
+              ESP_LOGD("remeha", "Write ACK 0x%04X sub %d", index, sub);
+            }
+          }
+          return;
+        }
+
+        // ---------- READ RESPONSE handling ----------
+        if ((cmd & 0xE0) == 0x40) {
+          uint32_t value = 0;
+          for (int i = 0; i < 4 && (4+i) < (int)x.size(); i++)
+            value |= ((uint32_t)x[4+i]) << (8*i);
+
+          // --- Auth state machine ---
+          if (index == 0x2001 && sub == 0x0A && id(auth_step) == 1) {
+            id(auth_serial) = value;
+            ESP_LOGI("remeha", "Auth step1: serial=0x%08X, reading token...", value);
+            uint8_t data[8] = {0x40, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
+            id(can1).send_data(0x241, false, false, std::vector<uint8_t>(data, data + 8));
+            id(auth_step) = 2;
+            return;
+          }
+
+          // Auth step 2: got token from 0x4001 sub 0 — TEA encrypt & start writing
+          if (index == 0x4001 && sub == 0x00 && id(auth_step) == 2) {
+            const uint32_t user_level = 2; // SERVICE (needed for parameter writes)
+            uint32_t v[2] = {user_level, user_level};
+            uint32_t k[4] = {0x15EFA43Fu, id(auth_serial), value, user_level};
+            tea_encrypt(v, k);
+            id(auth_sub1) = v[0];
+            id(auth_sub2) = v[1];
+            ESP_LOGI("remeha", "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X",
+                     value, v[0], v[1]);
+            uint8_t wd[8] = {0x2F, 0x03, 0x40, 0x03, (uint8_t)user_level, 0x00, 0x00, 0x00};
+            id(can1).send_data(0x241, false, false, std::vector<uint8_t>(wd, wd + 8));
+            id(auth_step) = 3;
+            return;
+          }
+
+          if (index == 0x4002 && sub == 0x00 && id(auth_step) == 6) {
+            // Step 6: got access level — check if auth succeeded
+            if (value >= 1) {
+              ESP_LOGI("remeha", "*** AUTHENTICATED *** (access level = %u)", value);
+              id(sdo_authenticated) = true;
+              id(auth_step) = 0;
+              id(sdo_read_step) = 0;
+            } else {
+              ESP_LOGW("remeha", "Auth FAILED: access level = %u", value);
+              id(sdo_authenticated) = false;
+              id(auth_step) = 0;
+            }
+            return;
+          }
+
+          // --- Data parsing for SDO reads ---
+          if (index == 0x500F && sub == 0x00) {
+            id(${device_name}_locking_mode).publish_state(value);
+          }
+          else if (index == 0x5011 && sub == 0x00) {
+            id(${device_name}_blocking_mode).publish_state(value);
+          }
+          else if (index == 0x1003 && sub == 0x01) {
+            id(${device_name}_error_history).publish_state(value);
+          }
+          else if (index == 0x2004 && sub == 0x01) {
+            id(${device_name}_diagnostics).publish_state(value);
+          }
+          else if (index == 0x502C && sub == 0x00) {
+            id(${device_name}_appliance_type).publish_state(value);
+          }
+          else if (index == 0x5037 && sub == 0x00) {
+            id(${device_name}_appliance_variant).publish_state(value);
+          }
+          // --- Writable parameter read-back ---
+          // CP510: Temporary room setpoint (uint16, scale x0.1)
+          else if (index == 0x3451 && sub == 0x01) {
+            float temp = (value & 0xFFFF) * 0.1f;
+            id(${device_name}_cp510_setpoint).publish_state(temp);
+            ESP_LOGD("remeha", "CP510 current=%.1f C (raw=%u)", temp, value & 0xFFFF);
+          }
+          // DHW comfort setpoint (uint8)
+          else if (index == 0x3654 && sub == 0x01) {
+            id(${device_name}_dhw_comfort_setpoint).publish_state(value & 0xFF);
+            ESP_LOGD("remeha", "DHW comfort=%d C", value & 0xFF);
+          }
+          // DHW reduced setpoint (uint8)
+          else if (index == 0x3655 && sub == 0x01) {
+            id(${device_name}_dhw_reduced_setpoint).publish_state(value & 0xFF);
+            ESP_LOGD("remeha", "DHW reduced=%d C", value & 0xFF);
+          }
+          // Flow setpoint (uint8)
+          else if (index == 0x3402 && sub == 0x01) {
+            id(${device_name}_flow_setpoint_param).publish_state(value & 0xFF);
+            ESP_LOGD("remeha", "Flow setpoint=%d C", value & 0xFF);
+          }
+          // Room activity setpoint 1 (uint16, scale x0.1)
+          else if (index == 0x340C && sub == 0x01) {
+            float temp = (value & 0xFFFF) * 0.1f;
+            id(${device_name}_room_setpoint1).publish_state(temp);
+            ESP_LOGD("remeha", "Room setpoint 1=%.1f C (raw=%u)", temp, value & 0xFFFF);
+          }
+          // Zone mode (uint8: 0=Off, 1=Heat, 2=Auto)
+          else if (index == 0x341F && sub == 0x01) {
+            uint8_t mode = value & 0xFF;
+            if (mode == 0) id(${device_name}_zone_mode).publish_state("Off");
+            else if (mode == 1) id(${device_name}_zone_mode).publish_state("Heat");
+            else if (mode == 2) id(${device_name}_zone_mode).publish_state("Auto");
+            else ESP_LOGW("remeha", "Unknown zone mode: %d", mode);
+          }
+          // DHW mode (uint8: 0=Off, 1=On, 2=Auto)
+          else if (index == 0x3661 && sub == 0x01) {
+            uint8_t mode = value & 0xFF;
+            if (mode == 0) id(${device_name}_dhw_mode).publish_state("Off");
+            else if (mode == 1) id(${device_name}_dhw_mode).publish_state("On");
+            else if (mode == 2) id(${device_name}_dhw_mode).publish_state("Auto");
+            else ESP_LOGW("remeha", "Unknown DHW mode: %d", mode);
+          }
+          // Water pressure trending string (0x501D) — segmented transfer
+          else if (index == 0x501D && sub == 0x00) {
+            bool expedited = (cmd & 0x02) != 0;
+            if (!expedited) {
+              // Initiate segmented read: request first segment (toggle=0)
+              id(seg_read_active) = true;
+              id(seg_read_segment) = 0;
+              id(seg_read_start_ms) = millis();
+              uint8_t req[8] = {0x60, 0, 0, 0, 0, 0, 0, 0};
+              id(can1).send_data(0x241, false, false, std::vector<uint8_t>(req, req + 8));
+              ESP_LOGD("remeha", "Segmented read of 0x501D started");
+              return;
+            }
+          }
+          else {
+            ESP_LOGD("remeha", "SDO READ 0x%04X sub %d = 0x%08X (%u)", index, sub, value, value);
+          }
+        }
+
+  # --- PDO handlers (no auth needed) ---
   - can_id: 0x282
     then:
     - lambda: |-
-        if(x.size() > 0) {
-          uint8_t A;
-          uint8_t B;
-
-          //Byte0 = AM024 Relative Power
-          uint8_t rel_power = x[0];
-          id(${device_name}_am024_rel_power).publish_state(rel_power);
-          
-          //Byte 2+3 = Flow temperature
-          A = x[2];
-          B = x[3];
-          float flow_temp = (((uint16_t)A << 8) + B) / 100.00;
-          id(${device_name}_flow_temperature).publish_state(flow_temp);
+        if(x.size() < 4) return;
+        id(${device_name}_am024_rel_power).publish_state(x[0]);
+        float flow_temp = (((uint16_t)x[2] << 8) + x[3]) / 100.00;
+        id(${device_name}_flow_temperature).publish_state(flow_temp);
+        if (x.size() > 5) {
+          float ret_temp = (((uint16_t)x[4] << 8) + x[5]) / 100.00;
+          id(${device_name}_return_temperature).publish_state(ret_temp);
         }
 
   - can_id: 0x381
     then:
     - lambda: |-
-        if(x.size() > 0) {
-          uint8_t A;
-          uint8_t B;
-
-          //Byte 0+1 = AM027 Outside temperature //converts to int16 can be negative
-          A = x[0];
-          B = x[1];
-          float out_temp = (int16_t(((uint16_t)B << 8) + A) / 100.00);
-          id(${device_name}_am027_outside_temp).publish_state(out_temp);
-
-          //Byte 2+3 = Outside temperature 3min avg //converts to int16 can be negative
-          A = x[2];
-          B = x[3];
-          float out_temp_3min_avg = (int16_t(((uint16_t)B << 8) + A) / 100.00);
-          id(${device_name}_outside_temp_3m_avg).publish_state(out_temp_3min_avg);
-
-          //Byte 4+5 = Outside temperature 2h avg //converts to int16 can be negative
-          A = x[4];
-          B = x[5];
-          float out_temp_2h_avg = (int16_t(((uint16_t)B << 8) + A) / 100.00);
-          id(${device_name}_outside_temp_2h_avg).publish_state(out_temp_2h_avg);
-        }
+        if(x.size() < 6) return;
+        float out_temp = int16_t(((uint16_t)x[1] << 8) + x[0]) / 100.00;
+        id(${device_name}_am027_outside_temp).publish_state(out_temp);
+        float out_temp_3m = int16_t(((uint16_t)x[3] << 8) + x[2]) / 100.00;
+        id(${device_name}_outside_temp_3m_avg).publish_state(out_temp_3m);
+        float out_temp_2h = int16_t(((uint16_t)x[5] << 8) + x[4]) / 100.00;
+        id(${device_name}_outside_temp_2h_avg).publish_state(out_temp_2h);
 
   - can_id: 0x382
     then:
     - lambda: |-
-        if(x.size() > 0) {
-          uint8_t A;
-          uint8_t B;
+        if(x.size() < 4) return;
+        float setpoint = (((uint16_t)x[2] << 8) + x[3]) / 100.00;
+        id(${device_name}_setpoint).publish_state(setpoint);
 
-          //Byte 2+3 = Setpoint
-          A = x[2];
-          B = x[3];
-          float setpoint = (((uint16_t)A << 8) + B) / 100.00;
-          id(${device_name}_setpoint).publish_state(setpoint);
-        }
-        
   - can_id: 0x481
     then:
     - lambda: |-
-        if(x.size() > 0) {
-          uint8_t A;
-          uint8_t B;
+        if(x.size() < 2) return;
+        uint8_t status = x[0];
+        uint8_t substatus = x[1];
+        id(${device_name}_am012_status).publish_state(status);
+        id(${device_name}_am014_substatus).publish_state(substatus);
 
-          //Byte 0 = AM012_status
-          A = x[0];
-          float am012_status = A;
-          id(${device_name}_am012_status).publish_state(am012_status);
-
-          //Byte 1 = AM014_substatus
-          B = x[1];
-          float am014_substatus = B;
-          id(${device_name}_am014_substatus).publish_state(am014_substatus);
-
-          //Byte0 = AM012 Status
-          uint8_t status = x[0];
-          std::string am012_statustext;
-          switch(status) {
-            case 0:
-              am012_statustext="Standby";
-              break;
-            case 1:
-              am012_statustext="Heat request";
-              break;
-            case 2:
-              am012_statustext="Burner ignition";
-              break;
-            case 3:
-              am012_statustext="Heating mode";
-              break;
-            case 4:
-              am012_statustext="DHW mode";
-              break;
-            case 5:
-              am012_statustext="Burner off";
-              break;
-            case 6:
-              am012_statustext="Pump active";
-              break;
-            case 8:
-              am012_statustext="Burner shut down";
-              break;
-            case 9:
-              am012_statustext="Temporary fault";
-              break;
-            case 10:
-              am012_statustext="Permanent fault";
-              break;
-            case 11:
-              am012_statustext="Test heat min";
-              break;
-            case 12:
-              am012_statustext="Test heat max";
-              break;
-            case 13:
-              am012_statustext="Test DWH max";
-              break;
-            case 15:
-              am012_statustext="Manual heat";
-              break;
-            case 16:
-              am012_statustext="Frost protection";
-              break;
-            case 17:
-              am012_statustext="Bleed air";
-              break;
-            case 19:
-              am012_statustext="Reset";
-              break;
-            case 20:
-              am012_statustext="Automatic filling";
-              break;
-            case 22:
-              am012_statustext="Forced calibration";
-              break;
-            case 200:
-              am012_statustext="Service mode";
-              break;
-            default:
-              am012_statustext="Unknown";
-          }
-          id(${device_name}_am012_statustext).publish_state(am012_statustext.c_str());
-
-          //Byte1 = AM014 Substatus
-          uint8_t substatus = x[1];
-          std::string am014_substatustext;
-          switch(substatus) {
-            case 0:
-              am014_substatustext="Standby";
-              break;
-            case 1:
-              am014_substatustext="Waiting ignition";
-              break;
-            case 4:
-              am014_substatustext="Waiting for temperature";
-              break;
-            case 13:
-              am014_substatustext="Pre-ventilation";
-              break;
-            case 15:
-              am014_substatustext="Ignition signal sent";
-              break;
-            case 17:
-              am014_substatustext="Burner pre-ignition";
-              break;
-            case 18:
-              am014_substatustext="Burner ignition";
-              break;
-            case 19:
-              am014_substatustext="Flame check";
-              break;
-            case 20:
-              am014_substatustext="Fan operation at ign";
-              break;
-            case 30:
-              am014_substatustext="Operation at setpoint";
-              break;
-            case 31:
-              am014_substatustext="Operation reduced setpoint";
-              break;
-            case 32:
-              am014_substatustext="Operation required setpoint";
-              break;
-            case 33:
-              am014_substatustext="Level1 ramp";
-              break;
-            case 34:
-              am014_substatustext="Level2 ramp";
-              break;
-            case 35:
-              am014_substatustext="Level3 ramp";
-              break;
-            case 36:
-              am014_substatustext="Flame protection";
-              break;
-            case 37:
-              am014_substatustext="Stabilization time";
-              break;
-            case 38:
-              am014_substatustext="Start min output";
-              break;
-            case 39:
-              am014_substatustext="Heating mode interupted by DWH";
-              break;
-            case 41:
-              am014_substatustext="Post-ventilation";
-              break;
-            case 44:
-              am014_substatustext="Fan off";
-              break;
-            case 45:
-              am014_substatustext="Power reduction";
-              break;
-            case 46:
-              am014_substatustext="Automatic filling: empty";
-              break;
-            case 47:
-              am014_substatustext="Automatic filling: low";
-              break;
-            case 60:
-              am014_substatustext="Pump post-ventilation";
-              break;
-            case 95:
-              am014_substatustext="Standby due water pressure";
-              break;
-            default:
-              am014_substatustext="Unknown";
-          }
-          id(${device_name}_am014_substatustext).publish_state(am014_substatustext.c_str());
+        const char* status_text;
+        switch(status) {
+          case 0:  status_text = "Standby"; break;
+          case 1:  status_text = "Heat request"; break;
+          case 2:  status_text = "Burner ignition"; break;
+          case 3:  status_text = "Heating mode"; break;
+          case 4:  status_text = "DHW mode"; break;
+          case 5:  status_text = "Burner off"; break;
+          case 6:  status_text = "Pump active"; break;
+          case 8:  status_text = "Burner shut down"; break;
+          case 9:  status_text = "Temporary fault"; break;
+          case 10: status_text = "Permanent fault"; break;
+          case 11: status_text = "Test heat min"; break;
+          case 12: status_text = "Test heat max"; break;
+          case 13: status_text = "Test DWH max"; break;
+          case 15: status_text = "Manual heat"; break;
+          case 16: status_text = "Frost protection"; break;
+          case 17: status_text = "Bleed air"; break;
+          case 19: status_text = "Reset"; break;
+          case 20: status_text = "Automatic filling"; break;
+          case 22: status_text = "Forced calibration"; break;
+          case 200: status_text = "Service mode"; break;
+          default: status_text = "Unknown";
         }
+        id(${device_name}_am012_statustext).publish_state(status_text);
+
+        const char* sub_text;
+        switch(substatus) {
+          case 0:  sub_text = "Standby"; break;
+          case 1:  sub_text = "Waiting ignition"; break;
+          case 4:  sub_text = "Waiting for temperature"; break;
+          case 13: sub_text = "Pre-ventilation"; break;
+          case 15: sub_text = "Ignition signal sent"; break;
+          case 17: sub_text = "Burner pre-ignition"; break;
+          case 18: sub_text = "Burner ignition"; break;
+          case 19: sub_text = "Flame check"; break;
+          case 20: sub_text = "Fan operation at ign"; break;
+          case 30: sub_text = "Operation at setpoint"; break;
+          case 31: sub_text = "Operation reduced setpoint"; break;
+          case 32: sub_text = "Operation required setpoint"; break;
+          case 33: sub_text = "Level1 ramp"; break;
+          case 34: sub_text = "Level2 ramp"; break;
+          case 35: sub_text = "Level3 ramp"; break;
+          case 36: sub_text = "Flame protection"; break;
+          case 37: sub_text = "Stabilization time"; break;
+          case 38: sub_text = "Start min output"; break;
+          case 39: sub_text = "Heating mode interupted by DWH"; break;
+          case 41: sub_text = "Post-ventilation"; break;
+          case 44: sub_text = "Fan off"; break;
+          case 45: sub_text = "Power reduction"; break;
+          case 46: sub_text = "Automatic filling: empty"; break;
+          case 47: sub_text = "Automatic filling: low"; break;
+          case 60: sub_text = "Pump post-ventilation"; break;
+          case 95: sub_text = "Standby due water pressure"; break;
+          default: sub_text = "Unknown";
+        }
+        id(${device_name}_am014_substatustext).publish_state(sub_text);
 
   - can_id: 0x482
     then:
     - lambda: |-
-        if(x.size() > 0) {
-          uint8_t A;
-          uint8_t B;
-
-          if(x[0] == 0x01 && x[1] == 0x03) {
-            
-            id(${device_name}_rel_power2).publish_state(float(x[3])); //Relative Power2
-          }
-
-          if(x[0] == 0x01 && x[1] == 0x01) {
-            
-          //??
-          }
+        if(x.size() < 4) return;
+        if(x[0] == 0x01 && x[1] == 0x03) {
+          id(${device_name}_rel_power2).publish_state(float(x[3]));
         }
-        
 
 # GVRET component to use with SavvyCAN for remote CANbus message analysis
-#canbus_gvret:
-#  can:
-#  - canbus_id: can1
+canbus_gvret:
+  can:
+  - canbus_id: can1
