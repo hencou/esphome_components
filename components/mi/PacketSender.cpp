@@ -2,23 +2,7 @@
 #include "MiLightRadioConfig.h"
 #include "MiHelpers.h"
 
-PacketSender::PacketSender(
-  RadioSwitchboard& radioSwitchboard,
-  Settings& settings,
-  PacketSentHandler packetSentHandler
-) : radioSwitchboard(radioSwitchboard)
-  , settings(settings)
-  , currentPacket(nullptr)
-  , packetRepeatsRemaining(0)
-  , packetSentHandler(packetSentHandler)
-  , lastSend(0)
-  , currentResendCount(settings.packetRepeats)
-  , throttleMultiplier(
-      std::ceil(
-        (settings.packetRepeatThrottleSensitivity / 1000.0) * settings.packetRepeats
-      )
-    )
-{ }
+// Constructor is now an inline template in PacketSender.h
 
 void PacketSender::enqueue(uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride) {
 #ifdef DEBUG_PRINTF

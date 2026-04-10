@@ -24,8 +24,8 @@ public:
     }
   }
 
-  template<typename T, typename StrType>
-  static std::vector<T> jsonArrToVector(JsonArray& arr, std::function<T (const StrType)> converter, const bool unique = true) {
+  template<typename T, typename StrType, typename F>
+  static std::vector<T> jsonArrToVector(JsonArray& arr, F &&converter, const bool unique = true) {
     std::vector<T> vec;
 
     for (size_t i = 0; i < arr.size(); ++i) {
@@ -41,8 +41,8 @@ public:
     return vec;
   }
 
-  template<typename T, typename StrType>
-  static void vectorToJsonArr(JsonArray& arr, const std::vector<T>& vec, std::function<StrType (const T&)> converter) {
+  template<typename T, typename StrType, typename F>
+  static void vectorToJsonArr(JsonArray& arr, const std::vector<T>& vec, F &&converter) {
     for (typename std::vector<T>::const_iterator it = vec.begin(); it != vec.end(); ++it) {
       arr.add(converter(*it));
     }

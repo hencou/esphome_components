@@ -12,7 +12,8 @@ namespace itho {
 class Itho_Select : public select::Select, public PollingComponent {
   
  public:
-  void set_itho(std::function<optional<std::string>()> &&f) { this->f_ = f; }
+  template<typename F>
+  void set_itho(F &&f) { this->f_ = std::forward<F>(f); }
 
   void setup() override;
   void update() override;

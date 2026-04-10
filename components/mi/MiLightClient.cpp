@@ -492,10 +492,4 @@ void MiLightClient::flushPacket() {
   currentRemote->packetFormatter->reset();
 }
 
-void MiLightClient::onUpdateBegin(EventHandler handler) {
-  this->updateBeginHandler = handler;
-}
-
-void MiLightClient::onUpdateEnd(EventHandler handler) {
-  this->updateEndHandler = handler;
-}
+// onUpdateBegin and onUpdateEnd are now inline templates in MiLightClient.h

@@ -8,14 +8,27 @@
 
 class PacketSender {
 public:
-  typedef std::function<void(uint8_t* packet, const MiLightRemoteConfig& config)> PacketSentHandler;
+  typedef std::function<void(uint8_t* packet, const MiLightRemoteConfig& config)> PacketSentHandler;  // kept for member variable type
   static const size_t DEFAULT_PACKET_SENDS_VALUE = 0;
 
+  template<typename F>
   PacketSender(
     RadioSwitchboard& radioSwitchboard,
     Settings& settings,
-    PacketSentHandler packetSentHandler
-  );
+    F &&packetSentHandler
+  ) : radioSwitchboard(radioSwitchboard)
+    , settings(settings)
+    , currentPacket(nullptr)
+    , packetRepeatsRemaining(0)
+    , packetSentHandler(std::forward<F>(packetSentHandler))
+    , lastSend(0)
+    , currentResendCount(settings.packetRepeats)
+    , throttleMultiplier(
+        std::ceil(
+          (settings.packetRepeatThrottleSensitivity / 1000.0) * settings.packetRepeats
+        )
+      )
+  { }
 
   void enqueue(uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride = 0);
   void loop();
