@@ -619,7 +619,7 @@ button:
         uint16_t idx = (uint16_t)id(${device_name}_sdo_write_index).state;
         uint8_t sub = (uint8_t)id(${device_name}_sdo_write_subindex).state;
         uint32_t val = (uint32_t)id(${device_name}_sdo_write_value).state;
-        std::string size_str = id(${device_name}_sdo_write_size).state;
+        std::string size_str = id(${device_name}_sdo_write_size).current_option();
         uint8_t cmd;
         if (size_str == "1 byte") cmd = 0x2F;
         else if (size_str == "2 bytes") cmd = 0x2B;
