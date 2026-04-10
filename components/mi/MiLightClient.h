@@ -29,7 +29,7 @@ public:
 
   ~MiLightClient() { }
 
-  typedef std::function<void(void)> EventHandler;
+  typedef std::function<void(void)> EventHandler;  // kept for member variable type
 
   void prepare(const MiLightRemoteConfig* remoteConfig, const uint16_t deviceId = -1, const uint8_t groupId = -1);
   void prepare(const MiLightRemoteType type, const uint16_t deviceId = -1, const uint8_t groupId = -1);
@@ -76,8 +76,14 @@ public:
   void handleCommands(JsonArray commands);
   void handleEffect(const std::string& effect);
 
-  void onUpdateBegin(EventHandler handler);
-  void onUpdateEnd(EventHandler handler);
+  template<typename F>
+  void onUpdateBegin(F &&handler) {
+    this->updateBeginHandler = std::forward<F>(handler);
+  }
+  template<typename F>
+  void onUpdateEnd(F &&handler) {
+    this->updateEndHandler = std::forward<F>(handler);
+  }
 
   size_t getNumRadios() const;
   std::shared_ptr<MiLightRadio> switchRadio(size_t radioIx);

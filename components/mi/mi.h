@@ -86,8 +86,9 @@ namespace esphome {
         void dump_config() override;
         void write_state(BulbId bulbId, light::LightState *state);
         void write_state(BulbId bulbId, std::string command);
-        void add_on_command_received_callback(std::function<void(MiBridgeData)> callback) {
-          this->data_callback_.add(std::move(callback));
+        template<typename F>
+        void add_on_command_received_callback(F &&callback) {
+          this->data_callback_.add(std::forward<F>(callback));
         }
         
         void add_child(uint32_t objectId, uint32_t deviceId, BulbId bulbId) {miOutputs.push_back({objectId, deviceId, bulbId});}
