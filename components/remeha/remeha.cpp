@@ -460,19 +460,9 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       if (this->climate_ != nullptr)
         this->climate_->update_target_temperature(temp);
 #endif
-    } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
-      this->dhw_comfort_setpoint_->publish_state((value & 0xFF) * 0.5f);
-      ESP_LOGD(TAG, "DHW comfort=%d C", (value & 0xFF) * 0.5f);
-    } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
-      this->dhw_reduced_setpoint_->publish_state((value & 0xFF) * 0.5f);
-      ESP_LOGD(TAG, "DHW reduced=%d C", (value & 0xFF) * 0.5f);
     } else if (index == 0x3402 && sub == 0x01 && this->flow_setpoint_ != nullptr) {
       this->flow_setpoint_->publish_state((value & 0xFF) * 0.5f);
       ESP_LOGD(TAG, "Flow setpoint=%d C", (value & 0xFF) * 0.5f);
-    } else if (index == 0x340C && sub == 0x01 && this->room_setpoint1_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.1f;
-      this->room_setpoint1_->publish_state(temp);
-      ESP_LOGD(TAG, "Room setpoint 1=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else
 #endif
 #ifdef USE_SELECT
@@ -537,14 +527,6 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, d[73]);
   }
 
-  // Calculated room temperature: bytes 79-80, int16 little-endian × 0.01 (verified from hardware log)
-  if (len > 80 && this->calculated_room_temperature_ != nullptr) {
-    int16_t raw = (int16_t)((uint16_t)d[80] << 8 | d[79]);
-    float calc_room = raw * 0.01f;
-    this->calculated_room_temperature_->publish_state(calc_room);
-    ESP_LOGD(TAG, "Calculated room temp=%.2f C (raw=%d)", calc_room, raw);
-  }
-
   // Room setpoint: read from CP510 via SDO poll, not from trending data
   // (bytes 27-28 in trending data is NOT room setpoint)
 #endif
@@ -569,9 +551,6 @@ void Remeha::handle_pdo_0x282_(const std::vector<uint8_t> &x) {
   float flow_temp = (((uint16_t)x[2] << 8) + x[3]) / 100.0f;
   if (this->flow_temperature_ != nullptr)
     this->flow_temperature_->publish_state(flow_temp);
-  if (x.size() > 5 && this->return_temperature_ != nullptr) {
-    float ret_temp = (((uint16_t)x[4] << 8) + x[5]) / 100.0f;
-    this->return_temperature_->publish_state(ret_temp);
   }
 #endif
 }
