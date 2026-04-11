@@ -523,11 +523,11 @@ void Remeha::process_trending_data_() {
   const uint8_t *d = this->seg_read_buffer_;
 
 #ifdef USE_SENSOR
-  // Water pressure: byte 53, single byte × 0.1 (description.nr 410)
-  if (len > 53 && this->water_pressure_ != nullptr) {
-    float wp = d[53] * 0.1f;
+  // Water pressure: byte 22, single byte × 0.01
+  if (len > 22 && this->water_pressure_ != nullptr) {
+    float wp = d[22] * 0.01f;
     this->water_pressure_->publish_state(wp);
-    ESP_LOGD(TAG, "Water pressure=%.1f bar (raw=%d)", wp, d[53]);
+    ESP_LOGD(TAG, "Water pressure=%.2f bar (raw=%d)", wp, d[22]);
   }
 
   // Room temperature: bytes 20-21, int16 little-endian × 0.1 (description.nr 1382/1383)
@@ -535,7 +535,7 @@ void Remeha::process_trending_data_() {
     int16_t raw = (int16_t)((uint16_t)d[21] << 8 | d[20]);
     float room_temp = raw * 0.1f;
     this->room_temperature_->publish_state(room_temp);
-    ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, raw);
+    ESP_LOGD(TAG, "Room temperature (b20-21)=%.1f C (raw=%d)", room_temp, raw);
   }
 
   // Calculated room temperature: bytes 55-56, int16 little-endian × 0.01 (description.nr 2520/2521)
@@ -543,7 +543,7 @@ void Remeha::process_trending_data_() {
     int16_t raw = (int16_t)((uint16_t)d[56] << 8 | d[55]);
     float calc_room = raw * 0.01f;
     this->calculated_room_temperature_->publish_state(calc_room);
-    ESP_LOGD(TAG, "Calculated room temp=%.2f C (raw=%d)", calc_room, raw);
+    ESP_LOGD(TAG, "Calculated room temp (b55-56)=%.2f C (raw=%d)", calc_room, raw);
   }
 
   // CH internal setpoint: bytes 27-28, int16 little-endian × 0.01 (description.nr 1824)
@@ -551,24 +551,11 @@ void Remeha::process_trending_data_() {
     int16_t raw = (int16_t)((uint16_t)d[28] << 8 | d[27]);
     float setpoint = raw * 0.01f;
     this->room_setpoint_->publish_state(setpoint);
-    ESP_LOGD(TAG, "CH internal setpoint=%.2f C (raw=%d)", setpoint, raw);
+    ESP_LOGD(TAG, "CH internal setpoint (b27-28)=%.2f C (raw=%d)", setpoint, raw);
   }
 #endif
 
-#ifdef USE_CLIMATE
-  // Update climate entity with room temperature and setpoint from trending data
-  if (this->climate_ != nullptr) {
-    // Use room temperature (bytes 20-21) as current temperature for climate entity
-    if (len > 21) {
-      int16_t raw = (int16_t)((uint16_t)d[21] << 8 | d[20]);
-      float room_temp = raw * 0.1f;
-      if (room_temp > 0.0f && room_temp < 50.0f)
-        this->climate_->update_current_temperature(room_temp);
-    }
-  }
-#endif
-
-  // Log first 60 bytes for debugging (helps identify byte positions)
+  // Log all trending bytes for debugging (helps identify correct byte positions)
   if (len >= 30) {
     ESP_LOGD(TAG, "Trending[0-29]: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
              "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
@@ -576,6 +563,22 @@ void Remeha::process_trending_data_() {
              d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9],
              d[10], d[11], d[12], d[13], d[14], d[15], d[16], d[17], d[18], d[19],
              d[20], d[21], d[22], d[23], d[24], d[25], d[26], d[27], d[28], d[29]);
+  }
+  if (len >= 60) {
+    ESP_LOGD(TAG, "Trending[30-59]: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+             d[30], d[31], d[32], d[33], d[34], d[35], d[36], d[37], d[38], d[39],
+             d[40], d[41], d[42], d[43], d[44], d[45], d[46], d[47], d[48], d[49],
+             d[50], d[51], d[52], d[53], d[54], d[55], d[56], d[57], d[58], d[59]);
+  }
+  if (len >= 90) {
+    ESP_LOGD(TAG, "Trending[60-89]: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+             d[60], d[61], d[62], d[63], d[64], d[65], d[66], d[67], d[68], d[69],
+             d[70], d[71], d[72], d[73], d[74], d[75], d[76], d[77], d[78], d[79],
+             d[80], d[81], d[82], d[83], d[84], d[85], d[86], d[87], d[88], d[89]);
   }
 }
 
