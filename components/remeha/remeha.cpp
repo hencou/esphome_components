@@ -522,7 +522,7 @@ void Remeha::process_trending_data_() {
 
 #ifdef USE_CLIMATE
   // Update climate entity with room temperature from bytes 79-80
-  if (this->climate_ != nullptr && len > 80 && this->calculated_room_temperature_ != nullptr) {
+  if (this->climate_ != nullptr && len > 80) {
     int16_t raw = (int16_t)((uint16_t)d[80] << 8 | d[79]);
     float calc_room = raw * 0.01f;
     if (calc_room > 0.0f && calc_room < 50.0f)
@@ -540,7 +540,6 @@ void Remeha::handle_pdo_0x282_(const std::vector<uint8_t> &x) {
   float flow_temp = (((uint16_t)x[2] << 8) + x[3]) / 100.0f;
   if (this->flow_temperature_ != nullptr)
     this->flow_temperature_->publish_state(flow_temp);
-  }
 #endif
 }
 
