@@ -6,6 +6,11 @@ from esphome.const import (
   CONF_TRIGGER_ID,
 )
 
+try:
+  from esphome.components.esp32 import include_builtin_idf_component
+except ImportError:
+  include_builtin_idf_component = None
+
 DEPENDENCIES = ["light"]
 
 AUTO_LOAD = ["json","spi"]
@@ -100,6 +105,13 @@ async def to_code(config):
         None,
         "https://github.com/nrf24/RF24.git#esp-idf",
       )
+      # RF24's esp-idf branch has utility source files in utility/esp_idf/
+      # that PlatformIO's default LDF mode doesn't compile. Use 'deep' mode
+      # to evaluate preprocessor conditionals and find the utility sources.
+      cg.add_platformio_option("lib_ldf_mode", "deep")
+
+    if core.CORE.is_esp32 and include_builtin_idf_component is not None:
+      include_builtin_idf_component("driver")
     
     ce_pin = await cg.gpio_pin_expression(config[CONF_CE_PIN])
     cg.add(var.set_ce_pin(ce_pin))
