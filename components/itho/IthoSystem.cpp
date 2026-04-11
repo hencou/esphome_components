@@ -466,7 +466,7 @@ namespace esphome
 
             if (ithoStat.type == ithoDeviceStatus::is_byte)
             {
-              ithoStat.value.byteval = (byte)tempVal;
+              ithoStat.value.byteval = (uint8_t)tempVal;
               ESP_LOGD(TAG, "I2C ithoStat.name: %s, byteval: %i", ithoStat.name, ithoStat.value.byteval);
             }
             if (ithoStat.type == ithoDeviceStatus::is_uint)
