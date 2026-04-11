@@ -9,6 +9,11 @@ from esphome.const import (
     CONF_SDA,
 )
 
+try:
+    from esphome.components.esp32 import include_builtin_idf_component
+except ImportError:
+    include_builtin_idf_component = None
+
 AUTO_LOAD = ["json"]
 
 itho_ns = cg.esphome_ns.namespace("itho")
@@ -42,7 +47,10 @@ async def to_code(config):
   
   if core.CORE.using_arduino:
     cg.add_library("Ticker", None)
-  
+
+  if core.CORE.using_esp_idf and include_builtin_idf_component is not None:
+    include_builtin_idf_component("driver")
+
   if CONF_SYSSHT30_VALUE in config:
     cg.add(var.setSysSHT30(config[CONF_SYSSHT30_VALUE]))
     

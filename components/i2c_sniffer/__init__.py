@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import pins
+from esphome import core, pins
 from esphome.const import (
     CONF_ID,
     CONF_INPUT,
@@ -8,6 +8,11 @@ from esphome.const import (
     CONF_SCL,
     CONF_SDA,
 )
+
+try:
+    from esphome.components.esp32 import include_builtin_idf_component
+except ImportError:
+    include_builtin_idf_component = None
 
 i2c_sniffer_ns = cg.esphome_ns.namespace("i2c_sniffer")
 I2cSniffer = i2c_sniffer_ns.class_("I2cSniffer", cg.Component)
@@ -32,6 +37,9 @@ CONFIG_SCHEMA = (
 async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
   await cg.register_component(var, config)
-  
+
+  if core.CORE.using_esp_idf and include_builtin_idf_component is not None:
+    include_builtin_idf_component("driver")
+
   #cg.add(var.set_sda_pin(config[CONF_SDA]))
   #cg.add(var.set_scl_pin(config[CONF_SCL]))

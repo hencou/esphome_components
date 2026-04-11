@@ -1,5 +1,6 @@
 #pragma once
 
+#include <esp_err.h>
 #include "SystemConfig.h"
 
 #define WRITE_BIT I2C_MASTER_WRITE /*!< I2C master write */
