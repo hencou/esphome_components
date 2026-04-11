@@ -15,11 +15,18 @@
 #ifdef USE_SELECT
 #include "esphome/components/select/select.h"
 #endif
+#ifdef USE_CLIMATE
+#include "esphome/components/climate/climate.h"
+#endif
 
 namespace esphome {
 namespace remeha {
 
 static const char *const TAG = "remeha";
+
+#ifdef USE_CLIMATE
+class RemehaClimate;
+#endif
 
 class Remeha : public Component {
  public:
@@ -75,6 +82,10 @@ class Remeha : public Component {
 #ifdef USE_SELECT
   void set_zone_mode_select(select::Select *s) { this->zone_mode_ = s; }
   void set_dhw_mode_select(select::Select *s) { this->dhw_mode_ = s; }
+#endif
+
+#ifdef USE_CLIMATE
+  void set_climate(RemehaClimate *climate) { this->climate_ = climate; }
 #endif
 
  protected:
@@ -176,6 +187,10 @@ class Remeha : public Component {
 #ifdef USE_SELECT
   select::Select *zone_mode_{nullptr};
   select::Select *dhw_mode_{nullptr};
+#endif
+
+#ifdef USE_CLIMATE
+  RemehaClimate *climate_{nullptr};
 #endif
 };
 

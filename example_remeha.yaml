@@ -134,6 +134,15 @@ text_sensor:
   ssid:
     name: SSID
 
+# --- Climate (thermostat in Home Assistant) ---
+climate:
+- platform: remeha
+  name: "Remeha Thermostat"
+  visual:
+    min_temperature: 5
+    max_temperature: 30
+    temperature_step: 0.5
+
 button:
 - platform: restart
   name: Restart
