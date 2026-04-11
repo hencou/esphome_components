@@ -43,7 +43,7 @@ namespace esphome
         uint8_t length;
         union
         {
-          byte byteval;
+          uint8_t byteval;
           int32_t intval;
           uint32_t uintval;
           double floatval;
