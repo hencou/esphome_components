@@ -59,7 +59,6 @@ class Remeha : public Component {
   void set_water_pressure_sensor(sensor::Sensor *s) { this->water_pressure_ = s; }
   void set_room_temperature_sensor(sensor::Sensor *s) { this->room_temperature_ = s; }
   void set_room_setpoint_sensor(sensor::Sensor *s) { this->room_setpoint_ = s; }
-  void set_calculated_room_temperature_sensor(sensor::Sensor *s) { this->calculated_room_temperature_ = s; }
   void set_locking_mode_sensor(sensor::Sensor *s) { this->locking_mode_ = s; }
   void set_blocking_mode_sensor(sensor::Sensor *s) { this->blocking_mode_ = s; }
   void set_error_history_sensor(sensor::Sensor *s) { this->error_history_ = s; }
@@ -76,10 +75,6 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   void set_cp510_setpoint_number(number::Number *n) { this->cp510_setpoint_ = n; }
-  void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
-  void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
-  void set_flow_setpoint_number(number::Number *n) { this->flow_setpoint_ = n; }
-  void set_room_setpoint1_number(number::Number *n) { this->room_setpoint1_ = n; }
 #endif
 
 #ifdef USE_SELECT
@@ -171,7 +166,6 @@ class Remeha : public Component {
   sensor::Sensor *water_pressure_{nullptr};
   sensor::Sensor *room_temperature_{nullptr};
   sensor::Sensor *room_setpoint_{nullptr};
-  sensor::Sensor *calculated_room_temperature_{nullptr};
   sensor::Sensor *locking_mode_{nullptr};
   sensor::Sensor *blocking_mode_{nullptr};
   sensor::Sensor *error_history_{nullptr};
@@ -188,15 +182,10 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   number::Number *cp510_setpoint_{nullptr};
-  number::Number *dhw_comfort_setpoint_{nullptr};
-  number::Number *dhw_reduced_setpoint_{nullptr};
-  number::Number *flow_setpoint_{nullptr};
-  number::Number *room_setpoint1_{nullptr};
 #endif
 
 #ifdef USE_SELECT
   select::Select *zone_mode_{nullptr};
-  select::Select *dhw_mode_{nullptr};
 #endif
 
 #ifdef USE_CLIMATE
