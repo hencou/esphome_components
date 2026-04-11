@@ -29,13 +29,13 @@ SELECT_PARAMS = {
     CONF_ZONE_MODE: {
         "sdo_index": 0x341F,
         "sdo_subindex": 0x01,
-        "options": ["Off", "Heat", "Auto"],
+        "options": ["Auto", "Heat", "Off"],
         "setter": "set_zone_mode_select",
     },
     CONF_DHW_MODE: {
         "sdo_index": 0x3661,
         "sdo_subindex": 0x01,
-        "options": ["Off", "On", "Auto"],
+        "options": ["Auto", "On", "Off"],
         "setter": "set_dhw_mode_select",
     },
 }
