@@ -12,9 +12,6 @@ RemehaNumber = remeha_ns.class_("RemehaNumber", number.Number, cg.Component)
 
 CONF_CP510_SETPOINT = "cp510_setpoint"
 CONF_DHW_COMFORT_SETPOINT = "dhw_comfort_setpoint"
-CONF_DHW_REDUCED_SETPOINT = "dhw_reduced_setpoint"
-CONF_FLOW_SETPOINT = "flow_setpoint"
-CONF_ROOM_SETPOINT1 = "room_setpoint1"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -29,21 +26,6 @@ CONFIG_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_CELSIUS,
             icon="mdi:water-thermometer",
         ),
-        cv.Optional(CONF_DHW_REDUCED_SETPOINT): number.number_schema(
-            RemehaNumber,
-            unit_of_measurement=UNIT_CELSIUS,
-            icon="mdi:water-thermometer-outline",
-        ),
-        cv.Optional(CONF_FLOW_SETPOINT): number.number_schema(
-            RemehaNumber,
-            unit_of_measurement=UNIT_CELSIUS,
-            icon="mdi:thermometer-water",
-        ),
-        cv.Optional(CONF_ROOM_SETPOINT1): number.number_schema(
-            RemehaNumber,
-            unit_of_measurement=UNIT_CELSIUS,
-            icon="mdi:home-thermometer-outline",
-        ),
     }
 )
 
@@ -51,18 +33,12 @@ CONFIG_SCHEMA = cv.Schema(
 NUMBER_PARAMS = {
     CONF_CP510_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5),
     CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 1, 1.0, 40.0, 65.0, 1.0),
-    CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 1, 1.0, 10.0, 60.0, 1.0),
-    CONF_FLOW_SETPOINT: (0x3402, 0x01, 1, 1.0, 7.0, 90.0, 1.0),
-    CONF_ROOM_SETPOINT1: (0x340C, 0x01, 2, 0.1, 5.0, 30.0, 0.5),
 }
 
 # Setter methods on the parent Remeha class
 PARENT_SETTERS = {
     CONF_CP510_SETPOINT: "set_cp510_setpoint_number",
     CONF_DHW_COMFORT_SETPOINT: "set_dhw_comfort_setpoint_number",
-    CONF_DHW_REDUCED_SETPOINT: "set_dhw_reduced_setpoint_number",
-    CONF_FLOW_SETPOINT: "set_flow_setpoint_number",
-    CONF_ROOM_SETPOINT1: "set_room_setpoint1_number",
 }
 
 
