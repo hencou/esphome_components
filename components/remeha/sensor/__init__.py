@@ -24,7 +24,6 @@ CONF_SUBSTATUS_CODE = "substatus_code"
 CONF_WATER_PRESSURE = "water_pressure"
 CONF_ROOM_TEMPERATURE = "room_temperature"
 CONF_ROOM_SETPOINT = "room_setpoint"
-CONF_CALCULATED_ROOM_TEMPERATURE = "calculated_room_temperature"
 CONF_LOCKING_MODE = "locking_mode"
 CONF_BLOCKING_MODE = "blocking_mode"
 CONF_ERROR_HISTORY = "error_history"
@@ -112,13 +111,6 @@ CONFIG_SCHEMA = cv.Schema(
             state_class=STATE_CLASS_MEASUREMENT,
             icon="mdi:thermostat",
         ),
-        cv.Optional(CONF_CALCULATED_ROOM_TEMPERATURE): sensor.sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=2,
-            device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-            icon="mdi:home-thermometer-outline",
-        ),
         cv.Optional(CONF_LOCKING_MODE): sensor.sensor_schema(
             accuracy_decimals=0,
         ),
@@ -151,7 +143,6 @@ SDO_POLL_MAP = {
     CONF_WATER_PRESSURE: (0x501D, 0x00),
     CONF_ROOM_TEMPERATURE: (0x501D, 0x00),
     CONF_ROOM_SETPOINT: (0x501D, 0x00),
-    CONF_CALCULATED_ROOM_TEMPERATURE: (0x501D, 0x00),
 }
 
 
@@ -172,7 +163,6 @@ async def to_code(config):
         CONF_WATER_PRESSURE: "set_water_pressure_sensor",
         CONF_ROOM_TEMPERATURE: "set_room_temperature_sensor",
         CONF_ROOM_SETPOINT: "set_room_setpoint_sensor",
-        CONF_CALCULATED_ROOM_TEMPERATURE: "set_calculated_room_temperature_sensor",
         CONF_LOCKING_MODE: "set_locking_mode_sensor",
         CONF_BLOCKING_MODE: "set_blocking_mode_sensor",
         CONF_ERROR_HISTORY: "set_error_history_sensor",
