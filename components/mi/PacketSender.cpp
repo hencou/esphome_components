@@ -6,7 +6,7 @@
 
 void PacketSender::enqueue(uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride) {
 #ifdef DEBUG_PRINTF
-  Serial.println("Enqueuing packet");
+  printf("Enqueuing packet\n");
 #endif
   size_t repeats = repeatsOverride == DEFAULT_PACKET_SENDS_VALUE
     ? this->currentResendCount
@@ -33,7 +33,7 @@ bool PacketSender::isSending() {
 
 void PacketSender::nextPacket() {
 #ifdef DEBUG_PRINTF
-  Serial.printf("Switching to next packet, %d packets in queue\n", queue.size());
+  printf("Switching to next packet, %d packets in queue\n", queue.size());
 #endif
   currentPacket = queue.pop();
 
@@ -73,11 +73,11 @@ void PacketSender::sendRepeats(size_t num) {
   size_t len = currentPacket->remoteConfig->packetFormatter->getPacketLength();
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Sending packet (%d repeats): \n"), num);
+  printf("Sending packet (%d repeats): \n", num);
   for (size_t i = 0; i < len; i++) {
-    Serial.printf_P(PSTR("%02X "), currentPacket->packet[i]);
+    printf("%02X ", currentPacket->packet[i]);
   }
-  Serial.println();
+  printf("\n");
   int iStart = miHelpers.mi_millis();
 #endif
 
@@ -87,8 +87,7 @@ void PacketSender::sendRepeats(size_t num) {
 
 #ifdef DEBUG_PRINTF
   int iElapsed = miHelpers.mi_millis() - iStart;
-  Serial.print("Elapsed: ");
-  Serial.println(iElapsed);
+  printf("Elapsed: %d\n", iElapsed);
 #endif
 }
 

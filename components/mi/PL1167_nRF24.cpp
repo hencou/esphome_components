@@ -20,6 +20,7 @@ PL1167_nRF24::PL1167_nRF24(RF24 &radio)
   : _radio(radio)
 {
 #ifdef USE_ESP32_ALTERNATE_SPI
+#ifdef USE_ARDUINO
   _spiBus = new SPIClass(HSPI); //defaults to VSPI
 #if defined(ALT_SPI_MISO_PIN) && \
     defined(ALT_SPI_MOSI_PIN) && \
@@ -30,12 +31,13 @@ PL1167_nRF24::PL1167_nRF24(RF24 &radio)
 #else
   _spiBus->begin();
 #endif
-#endif
+#endif // USE_ARDUINO
+#endif // USE_ESP32_ALTERNATE_SPI
 }
 
 int PL1167_nRF24::open() {
 
-#ifdef USE_ESP32_ALTERNATE_SPI
+#if defined(USE_ESP32_ALTERNATE_SPI) && defined(USE_ARDUINO)
   _radio.begin(_spiBus);
 #else
   _radio.begin();
@@ -227,16 +229,16 @@ int PL1167_nRF24::internal_receive() {
   }
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Packet received (%d bytes): "), outp);
+  printf("Packet received (%d bytes): ", outp);
   for (int i = 0; i < outp; i++) {
-    Serial.printf_P(PSTR("%02X "), tmp[i]);
+    printf("%02X ", tmp[i]);
   }
-  Serial.print(F("\n"));
+  printf("\n");
 #endif
 
   if (outp < 2) {
 #ifdef DEBUG_PRINTF
-    Serial.println(F("Failed CRC: outp < 2"));
+    printf("Failed CRC: outp < 2\n");
 #endif
     return 0;
   }
@@ -246,7 +248,7 @@ int PL1167_nRF24::internal_receive() {
 
   if ( crc != recvCrc ) {
 #ifdef DEBUG_PRINTF
-    Serial.printf_P(PSTR("Failed CRC: expected %04X, got %04X\n"), crc, recvCrc);
+    printf("Failed CRC: expected %04X, got %04X\n", crc, recvCrc);
 #endif
     return 0;
   }
@@ -258,7 +260,7 @@ int PL1167_nRF24::internal_receive() {
   _received = true;
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Successfully parsed packet of length %d\n"), _packet_length);
+  printf("Successfully parsed packet of length %d\n", _packet_length);
 #endif
 
   return outp;

@@ -42,9 +42,9 @@ void FUT02xPacketFormatter::unpair() {
 }
 
 void FUT02xPacketFormatter::format(uint8_t const* packet, char* buffer) {
-  buffer += sprintf_P(buffer, PSTR("b0       : %02X\n"), packet[0]);
-  buffer += sprintf_P(buffer, PSTR("ID       : %02X%02X\n"), packet[1], packet[2]);
-  buffer += sprintf_P(buffer, PSTR("Arg      : %02X\n"), packet[3]);
-  buffer += sprintf_P(buffer, PSTR("Command  : %02X\n"), packet[4]);
-  buffer += sprintf_P(buffer, PSTR("Sequence : %02X\n"), packet[5]);
+  buffer += sprintf(buffer, "b0       : %02X\n", packet[0]);
+  buffer += sprintf(buffer, "ID       : %02X%02X\n", packet[1], packet[2]);
+  buffer += sprintf(buffer, "Arg      : %02X\n", packet[3]);
+  buffer += sprintf(buffer, "Command  : %02X\n", packet[4]);
+  buffer += sprintf(buffer, "Sequence : %02X\n", packet[5]);
 }

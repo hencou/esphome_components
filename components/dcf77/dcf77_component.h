@@ -35,7 +35,7 @@ namespace esphome {
 
     DCF77 DCF = DCF77((int)pin_, DCF_INTERRUPT);
     int syncHour = 0;
-    boolean isSyncTime = false;
+    bool isSyncTime = false;
 
     GPIOPin *pin_;
   };

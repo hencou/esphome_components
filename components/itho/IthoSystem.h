@@ -2,7 +2,11 @@
 
 #include <map>
 #include <vector>
+#ifdef USE_ARDUINO
 #include <Ticker.h>
+#else
+#include <esp_timer.h>
+#endif
 
 #include "IthoPacket.h"
 #include "IthoRemote.h"
@@ -2375,7 +2379,11 @@ namespace esphome
       int32_t value2410 = 0;
       int32_t result2410[3];
 
+#ifdef USE_ARDUINO
       Ticker getSettingsHack;
+#else
+      esp_timer_handle_t getSettingsHack = nullptr;
+#endif
     };
   }
 }

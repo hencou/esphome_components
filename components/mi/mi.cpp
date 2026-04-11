@@ -60,9 +60,9 @@ namespace esphome {
         char responseBody[200];
         char* responseBuffer = responseBody;
 
-        responseBuffer += sprintf_P(
+        responseBuffer += sprintf(
           responseBuffer,
-          PSTR("\n%s packet received (%d bytes):\n"),
+          "\n%s packet received (%d bytes):\n",
           config.name.c_str(),
           config.packetFormatter->getPacketLength()
         );
@@ -298,15 +298,7 @@ namespace esphome {
 
       Mi::applySettings();
 
-      #ifdef USE_ARDUINO
-      #include <Arduino.h>
-        repeatTimer = random(2000, 3000);
-      #else
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(2000, 3000);
-        repeatTimer = dist(gen);
-      #endif
+      repeatTimer = 2000 + (esp_random() % 1001);
 
       ESP_LOGD(TAG, "Setup complete"); 
     }

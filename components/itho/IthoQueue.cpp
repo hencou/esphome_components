@@ -12,17 +12,36 @@ namespace esphome
       ithoOldSpeed = 0;
       fallBackSpeed = 42;
 
+#ifdef USE_ARDUINO
       queueUpdater.attach_ms(
           QUEUE_UPDATE_MS, +[](IthoQueue *queueInstance)
                            { queueInstance->update_queue(); },
           this);
+#else
+      esp_timer_create_args_t timer_args = {};
+      timer_args.callback = [](void *arg) {
+        static_cast<IthoQueue *>(arg)->update_queue();
+      };
+      timer_args.arg = this;
+      timer_args.name = "itho_queue";
+      esp_timer_create(&timer_args, &queueUpdater);
+      esp_timer_start_periodic(queueUpdater, QUEUE_UPDATE_MS * 1000);
+#endif
 
       ithoSpeedUpdated = false;
     }
 
     IthoQueue::~IthoQueue()
     {
+#ifdef USE_ARDUINO
       queueUpdater.detach();
+#else
+      if (queueUpdater) {
+        esp_timer_stop(queueUpdater);
+        esp_timer_delete(queueUpdater);
+        queueUpdater = nullptr;
+      }
+#endif
     }
 
     bool IthoQueue::add2queue(int speedVal, unsigned long validVal, uint8_t nonQ_cmd_clearsQ)

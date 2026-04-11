@@ -2,6 +2,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 #include <cinttypes>
+#include <driver/gpio.h>
 
 namespace esphome
 {
@@ -44,7 +45,7 @@ namespace esphome
             }
 
             // get the value from SDA
-            i2cBitC = digitalRead(sda_pin);
+            i2cBitC = gpio_get_level((gpio_num_t)sda_pin);
 
             // decide wherewe are and what to do with incoming data
             i2cCase = 0; // normal case
@@ -99,14 +100,14 @@ namespace esphome
             // make sure that the SDA is in stable state
             do
             {
-                i2cBitD = digitalRead(sda_pin);
-                i2cBitD2 = digitalRead(sda_pin);
+                i2cBitD = gpio_get_level((gpio_num_t)sda_pin);
+                i2cBitD2 = gpio_get_level((gpio_num_t)sda_pin);
             } while (i2cBitD != i2cBitD2);
 
             if (i2cBitD) // RISING if SDA is HIGH (1)
             {
 
-                i2cClk = digitalRead(scl_pin);
+                i2cClk = gpio_get_level((gpio_num_t)scl_pin);
                 if ((i2cStatus != I2C_IDLE) && i2cClk) // If SCL still HIGH then it is a STOP sign
                 {
                     i2cStatus = I2C_IDLE;
@@ -121,7 +122,7 @@ namespace esphome
             else // FALLING if SDA is LOW
             {
 
-                i2cClk = digitalRead(scl_pin);
+                i2cClk = gpio_get_level((gpio_num_t)scl_pin);
                 if (i2cStatus == I2C_IDLE && i2cClk) // If SCL still HIGH than this is a START
                 {
                     i2cStatus = I2C_TRX;
@@ -203,13 +204,21 @@ namespace esphome
             sda_pin = sda_pin_;
             scl_pin = scl_pin_;
 
-            pinMode(sda_pin, INPUT_PULLUP);
-            pinMode(scl_pin, INPUT_PULLUP);
+            gpio_config_t io_conf = {};
+            io_conf.pin_bit_mask = (1ULL << sda_pin) | (1ULL << scl_pin);
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+            io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+            io_conf.intr_type = GPIO_INTR_DISABLE;
+            gpio_config(&io_conf);
 
             resetI2cVariable();
 
-            attachInterrupt(scl_pin, i2cTriggerOnRaisingSCL, RISING); // trigger for reading data from SDA
-            attachInterrupt(sda_pin, i2cTriggerOnChangeSDA, CHANGE);  // for I2C START and STOP
+            gpio_install_isr_service(0);
+            gpio_set_intr_type((gpio_num_t)scl_pin, GPIO_INTR_POSEDGE);
+            gpio_isr_handler_add((gpio_num_t)scl_pin, [](void *) { i2cTriggerOnRaisingSCL(); }, nullptr);
+            gpio_set_intr_type((gpio_num_t)sda_pin, GPIO_INTR_ANYEDGE);
+            gpio_isr_handler_add((gpio_num_t)sda_pin, [](void *) { i2cTriggerOnChangeSDA(); }, nullptr);
 
             ESP_LOGI(TAG, "Ready!");
         }

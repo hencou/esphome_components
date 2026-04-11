@@ -1,6 +1,7 @@
 #pragma once
 #include "esphome/core/component.h"
-#include <Arduino.h>
+#include "esphome/core/hal.h"
+#include <driver/gpio.h>
 
 namespace esphome
 {

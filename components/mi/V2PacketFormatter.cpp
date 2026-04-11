@@ -15,7 +15,7 @@ bool V2PacketFormatter::canHandle(const uint8_t *packet, const size_t packetLen)
   V2RFEncoding::decodeV2Packet(packetCopy);
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n"), protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
+  printf("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n", protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
 #endif
 
   return packetCopy[V2_PROTOCOL_ID_INDEX] == protocolId;
@@ -61,9 +61,9 @@ void V2PacketFormatter::finalizePacket(uint8_t* packet) {
 }
 
 void V2PacketFormatter::format(uint8_t const* packet, char* buffer) {
-  buffer += sprintf_P(buffer, PSTR("Raw packet: "));
+  buffer += sprintf(buffer, "Raw packet: ");
   for (size_t i = 0; i < packetLength; i++) {
-    buffer += sprintf_P(buffer, PSTR("%02X "), packet[i]);
+    buffer += sprintf(buffer, "%02X ", packet[i]);
   }
 
   uint8_t decodedPacket[packetLength];
@@ -71,15 +71,15 @@ void V2PacketFormatter::format(uint8_t const* packet, char* buffer) {
 
   V2RFEncoding::decodeV2Packet(decodedPacket);
 
-  buffer += sprintf_P(buffer, PSTR("\n\nDecoded:\n"));
-  buffer += sprintf_P(buffer, PSTR("Key      : %02X\n"), decodedPacket[0]);
-  buffer += sprintf_P(buffer, PSTR("b1       : %02X\n"), decodedPacket[1]);
-  buffer += sprintf_P(buffer, PSTR("ID       : %02X%02X\n"), decodedPacket[2], decodedPacket[3]);
-  buffer += sprintf_P(buffer, PSTR("Command  : %02X\n"), decodedPacket[4]);
-  buffer += sprintf_P(buffer, PSTR("Argument : %02X\n"), decodedPacket[5]);
-  buffer += sprintf_P(buffer, PSTR("Sequence : %02X\n"), decodedPacket[6]);
-  buffer += sprintf_P(buffer, PSTR("Group    : %02X\n"), decodedPacket[7]);
-  buffer += sprintf_P(buffer, PSTR("Checksum : %02X"), decodedPacket[8]);
+  buffer += sprintf(buffer, "\n\nDecoded:\n");
+  buffer += sprintf(buffer, "Key      : %02X\n", decodedPacket[0]);
+  buffer += sprintf(buffer, "b1       : %02X\n", decodedPacket[1]);
+  buffer += sprintf(buffer, "ID       : %02X%02X\n", decodedPacket[2], decodedPacket[3]);
+  buffer += sprintf(buffer, "Command  : %02X\n", decodedPacket[4]);
+  buffer += sprintf(buffer, "Argument : %02X\n", decodedPacket[5]);
+  buffer += sprintf(buffer, "Sequence : %02X\n", decodedPacket[6]);
+  buffer += sprintf(buffer, "Group    : %02X\n", decodedPacket[7]);
+  buffer += sprintf(buffer, "Checksum : %02X", decodedPacket[8]);
 }
 
 uint8_t V2PacketFormatter::groupCommandArg(MiLightStatus status, uint8_t groupId) {

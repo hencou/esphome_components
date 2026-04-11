@@ -27,7 +27,9 @@ class PL1167_nRF24 {
 
   private:
     RF24 &_radio;
+#ifdef USE_ARDUINO
     _SPI* _spiBus = nullptr;
+#endif
 
     const uint8_t* _syncwordBytes = nullptr;
     uint8_t _syncwordLength = 4;

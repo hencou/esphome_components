@@ -1271,10 +1271,28 @@ namespace esphome
 
     void IthoSystem::setSettingsHack()
     {
+#ifdef USE_ARDUINO
       getSettingsHack.once_ms(
           1, +[](IthoSystem *ithoSystem)
              { ithoSystem->getSetting(ithoSystem->getIndex2410(), true, false); },
           this);
+#else
+      if (getSettingsHack) {
+        esp_timer_stop(getSettingsHack);
+        esp_timer_delete(getSettingsHack);
+        getSettingsHack = nullptr;
+      }
+      esp_timer_create_args_t timer_args = {};
+      timer_args.callback = [](void *arg) {
+        auto *ithoSystem = static_cast<IthoSystem *>(arg);
+        ithoSystem->getSetting(ithoSystem->getIndex2410(), true, false);
+      };
+      timer_args.arg = this;
+      timer_args.name = "settings_hack";
+      timer_args.dispatch_method = ESP_TIMER_TASK;
+      esp_timer_create(&timer_args, &getSettingsHack);
+      esp_timer_start_once(getSettingsHack, 1000);
+#endif
     }
 
     bool IthoSystem::i2c_sendBytes(const uint8_t *buf, size_t len)

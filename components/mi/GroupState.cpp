@@ -664,10 +664,7 @@ bool GroupState::applyIncrementCommand(GroupStateField field, IncrementDirection
     }
 
 #ifdef STATE_DEBUG
-    Serial.print(F("Updated scratch field: "));
-    Serial.print(static_cast<int8_t>(field));
-    Serial.print(F(" to: "));
-    Serial.println(getScratchFieldValue(field));
+    printf("Updated scratch field: %d to: %d\n", static_cast<int8_t>(field), getScratchFieldValue(field));
 #endif
   }
 
@@ -702,7 +699,7 @@ bool GroupState::clearNonMatchingFields(const GroupState& other) {
 void GroupState::patch(const GroupState& other) {
 #ifdef STATE_DEBUG
   other.debugState("Patching existing state with: ");
-  Serial.println();
+  printf("\n");
 #endif
 
   for (size_t i = 0; i < size(ALL_PHYSICAL_FIELDS); ++i) {
@@ -743,9 +740,9 @@ bool GroupState::patch(JsonObject state) {
   bool changes = false;
 
 #ifdef STATE_DEBUG
-  Serial.print(F("Patching existing state with: "));
-  serializeJson(state, Serial);
-  Serial.println();
+  char buf[256];
+  serializeJson(state, buf, sizeof(buf));
+  printf("Patching existing state with: %s\n", buf);
 #endif
 
   if (state[GroupStateFieldNames::STATE]) {
@@ -997,10 +994,10 @@ void GroupState::debugState(char const *debugMessage) const {
   // use applyState to build JSON of all fields (from above)
   applyState(jsonState, id, fields);
   // convert to string and print
-  Serial.printf("%s: ", debugMessage);
-  serializeJson(jsonState, Serial);
-  Serial.println("");
-  Serial.printf("Raw data: %08X %08X\n", state.rawData[0], state.rawData[1]);
+  char buf[256];
+  serializeJson(jsonState, buf, sizeof(buf));
+  printf("%s: %s\n", debugMessage, buf);
+  printf("Raw data: %08X %08X\n", state.rawData[0], state.rawData[1]);
 #endif
 }
 
