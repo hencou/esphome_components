@@ -57,6 +57,9 @@ class Remeha : public Component {
   void set_status_code_sensor(sensor::Sensor *s) { this->status_code_ = s; }
   void set_substatus_code_sensor(sensor::Sensor *s) { this->substatus_code_ = s; }
   void set_water_pressure_sensor(sensor::Sensor *s) { this->water_pressure_ = s; }
+  void set_room_temperature_sensor(sensor::Sensor *s) { this->room_temperature_ = s; }
+  void set_room_setpoint_sensor(sensor::Sensor *s) { this->room_setpoint_ = s; }
+  void set_calculated_room_temperature_sensor(sensor::Sensor *s) { this->calculated_room_temperature_ = s; }
   void set_locking_mode_sensor(sensor::Sensor *s) { this->locking_mode_ = s; }
   void set_blocking_mode_sensor(sensor::Sensor *s) { this->blocking_mode_ = s; }
   void set_error_history_sensor(sensor::Sensor *s) { this->error_history_ = s; }
@@ -145,10 +148,14 @@ class Remeha : public Component {
   bool write_pending_{false};
   uint32_t write_start_ms_{0};
 
-  // Segmented read state (for water pressure via 0x501D)
+  // Segmented read state (for trending string via 0x501D)
   bool seg_read_active_{false};
   int seg_read_segment_{0};
   uint32_t seg_read_start_ms_{0};
+  uint8_t seg_read_buffer_[96]{};
+  int seg_read_buffer_pos_{0};
+
+  void process_trending_data_();
 
 #ifdef USE_SENSOR
   sensor::Sensor *flow_temperature_{nullptr};
@@ -162,6 +169,9 @@ class Remeha : public Component {
   sensor::Sensor *status_code_{nullptr};
   sensor::Sensor *substatus_code_{nullptr};
   sensor::Sensor *water_pressure_{nullptr};
+  sensor::Sensor *room_temperature_{nullptr};
+  sensor::Sensor *room_setpoint_{nullptr};
+  sensor::Sensor *calculated_room_temperature_{nullptr};
   sensor::Sensor *locking_mode_{nullptr};
   sensor::Sensor *blocking_mode_{nullptr};
   sensor::Sensor *error_history_{nullptr};

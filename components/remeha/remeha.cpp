@@ -268,26 +268,24 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
 void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
   if (x.size() < 4) return;
 
-  // --- Segmented SDO read handler (for 0x501D water pressure) ---
+  // --- Segmented SDO read handler (for 0x501D trending string) ---
   if (this->seg_read_active_) {
     uint8_t seg_cmd = x[0];
     if ((seg_cmd & 0xE0) == 0x00) {
       int seg = this->seg_read_segment_;
       bool is_last = (seg_cmd & 0x01) != 0;
-      // Segment 3 = bytes 21-27; byte 22 = x[2]
-      if (seg == 3 && x.size() >= 3) {
-        uint8_t raw = x[2];
-        float wp = raw * 0.01f;
-#ifdef USE_SENSOR
-        if (this->water_pressure_ != nullptr)
-          this->water_pressure_->publish_state(wp);
-#endif
-        ESP_LOGI(TAG, "Water pressure=%.1f bar (raw=%d)", wp, raw);
+      // Buffer segment data (7 bytes per segment in x[1]-x[7])
+      for (int i = 1; i < (int)x.size() && i <= 7; i++) {
+        if (this->seg_read_buffer_pos_ < 96) {
+          this->seg_read_buffer_[this->seg_read_buffer_pos_++] = x[i];
+        }
       }
       if (is_last) {
+        ESP_LOGD(TAG, "Segmented read complete (%d bytes)", this->seg_read_buffer_pos_);
+        this->process_trending_data_();
         this->seg_read_active_ = false;
         this->seg_read_segment_ = 0;
-        ESP_LOGD(TAG, "Segmented read complete");
+        this->seg_read_buffer_pos_ = 0;
       } else {
         this->seg_read_segment_ = seg + 1;
         uint8_t toggle = ((seg + 1) & 1) ? 0x70 : 0x60;
@@ -300,6 +298,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       ESP_LOGW(TAG, "Segmented read aborted by boiler");
       this->seg_read_active_ = false;
       this->seg_read_segment_ = 0;
+      this->seg_read_buffer_pos_ = 0;
     }
   }
 
@@ -499,13 +498,14 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       }
     } else
 #endif
-    // Water pressure trending string (0x501D) - segmented transfer
+    // Trending string (0x501D) - segmented transfer
     if (index == 0x501D && sub == 0x00) {
       bool expedited = (cmd & 0x02) != 0;
       if (!expedited) {
         this->seg_read_active_ = true;
         this->seg_read_segment_ = 0;
         this->seg_read_start_ms_ = millis();
+        this->seg_read_buffer_pos_ = 0;
         uint8_t req[8] = {0x60, 0, 0, 0, 0, 0, 0, 0};
         this->send_can_(0x241, req, 8);
         ESP_LOGD(TAG, "Segmented read of 0x501D started");
@@ -514,6 +514,68 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     } else {
       ESP_LOGD(TAG, "SDO READ 0x%04X sub %d = 0x%08X (%u)", index, sub, value, value);
     }
+  }
+}
+
+// --- Process buffered trending data (0x501D, 93 bytes) ---
+void Remeha::process_trending_data_() {
+  int len = this->seg_read_buffer_pos_;
+  const uint8_t *d = this->seg_read_buffer_;
+
+#ifdef USE_SENSOR
+  // Water pressure: byte 53, single byte × 0.1 (description.nr 410)
+  if (len > 53 && this->water_pressure_ != nullptr) {
+    float wp = d[53] * 0.1f;
+    this->water_pressure_->publish_state(wp);
+    ESP_LOGD(TAG, "Water pressure=%.1f bar (raw=%d)", wp, d[53]);
+  }
+
+  // Room temperature: bytes 20-21, int16 little-endian × 0.1 (description.nr 1382/1383)
+  if (len > 21 && this->room_temperature_ != nullptr) {
+    int16_t raw = (int16_t)((uint16_t)d[21] << 8 | d[20]);
+    float room_temp = raw * 0.1f;
+    this->room_temperature_->publish_state(room_temp);
+    ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, raw);
+  }
+
+  // Calculated room temperature: bytes 55-56, int16 little-endian × 0.01 (description.nr 2520/2521)
+  if (len > 56 && this->calculated_room_temperature_ != nullptr) {
+    int16_t raw = (int16_t)((uint16_t)d[56] << 8 | d[55]);
+    float calc_room = raw * 0.01f;
+    this->calculated_room_temperature_->publish_state(calc_room);
+    ESP_LOGD(TAG, "Calculated room temp=%.2f C (raw=%d)", calc_room, raw);
+  }
+
+  // CH internal setpoint: bytes 27-28, int16 little-endian × 0.01 (description.nr 1824)
+  if (len > 28 && this->room_setpoint_ != nullptr) {
+    int16_t raw = (int16_t)((uint16_t)d[28] << 8 | d[27]);
+    float setpoint = raw * 0.01f;
+    this->room_setpoint_->publish_state(setpoint);
+    ESP_LOGD(TAG, "CH internal setpoint=%.2f C (raw=%d)", setpoint, raw);
+  }
+#endif
+
+#ifdef USE_CLIMATE
+  // Update climate entity with room temperature and setpoint from trending data
+  if (this->climate_ != nullptr) {
+    // Use room temperature (bytes 20-21) as current temperature for climate entity
+    if (len > 21) {
+      int16_t raw = (int16_t)((uint16_t)d[21] << 8 | d[20]);
+      float room_temp = raw * 0.1f;
+      if (room_temp > 0.0f && room_temp < 50.0f)
+        this->climate_->update_current_temperature(room_temp);
+    }
+  }
+#endif
+
+  // Log first 60 bytes for debugging (helps identify byte positions)
+  if (len >= 30) {
+    ESP_LOGD(TAG, "Trending[0-29]: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X "
+             "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+             d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9],
+             d[10], d[11], d[12], d[13], d[14], d[15], d[16], d[17], d[18], d[19],
+             d[20], d[21], d[22], d[23], d[24], d[25], d[26], d[27], d[28], d[29]);
   }
 }
 
@@ -529,12 +591,6 @@ void Remeha::handle_pdo_0x282_(const std::vector<uint8_t> &x) {
   if (x.size() > 5 && this->return_temperature_ != nullptr) {
     float ret_temp = (((uint16_t)x[4] << 8) + x[5]) / 100.0f;
     this->return_temperature_->publish_state(ret_temp);
-  }
-#endif
-#ifdef USE_CLIMATE
-  if (this->climate_ != nullptr) {
-    float flow_t = (((uint16_t)x[2] << 8) + x[3]) / 100.0f;
-    this->climate_->update_current_temperature(flow_t);
   }
 #endif
 }

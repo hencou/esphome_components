@@ -71,6 +71,12 @@ sensor:
     name: Substatus Code
   water_pressure:
     name: Water Pressure
+  room_temperature:
+    name: Room Temperature
+  room_setpoint:
+    name: Room Setpoint
+  calculated_room_temperature:
+    name: Calculated Room Temperature
   locking_mode:
     name: Locking Mode
   blocking_mode:
