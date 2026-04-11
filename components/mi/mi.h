@@ -115,15 +115,15 @@ namespace esphome {
         Settings settings;
         MiHelpers miHelpers;
 
-        MiLightClient* milightClient = NULL;
+        MiLightClient* milightClient = nullptr;
         RadioSwitchboard* radios = nullptr;
         PacketSender* packetSender = nullptr;
         std::shared_ptr<MiLightRadioFactory> radioFactory;
         uint8_t currentRadioType = 0;
 
         // For tracking and managing group state
-        GroupStateStore* stateStore = NULL;
-        GroupState* groupState = NULL;
+        GroupStateStore* stateStore = nullptr;
+        GroupState* groupState = nullptr;
         
         unsigned long lastRequestTime;
         unsigned int repeatTimer = 0;
