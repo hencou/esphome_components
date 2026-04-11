@@ -12,7 +12,6 @@ from .. import remeha_ns, CONF_REMEHA_ID, Remeha
 AUTO_LOAD = ["remeha"]
 
 CONF_FLOW_TEMPERATURE = "flow_temperature"
-CONF_RETURN_TEMPERATURE = "return_temperature"
 CONF_OUTSIDE_TEMPERATURE = "outside_temperature"
 CONF_OUTSIDE_TEMPERATURE_3M_AVG = "outside_temperature_3m_avg"
 CONF_OUTSIDE_TEMPERATURE_2H_AVG = "outside_temperature_2h_avg"
@@ -35,13 +34,6 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
         cv.Optional(CONF_FLOW_TEMPERATURE): sensor.sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=2,
-            device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-            icon="mdi:thermometer",
-        ),
-        cv.Optional(CONF_RETURN_TEMPERATURE): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -151,7 +143,6 @@ async def to_code(config):
 
     sensor_configs = {
         CONF_FLOW_TEMPERATURE: "set_flow_temperature_sensor",
-        CONF_RETURN_TEMPERATURE: "set_return_temperature_sensor",
         CONF_OUTSIDE_TEMPERATURE: "set_outside_temperature_sensor",
         CONF_OUTSIDE_TEMPERATURE_3M_AVG: "set_outside_temperature_3m_avg_sensor",
         CONF_OUTSIDE_TEMPERATURE_2H_AVG: "set_outside_temperature_2h_avg_sensor",
