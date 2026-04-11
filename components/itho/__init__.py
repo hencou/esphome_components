@@ -48,7 +48,7 @@ async def to_code(config):
   if core.CORE.using_arduino:
     cg.add_library("Ticker", None)
 
-  if core.CORE.using_esp_idf and include_builtin_idf_component is not None:
+  if core.CORE.is_esp32 and include_builtin_idf_component is not None:
     include_builtin_idf_component("driver")
 
   if CONF_SYSSHT30_VALUE in config:
