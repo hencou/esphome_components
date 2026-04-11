@@ -8,7 +8,7 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/defines.h"
 #include <iostream>
-#include <random>
+#include <cstdlib>
 
 namespace esphome {
   namespace mi {
@@ -298,7 +298,7 @@ namespace esphome {
 
       Mi::applySettings();
 
-      repeatTimer = 2000 + (esp_random() % 1001);
+      repeatTimer = 2000 + (rand() % 1001);
 
       ESP_LOGD(TAG, "Setup complete"); 
     }
