@@ -17,10 +17,6 @@ CONFIG_SCHEMA = cv.Schema(
             RemehaSelect,
             icon="mdi:home-switch",
         ),
-        cv.Optional(CONF_DHW_MODE): select.select_schema(
-            RemehaSelect,
-            icon="mdi:water-boiler",
-        ),
     }
 )
 
@@ -31,12 +27,6 @@ SELECT_PARAMS = {
         "sdo_subindex": 0x01,
         "options": ["Auto", "Heat", "Off"],
         "setter": "set_zone_mode_select",
-    },
-    CONF_DHW_MODE: {
-        "sdo_index": 0x3661,
-        "sdo_subindex": 0x01,
-        "options": ["Auto", "On", "Off"],
-        "setter": "set_dhw_mode_select",
     },
 }
 
