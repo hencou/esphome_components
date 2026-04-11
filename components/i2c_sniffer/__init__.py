@@ -38,7 +38,7 @@ async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
   await cg.register_component(var, config)
 
-  if core.CORE.using_esp_idf and include_builtin_idf_component is not None:
+  if core.CORE.is_esp32 and include_builtin_idf_component is not None:
     include_builtin_idf_component("driver")
 
   #cg.add(var.set_sda_pin(config[CONF_SDA]))
