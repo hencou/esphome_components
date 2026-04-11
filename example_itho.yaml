@@ -9,8 +9,8 @@ esphome:
 esp32:
   board: esp32dev
   framework:
-    #type: esp-idf
-    type: arduino
+    type: esp-idf
+    #type: arduino
     advanced:
       minimum_chip_revision: "3.0"
     
