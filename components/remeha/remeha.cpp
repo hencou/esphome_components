@@ -1,4 +1,7 @@
 #include "remeha.h"
+#ifdef USE_CLIMATE
+#include "climate/remeha_climate.h"
+#endif
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -454,6 +457,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->cp510_setpoint_->publish_state(temp);
       ESP_LOGD(TAG, "CP510 current=%.1f C (raw=%u)", temp, value & 0xFFFF);
+#ifdef USE_CLIMATE
+      if (this->climate_ != nullptr)
+        this->climate_->update_target_temperature(temp);
+#endif
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
       this->dhw_comfort_setpoint_->publish_state(value & 0xFF);
       ESP_LOGD(TAG, "DHW comfort=%d C", value & 0xFF);
@@ -478,6 +485,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       } else {
         ESP_LOGW(TAG, "Unknown zone mode: %d", mode);
       }
+#ifdef USE_CLIMATE
+      if (this->climate_ != nullptr)
+        this->climate_->update_zone_mode(mode);
+#endif
     } else if (index == 0x3661 && sub == 0x01 && this->dhw_mode_ != nullptr) {
       uint8_t mode = value & 0xFF;
       const auto &options = this->dhw_mode_->traits.get_options();
@@ -518,6 +529,12 @@ void Remeha::handle_pdo_0x282_(const std::vector<uint8_t> &x) {
   if (x.size() > 5 && this->return_temperature_ != nullptr) {
     float ret_temp = (((uint16_t)x[4] << 8) + x[5]) / 100.0f;
     this->return_temperature_->publish_state(ret_temp);
+  }
+#endif
+#ifdef USE_CLIMATE
+  if (this->climate_ != nullptr) {
+    float flow_t = (((uint16_t)x[2] << 8) + x[3]) / 100.0f;
+    this->climate_->update_current_temperature(flow_t);
   }
 #endif
 }
@@ -563,6 +580,11 @@ void Remeha::handle_pdo_0x481_(const std::vector<uint8_t> &x) {
     this->status_text_->publish_state(get_status_text_(status));
   if (this->substatus_text_ != nullptr)
     this->substatus_text_->publish_state(get_substatus_text_(substatus));
+#endif
+
+#ifdef USE_CLIMATE
+  if (this->climate_ != nullptr)
+    this->climate_->update_action(status);
 #endif
 }
 
