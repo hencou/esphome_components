@@ -460,9 +460,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       if (this->climate_ != nullptr)
         this->climate_->update_target_temperature(temp);
 #endif
-    } else if (index == 0x3402 && sub == 0x01 && this->flow_setpoint_ != nullptr) {
-      this->flow_setpoint_->publish_state((value & 0xFF) * 0.5f);
-      ESP_LOGD(TAG, "Flow setpoint=%d C", (value & 0xFF) * 0.5f);
     } else
 #endif
 #ifdef USE_SELECT
@@ -478,14 +475,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       if (this->climate_ != nullptr)
         this->climate_->update_zone_mode(mode);
 #endif
-    } else if (index == 0x3661 && sub == 0x01 && this->dhw_mode_ != nullptr) {
-      uint8_t mode = value & 0xFF;
-      const auto &options = this->dhw_mode_->traits.get_options();
-      if (mode < options.size()) {
-        this->dhw_mode_->publish_state(options[mode]);
-      } else {
-        ESP_LOGW(TAG, "Unknown DHW mode: %d", mode);
-      }
     } else
 #endif
     // Trending string (0x501D) - segmented transfer
