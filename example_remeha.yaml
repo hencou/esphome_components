@@ -71,8 +71,6 @@ sensor:
     name: Water Pressure
   room_temperature:
     name: Room Temperature
-  calculated_room_temperature:
-    name: Calculated Room Temperature
   locking_mode:
     name: Locking Mode
   blocking_mode:
@@ -99,8 +97,6 @@ number:
     name: "CP510 Room Setpoint"
   dhw_comfort_setpoint:
     name: "DHW Comfort Setpoint"
-  flow_setpoint:
-    name: "Flow Setpoint"
 
 # --- Mode selectors ---
 select:
