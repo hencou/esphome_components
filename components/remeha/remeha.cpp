@@ -461,10 +461,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         this->climate_->update_target_temperature(temp);
 #endif
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
-      this->dhw_comfort_setpoint_->publish_state(value & 0xFF);
+      this->dhw_comfort_setpoint_->publish_state((value & 0xFF) * 0.5f);
       ESP_LOGD(TAG, "DHW comfort=%d C", value & 0xFF);
     } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
-      this->dhw_reduced_setpoint_->publish_state(value & 0xFF);
+      this->dhw_reduced_setpoint_->publish_state((value & 0xFF) * 0.5f);
       ESP_LOGD(TAG, "DHW reduced=%d C", value & 0xFF);
     } else if (index == 0x3402 && sub == 0x01 && this->flow_setpoint_ != nullptr) {
       this->flow_setpoint_->publish_state(value & 0xFF);
@@ -550,11 +550,12 @@ void Remeha::process_trending_data_() {
 #endif
 
 #ifdef USE_CLIMATE
-  // Update climate entity with room temperature from byte 73
-  if (this->climate_ != nullptr && len > 73) {
-    float room_temp = d[73] * 0.1f;
-    if (room_temp > 0.0f && room_temp < 50.0f)
-      this->climate_->update_current_temperature(room_temp);
+  // Update climate entity with room temperature from bytes 79-80
+  if (this->climate_ != nullptr && len > 80 && this->calculated_room_temperature_ != nullptr) {
+    int16_t raw = (int16_t)((uint16_t)d[80] << 8 | d[79]);
+    float calc_room = raw * 0.01f;
+    if (calc_room > 0.0f && calc_room < 50.0f)
+      this->climate_->update_current_temperature(calc_room);
   }
 #endif
 }
