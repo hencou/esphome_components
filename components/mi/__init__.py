@@ -105,10 +105,6 @@ async def to_code(config):
         None,
         "https://github.com/nrf24/RF24.git#esp-idf",
       )
-      # RF24's esp-idf branch has utility source files in utility/esp_idf/
-      # that PlatformIO's default LDF mode doesn't compile. Use 'deep' mode
-      # to evaluate preprocessor conditionals and find the utility sources.
-      cg.add_platformio_option("lib_ldf_mode", "deep")
 
     if core.CORE.is_esp32 and include_builtin_idf_component is not None:
       include_builtin_idf_component("driver")
