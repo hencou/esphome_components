@@ -511,7 +511,7 @@ void Remeha::process_trending_data_() {
 
   // Room temperature: byte 23, single byte × 0.1
   if (len > 23 && this->room_temperature_ != nullptr) {
-    float room_temp = d[23] * 0.1f;
+    float room_temp = d[23];
     this->room_temperature_->publish_state(room_temp);
     ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, d[23]);
   }
@@ -523,7 +523,7 @@ void Remeha::process_trending_data_() {
 #ifdef USE_CLIMATE
   // Update climate entity with room temperature from byte 23
   if (this->climate_ != nullptr && len > 23) {
-    float room_temp2 = d[23] * 0.1f;
+    float room_temp2 = d[23];
     if (room_temp2 > 0.0f && room_temp2 < 50.0f)
       this->climate_->update_current_temperature(room_temp2);
   }
