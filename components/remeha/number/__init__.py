@@ -11,7 +11,6 @@ AUTO_LOAD = ["remeha"]
 RemehaNumber = remeha_ns.class_("RemehaNumber", number.Number, cg.Component)
 
 CONF_CP510_SETPOINT = "cp510_setpoint"
-CONF_DHW_COMFORT_SETPOINT = "dhw_comfort_setpoint"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -21,24 +20,17 @@ CONFIG_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_CELSIUS,
             icon="mdi:home-thermometer",
         ),
-        cv.Optional(CONF_DHW_COMFORT_SETPOINT): number.number_schema(
-            RemehaNumber,
-            unit_of_measurement=UNIT_CELSIUS,
-            icon="mdi:water-thermometer",
-        ),
     }
 )
 
 # SDO parameters: (index, subindex, size_bytes, scale, min, max, step)
 NUMBER_PARAMS = {
     CONF_CP510_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5),
-    CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 1, 1.0, 40.0, 65.0, 1.0),
 }
 
 # Setter methods on the parent Remeha class
 PARENT_SETTERS = {
     CONF_CP510_SETPOINT: "set_cp510_setpoint_number",
-    CONF_DHW_COMFORT_SETPOINT: "set_dhw_comfort_setpoint_number",
 }
 
 
