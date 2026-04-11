@@ -40,16 +40,16 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
     uint8_t zone_mode;
     switch (mode) {
       case climate::CLIMATE_MODE_OFF:
-        zone_mode = 0;
+        zone_mode = 2;
         break;
       case climate::CLIMATE_MODE_HEAT:
         zone_mode = 1;
         break;
       case climate::CLIMATE_MODE_AUTO:
-        zone_mode = 2;
+        zone_mode = 0;
         break;
       default:
-        zone_mode = 0;
+        zone_mode = 2;
         break;
     }
     if (this->parent_ != nullptr) {
@@ -84,13 +84,13 @@ void RemehaClimate::update_target_temperature(float temp) {
 
 void RemehaClimate::update_zone_mode(uint8_t mode) {
   switch (mode) {
-    case 0:
+    case 2:
       this->mode = climate::CLIMATE_MODE_OFF;
       break;
     case 1:
       this->mode = climate::CLIMATE_MODE_HEAT;
       break;
-    case 2:
+    case 0:
       this->mode = climate::CLIMATE_MODE_AUTO;
       break;
     default:
