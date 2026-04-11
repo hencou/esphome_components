@@ -51,8 +51,6 @@ sensor:
 - platform: remeha
   flow_temperature:
     name: Flow Temperature
-  return_temperature:
-    name: Return Temperature
   outside_temperature:
     name: Outside Temperature
   outside_temperature_3m_avg:
@@ -79,10 +77,6 @@ sensor:
     name: Locking Mode
   blocking_mode:
     name: Blocking Mode
-  error_history:
-    name: Error History
-  diagnostics:
-    name: Diagnostics
   appliance_type:
     name: Appliance Type
   appliance_variant:
@@ -102,15 +96,11 @@ sensor:
 number:
 - platform: remeha
   cp510_setpoint:
-    name: "CP510 Temporary Room Setpoint"
+    name: "CP510 Room Setpoint"
   dhw_comfort_setpoint:
     name: "DHW Comfort Setpoint"
-  dhw_reduced_setpoint:
-    name: "DHW Reduced Setpoint"
   flow_setpoint:
     name: "Flow Setpoint"
-  room_setpoint1:
-    name: "Room Activity Setpoint 1"
 
 # --- Mode selectors ---
 select:
