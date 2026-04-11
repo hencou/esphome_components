@@ -509,11 +509,11 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Water pressure=%.2f bar (raw=%d)", wp, d[22]);
   }
 
-  // Room temperature: byte 73, single byte × 0.1 (verified from hardware log)
-  if (len > 73 && this->room_temperature_ != nullptr) {
-    float room_temp = d[73] * 0.1f;
+  // Room temperature: byte 23, single byte × 0.1
+  if (len > 23 && this->room_temperature_ != nullptr) {
+    float room_temp = d[23] * 0.1f;
     this->room_temperature_->publish_state(room_temp);
-    ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, d[73]);
+    ESP_LOGD(TAG, "Room temperature=%.1f C (raw=%d)", room_temp, d[23]);
   }
 
   // Room setpoint: read from CP510 via SDO poll, not from trending data
@@ -521,12 +521,11 @@ void Remeha::process_trending_data_() {
 #endif
 
 #ifdef USE_CLIMATE
-  // Update climate entity with room temperature from bytes 79-80
-  if (this->climate_ != nullptr && len > 80) {
-    int16_t raw = (int16_t)((uint16_t)d[80] << 8 | d[79]);
-    float calc_room = raw * 0.01f;
-    if (calc_room > 0.0f && calc_room < 50.0f)
-      this->climate_->update_current_temperature(calc_room);
+  // Update climate entity with room temperature from byte 23
+  if (this->climate_ != nullptr && len > 23) {
+    float room_temp2 = d[23] * 0.1f;
+    if (room_temp2 > 0.0f && room_temp2 < 50.0f)
+      this->climate_->update_current_temperature(room_temp2);
   }
 #endif
 }
