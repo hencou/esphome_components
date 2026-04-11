@@ -462,13 +462,13 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #endif
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
       this->dhw_comfort_setpoint_->publish_state((value & 0xFF) * 0.5f);
-      ESP_LOGD(TAG, "DHW comfort=%d C", value & 0xFF);
+      ESP_LOGD(TAG, "DHW comfort=%d C", (value & 0xFF) * 0.5f);
     } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
       this->dhw_reduced_setpoint_->publish_state((value & 0xFF) * 0.5f);
-      ESP_LOGD(TAG, "DHW reduced=%d C", value & 0xFF);
+      ESP_LOGD(TAG, "DHW reduced=%d C", (value & 0xFF) * 0.5f);
     } else if (index == 0x3402 && sub == 0x01 && this->flow_setpoint_ != nullptr) {
-      this->flow_setpoint_->publish_state(value & 0xFF);
-      ESP_LOGD(TAG, "Flow setpoint=%d C", value & 0xFF);
+      this->flow_setpoint_->publish_state((value & 0xFF) * 0.5f);
+      ESP_LOGD(TAG, "Flow setpoint=%d C", (value & 0xFF) * 0.5f);
     } else if (index == 0x340C && sub == 0x01 && this->room_setpoint1_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->room_setpoint1_->publish_state(temp);
