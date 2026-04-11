@@ -509,7 +509,7 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Water pressure=%.2f bar (raw=%d)", wp, d[22]);
   }
 
-  // Room temperature: byte 23 + 24, double byte × 0.1
+  // Room temperature: bytes 23-24, uint16 LE × 0.1
   if (len > 24 && this->room_temperature_ != nullptr) {
     A = d[23];
     B = d[24];
