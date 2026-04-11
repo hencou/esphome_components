@@ -85,9 +85,7 @@ void MiLightClient::prepare(
 ) {
   this->currentRemote = config;
 
-  if (deviceId >= 0 && groupId >= 0) {
-    currentRemote->packetFormatter->prepare(deviceId, groupId);
-  }
+  currentRemote->packetFormatter->prepare(deviceId, groupId);
 
   this->currentState = stateStore->get(deviceId, groupId, config->type);
 }
@@ -435,7 +433,7 @@ void MiLightClient::handleEffect(const std::string& effect) {
   #ifdef DEBUG_CLIENT_COMMANDS
   Serial.printf_P(PSTR("Request to handle effect '%s' in MiLight component."), effect);
   #endif
-  if (effect.starts_with("Mi ") != true) {
+  if (!effect.starts_with("Mi ")) {
     // This is not a MiLight built-in effect. We don't need to handle it here.
     #ifdef DEBUG_CLIENT_COMMANDS
     Serial.printf_P(PSTR("This is not a MiLight built-in effect."));

@@ -107,7 +107,7 @@ namespace esphome
             {
 
                 i2cClk = digitalRead(scl_pin);
-                if ((i2cStatus = !I2C_IDLE) && i2cClk) // If SCL still HIGH then it is a STOP sign
+                if ((i2cStatus != I2C_IDLE) && i2cClk) // If SCL still HIGH then it is a STOP sign
                 {
                     i2cStatus = I2C_IDLE;
                     bitCount = 0;
@@ -146,13 +146,13 @@ namespace esphome
             // print out the content of the buffer
             for (int i = bufferPoiR; i < pw; i++)
             {
-                if (dataBuffer[i] == 83) {s += dataBuffer[i];} //S
-                else if (dataBuffer[i] == 115) {s += dataBuffer[i];} //s
-                else if (dataBuffer[i] == 87) {s += dataBuffer[i];} //W
-                else if (dataBuffer[i] == 82) {s += dataBuffer[i];} //R
-                else if (dataBuffer[i] == 43) {s += dataBuffer[i];} //+
-                else if (dataBuffer[i] == 45) {s += dataBuffer[i];} //-
-                else if (dataBuffer[i] == 10) {s += dataBuffer[i];} //\n newline
+                if (dataBuffer[i] == 'S') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == 's') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == 'W') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == 'R') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == '+') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == '-') {s += (char)dataBuffer[i];}
+                else if (dataBuffer[i] == '\n') {s += (char)dataBuffer[i];}
                 else {
                     s += toHex(dataBuffer[i] >> 4);
                     s += toHex(dataBuffer[i] & 0xF);

@@ -29,7 +29,7 @@ namespace esphome
     void Itho::execSystemControlTasks()
     {
       //// Only run once after a 200 msec of inactivity on the I2C bus. Itho queries the bus every 8 seconds
-      if (lowSCL == true)
+      if (lowSCL)
       {
         lowSCL = false;
         ESP_LOGD(TAG, "lowSCL triggered");
@@ -203,79 +203,79 @@ namespace esphome
     {
       ESP_LOGD(TAG, "EXEC VREMOTE BUTTON COMMAND: %s remote: %d", command.c_str(), remoteIndex);
 
-      if (strcmp(command.c_str(), "away") == 0)
+      if (command == "away")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAway, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "low") == 0)
+      else if (command == "low")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLow, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "medium") == 0)
+      else if (command == "medium")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoMedium, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "high") == 0)
+      else if (command == "high")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoHigh, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "timer1") == 0)
+      else if (command == "timer1")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer1, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "timer2") == 0)
+      else if (command == "timer2")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer2, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "timer3") == 0)
+      else if (command == "timer3")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer3, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "cook30") == 0)
+      else if (command == "cook30")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook30, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "cook60") == 0)
+      else if (command == "cook60")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook60, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "auto") == 0)
+      else if (command == "auto")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAuto, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "autonight") == 0)
+      else if (command == "autonight")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAutoNight, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "join") == 0)
+      else if (command == "join")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoJoin, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "leave") == 0)
+      else if (command == "leave")
       {
         this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLeave, this->virtualRemotes);
       }
-      else if (strcmp(command.c_str(), "type") == 0)
+      else if (command == "type")
       {
         this->ithoSystem->sendQueryDevicetype();
       }
-      else if (strcmp(command.c_str(), "status") == 0)
+      else if (command == "status")
       {
         this->ithoSystem->sendQueryStatus();
       }
-      else if (strcmp(command.c_str(), "statusformat") == 0)
+      else if (command == "statusformat")
       {
         this->ithoSystem->sendQueryStatusFormat();
       }
-      else if (strcmp(command.c_str(), "31DA") == 0)
+      else if (command == "31DA")
       {
         this->ithoSystem->sendQuery31DA();
       }
-      else if (strcmp(command.c_str(), "31D9") == 0)
+      else if (command == "31D9")
       {
         this->ithoSystem->sendQuery31D9();
       }
-      else if (strcmp(command.c_str(), "10D0") == 0)
+      else if (command == "10D0")
       {
         this->ithoSystem->filterReset();
       }

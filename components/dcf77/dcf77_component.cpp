@@ -20,12 +20,12 @@ namespace esphome {
       
       //sync clock only at 0 o'clock to prevent wifi and DCF interrupt pin conflicts
       if (syncHour == hour()) {
-        if (isSyncTime == false) {
+        if (!isSyncTime) {
           DCF.Start();
         }
         isSyncTime = true;
       } else {
-        if (isSyncTime == true) {
+        if (isSyncTime) {
           DCF.Stop();
         }
         isSyncTime = false;

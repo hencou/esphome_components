@@ -81,7 +81,7 @@ namespace esphome {
 
       // Only callback the state when receiving by a remote command, or by "mi_command"
       // Doing this with ESPhome sent states will slow down transitions
-      if (local == false) {
+      if (!local) {
         MiBridgeData data;
         data.device_id = bulbId.deviceId;
         data.group_id = bulbId.groupId;
@@ -90,7 +90,7 @@ namespace esphome {
         this->data_callback_.call(data);
       }
       
-      for (MiOutput miOutput : Mi::miOutputs) {
+      for (const auto& miOutput : Mi::miOutputs) {
         //also listen to groupId 0
         if (
             bulbId.deviceId == miOutput.bulbId.deviceId &&
@@ -114,14 +114,14 @@ namespace esphome {
             
             light::LightState* state;
             if (bulbId.groupId == 0) {
-              for (MiOutput miOutput : Mi::miOutputs) {
-                if (bulbId.deviceId == miOutput.bulbId.deviceId) {
-                  state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
+              for (const auto& miOutput2 : Mi::miOutputs) {
+                if (bulbId.deviceId == miOutput2.bulbId.deviceId) {
+                  state = App.get_light_by_key(miOutput2.key, miOutput2.deviceId);
                   Mi::updateOutput(state, requestJson);
                 }
               }
             } else {
-              if (local == false) {
+              if (!local) {
                 state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
                 Mi::updateOutput(state, requestJson);
               }
@@ -221,7 +221,7 @@ namespace esphome {
       // Do not handle listens while there are packets enqueued to be sent
       // Doing so causes the radio module to need to be reinitialized inbetween
       // repeats, which slows things down.
-      if (packetSender->isSending() || writingState == true) {
+      if (packetSender->isSending() || writingState) {
         return;
       }
 
@@ -317,7 +317,7 @@ namespace esphome {
      */
     void Mi::write_state(BulbId bulbId, light::LightState *state) {
 
-      for (MiOutput miOutput : Mi::miOutputs) {
+      for (const auto& miOutput : Mi::miOutputs) {
         if (bulbId == miOutput.bulbId) {
            light::LightState* state = App.get_light_by_key(miOutput.key, miOutput.deviceId);
            break;
@@ -332,7 +332,7 @@ namespace esphome {
       if (state->supports_effects()) {
         effect = state->get_effect_name();
        
-        if (effect.size() > 0 && effect != "None") {
+        if (!effect.empty() && effect != "None") {
          effectExist = true;
         }
       }
@@ -342,11 +342,7 @@ namespace esphome {
         
       if (effectExist) {
         
-        char *effectChr = new char[effect.size()+1];
-        std::copy(effect.begin(), effect.end(), effectChr);
-        effectChr[effect.size()] = '\0';
-         
-        root["effect"] = effectChr;
+        root["effect"] = effect.c_str();
         if (traits.supports_color_capability(light::ColorCapability::BRIGHTNESS)) {
           root["brightness"] = uint8_t(values.get_brightness() * 255);
         }
@@ -464,7 +460,7 @@ namespace esphome {
       
       milightClient->clearRepeatsOverride();
       
-      if (settings.resendLastCommand == true) {
+      if (settings.resendLastCommand) {
         Request request = Request();
         serializeJson(requestJson, request.request);
         ESP_LOGD(TAG, "Send Milight request: %s", request.request);
