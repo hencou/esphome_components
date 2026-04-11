@@ -3,6 +3,7 @@
 #include "esphome/core/log.h"
 #include "esphome.h"
 #include "esphome/core/component.h"
+#include <driver/gpio.h>
 
 namespace esphome
 {
@@ -19,10 +20,10 @@ namespace esphome
     //// Detect rising edge of I2C SCL pin
     uint8_t scl_pin;
     bool lowSCL = false;
-    void IRAM_ATTR gpio_intr()
+    void IRAM_ATTR gpio_intr(void *arg)
     {
       lowSCL = true;
-      detachInterrupt(digitalPinToInterrupt(scl_pin));
+      gpio_isr_handler_remove((gpio_num_t)scl_pin);
     }
     //// End detect rising edge of I2C SCL pin
 
@@ -35,7 +36,7 @@ namespace esphome
         ESP_LOGD(TAG, "lowSCL triggered");
         this->lastSCLLowTime = millis();
       }
-      if (millis() - lastSCLLowTime < 200 || digitalRead(systemConfig->getI2C_SCL_Pin()) == LOW)
+      if (millis() - lastSCLLowTime < 200 || gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
       {
         loopSystemControlTasks = true;
         return;
@@ -58,7 +59,7 @@ namespace esphome
           this->ithoInitResult = 1;
           this->i2cStartCommands = true;
 
-          digitalWrite(ITHOSTATUS, HIGH);
+          gpio_set_level((gpio_num_t)ITHOSTATUS, 1);
 
           if (this->systemConfig->getSysSHT30() > 0)
           {
@@ -165,13 +166,13 @@ namespace esphome
         this->ithoSystem->setUpdate2410(false);
         this->ithoSystem->setSettingsHack();
       }
-      attachInterrupt(digitalPinToInterrupt(systemConfig->getI2C_SCL_Pin()), gpio_intr, RISING);
+      gpio_isr_handler_add((gpio_num_t)systemConfig->getI2C_SCL_Pin(), gpio_intr, nullptr);
       lowSCL = false;
     }
 
     bool Itho::ithoInitCheck()
     {
-      if (digitalRead(STATUSPIN) == LOW)
+      if (gpio_get_level((gpio_num_t)STATUSPIN) == 0)
       {
         return false;
       }
@@ -311,9 +312,22 @@ namespace esphome
 
       ESP_LOGD(TAG, "Setup Itho Core start");
 
-      pinMode(STATUSPIN, INPUT_PULLUP);
-      pinMode(ITHOSTATUS, OUTPUT);
-      digitalWrite(ITHOSTATUS, LOW);
+      gpio_config_t io_conf_in = {};
+      io_conf_in.pin_bit_mask = (1ULL << STATUSPIN);
+      io_conf_in.mode = GPIO_MODE_INPUT;
+      io_conf_in.pull_up_en = GPIO_PULLUP_ENABLE;
+      io_conf_in.pull_down_en = GPIO_PULLDOWN_DISABLE;
+      io_conf_in.intr_type = GPIO_INTR_DISABLE;
+      gpio_config(&io_conf_in);
+
+      gpio_config_t io_conf_out = {};
+      io_conf_out.pin_bit_mask = (1ULL << ITHOSTATUS);
+      io_conf_out.mode = GPIO_MODE_OUTPUT;
+      io_conf_out.pull_up_en = GPIO_PULLUP_DISABLE;
+      io_conf_out.pull_down_en = GPIO_PULLDOWN_DISABLE;
+      io_conf_out.intr_type = GPIO_INTR_DISABLE;
+      gpio_config(&io_conf_out);
+      gpio_set_level((gpio_num_t)ITHOSTATUS, 0);
 
       static uint8_t mac[6];
       esphome::get_mac_address_raw(mac);
@@ -328,7 +342,15 @@ namespace esphome
       ithoQueue = new IthoQueue();
 
       scl_pin = systemConfig->getI2C_SCL_Pin();
-      pinMode(scl_pin, INPUT);
+      gpio_config_t io_conf_scl = {};
+      io_conf_scl.pin_bit_mask = (1ULL << scl_pin);
+      io_conf_scl.mode = GPIO_MODE_INPUT;
+      io_conf_scl.pull_up_en = GPIO_PULLUP_DISABLE;
+      io_conf_scl.pull_down_en = GPIO_PULLDOWN_DISABLE;
+      io_conf_scl.intr_type = GPIO_INTR_POSEDGE;
+      gpio_config(&io_conf_scl);
+      gpio_install_isr_service(0);
+      gpio_isr_handler_add((gpio_num_t)scl_pin, gpio_intr, nullptr);
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();

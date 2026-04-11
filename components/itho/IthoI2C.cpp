@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include <driver/i2c.h>
+#include <driver/gpio.h>
 
 #include "IthoI2C.h"
 
@@ -11,7 +11,7 @@ namespace esphome
 
     void IthoI2C::i2c_master_init()
     {
-      while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
+      while (gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
       {
         vTaskDelay(10 / portTICK_PERIOD_MS);
       }
@@ -43,7 +43,7 @@ namespace esphome
 
     void IthoI2C::i2c_slave_init()
     {
-       while (digitalRead((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == LOW)
+       while (gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
       {
         vTaskDelay(10 / portTICK_PERIOD_MS);
       }

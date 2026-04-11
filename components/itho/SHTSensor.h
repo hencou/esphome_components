@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <string>
 #include "IthoI2C.h"
 
 namespace esphome
@@ -61,7 +62,7 @@ namespace esphome
       float mY = 65535;
 
       char toHex(uint8_t c);
-      String i2cbuf2string(const uint8_t *data, size_t len);
+      std::string i2cbuf2string(const uint8_t *data, size_t len);
     };
 
   }

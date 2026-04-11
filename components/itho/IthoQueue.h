@@ -1,7 +1,11 @@
 #pragma once
 
 #include "esphome/components/json/json_util.h"
+#ifdef USE_ARDUINO
 #include <Ticker.h>
+#else
+#include <esp_timer.h>
+#endif
 
 namespace esphome
 {
@@ -45,7 +49,11 @@ namespace esphome
       bool ithoSpeedUpdated;
       mutable bool firstQueueItem{true};
       struct Queue items[MAX_QUEUE];
+#ifdef USE_ARDUINO
       Ticker queueUpdater;
+#else
+      esp_timer_handle_t queueUpdater = nullptr;
+#endif
 
     };
 

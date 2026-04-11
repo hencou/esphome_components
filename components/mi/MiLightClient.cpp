@@ -100,7 +100,7 @@ void MiLightClient::prepare(
 
 void MiLightClient::updateColorRaw(const uint8_t color) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateColorRaw: Change color to %d\n"), color);
+  printf("MiLightClient::updateColorRaw: Change color to %d\n", color);
 #endif
   currentRemote->packetFormatter->updateColorRaw(color);
   flushPacket();
@@ -108,7 +108,7 @@ void MiLightClient::updateColorRaw(const uint8_t color) {
 
 void MiLightClient::updateHue(const uint16_t hue) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateHue: Change hue to %d\n"), hue);
+  printf("MiLightClient::updateHue: Change hue to %d\n", hue);
 #endif
   currentRemote->packetFormatter->updateHue(hue);
   flushPacket();
@@ -116,7 +116,7 @@ void MiLightClient::updateHue(const uint16_t hue) {
 
 void MiLightClient::updateBrightness(const uint8_t brightness) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateBrightness: Change brightness to %d\n"), brightness);
+  printf("MiLightClient::updateBrightness: Change brightness to %d\n", brightness);
 #endif
   currentRemote->packetFormatter->updateBrightness(brightness);
   flushPacket();
@@ -124,7 +124,7 @@ void MiLightClient::updateBrightness(const uint8_t brightness) {
 
 void MiLightClient::updateMode(uint8_t mode) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateMode: Change mode to %d\n"), mode);
+  printf("MiLightClient::updateMode: Change mode to %d\n", mode);
 #endif
   currentRemote->packetFormatter->updateMode(mode);
   flushPacket();
@@ -132,7 +132,7 @@ void MiLightClient::updateMode(uint8_t mode) {
 
 void MiLightClient::nextMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::nextMode: Switch to next mode"));
+  printf("MiLightClient::nextMode: Switch to next mode\n");
 #endif
   currentRemote->packetFormatter->nextMode();
   flushPacket();
@@ -140,7 +140,7 @@ void MiLightClient::nextMode() {
 
 void MiLightClient::previousMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::previousMode: Switch to previous mode"));
+  printf("MiLightClient::previousMode: Switch to previous mode\n");
 #endif
   currentRemote->packetFormatter->previousMode();
   flushPacket();
@@ -148,14 +148,14 @@ void MiLightClient::previousMode() {
 
 void MiLightClient::modeSpeedDown() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::modeSpeedDown: Speed down\n"));
+  printf("MiLightClient::modeSpeedDown: Speed down\n");
 #endif
   currentRemote->packetFormatter->modeSpeedDown();
   flushPacket();
 }
 void MiLightClient::modeSpeedUp() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::modeSpeedUp: Speed up"));
+  printf("MiLightClient::modeSpeedUp: Speed up\n");
 #endif
   currentRemote->packetFormatter->modeSpeedUp();
   flushPacket();
@@ -163,7 +163,7 @@ void MiLightClient::modeSpeedUp() {
 
 void MiLightClient::updateStatus(MiLightStatus status, uint8_t groupId) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateStatus: Status %s, groupId %d\n"), status == MiLightStatus::OFF ? "OFF" : "ON", groupId);
+  printf("MiLightClient::updateStatus: Status %s, groupId %d\n", status == MiLightStatus::OFF ? "OFF" : "ON", groupId);
 #endif
 
   //<added by HC>
@@ -178,7 +178,7 @@ void MiLightClient::updateStatus(MiLightStatus status, uint8_t groupId) {
 
 void MiLightClient::updateStatus(MiLightStatus status) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateStatus: Status %s\n"), status == MiLightStatus::OFF ? "OFF" : "ON");
+  printf("MiLightClient::updateStatus: Status %s\n", status == MiLightStatus::OFF ? "OFF" : "ON");
 #endif
 
   //<added by HC>
@@ -193,7 +193,7 @@ void MiLightClient::updateStatus(MiLightStatus status) {
 
 void MiLightClient::updateSaturation(const uint8_t value) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateSaturation: Saturation %d\n"), value);
+  printf("MiLightClient::updateSaturation: Saturation %d\n", value);
 #endif
   currentRemote->packetFormatter->updateSaturation(value);
   flushPacket();
@@ -201,7 +201,7 @@ void MiLightClient::updateSaturation(const uint8_t value) {
 
 void MiLightClient::updateColorWhite() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::updateColorWhite: Color white"));
+  printf("MiLightClient::updateColorWhite: Color white\n");
 #endif
   currentRemote->packetFormatter->updateColorWhite();
   flushPacket();
@@ -209,7 +209,7 @@ void MiLightClient::updateColorWhite() {
 
 void MiLightClient::enableNightMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::enableNightMode: Night mode"));
+  printf("MiLightClient::enableNightMode: Night mode\n");
 #endif
 
   //<added by HC>
@@ -222,7 +222,7 @@ void MiLightClient::enableNightMode() {
 
 void MiLightClient::pair() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::pair: Pair"));
+  printf("MiLightClient::pair: Pair\n");
 #endif
   currentRemote->packetFormatter->pair();
   flushPacket();
@@ -230,7 +230,7 @@ void MiLightClient::pair() {
 
 void MiLightClient::unpair() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::unpair: Unpair"));
+  printf("MiLightClient::unpair: Unpair\n");
 #endif
   currentRemote->packetFormatter->unpair();
   flushPacket();
@@ -238,7 +238,7 @@ void MiLightClient::unpair() {
 
 void MiLightClient::increaseBrightness() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::increaseBrightness: Increase brightness"));
+  printf("MiLightClient::increaseBrightness: Increase brightness\n");
 #endif
   currentRemote->packetFormatter->increaseBrightness();
   flushPacket();
@@ -246,7 +246,7 @@ void MiLightClient::increaseBrightness() {
 
 void MiLightClient::decreaseBrightness() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::decreaseBrightness: Decrease brightness"));
+  printf("MiLightClient::decreaseBrightness: Decrease brightness\n");
 #endif
   currentRemote->packetFormatter->decreaseBrightness();
   flushPacket();
@@ -254,7 +254,7 @@ void MiLightClient::decreaseBrightness() {
 
 void MiLightClient::increaseTemperature() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::increaseTemperature: Increase temperature"));
+  printf("MiLightClient::increaseTemperature: Increase temperature\n");
 #endif
   currentRemote->packetFormatter->increaseTemperature();
   flushPacket();
@@ -262,7 +262,7 @@ void MiLightClient::increaseTemperature() {
 
 void MiLightClient::decreaseTemperature() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::decreaseTemperature: Decrease temperature"));
+  printf("MiLightClient::decreaseTemperature: Decrease temperature\n");
 #endif
   currentRemote->packetFormatter->decreaseTemperature();
   flushPacket();
@@ -270,7 +270,7 @@ void MiLightClient::decreaseTemperature() {
 
 void MiLightClient::updateTemperature(const uint8_t temperature) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::updateTemperature: Set temperature to %d\n"), temperature);
+  printf("MiLightClient::updateTemperature: Set temperature to %d\n", temperature);
 #endif
   currentRemote->packetFormatter->updateTemperature(temperature);
   flushPacket();
@@ -278,7 +278,7 @@ void MiLightClient::updateTemperature(const uint8_t temperature) {
 
 void MiLightClient::command(uint8_t command, uint8_t arg) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::command: Execute command %d, argument %d\n"), command, arg);
+  printf("MiLightClient::command: Execute command %d, argument %d\n", command, arg);
 #endif
   currentRemote->packetFormatter->command(command, arg);
   flushPacket();
@@ -286,7 +286,7 @@ void MiLightClient::command(uint8_t command, uint8_t arg) {
 
 void MiLightClient::toggleStatus() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("MiLightClient::toggleStatus"));
+  printf("MiLightClient::toggleStatus\n");
 #endif
   currentRemote->packetFormatter->toggleStatus();
   flushPacket();
@@ -431,19 +431,19 @@ void MiLightClient::handleCommand(JsonVariant command) {
 
 void MiLightClient::handleEffect(const std::string& effect) {
   #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf_P(PSTR("Request to handle effect '%s' in MiLight component."), effect);
+  printf("Request to handle effect '%s' in MiLight component.\n", effect.c_str());
   #endif
   if (!effect.starts_with("Mi ")) {
     // This is not a MiLight built-in effect. We don't need to handle it here.
     #ifdef DEBUG_CLIENT_COMMANDS
-    Serial.printf_P(PSTR("This is not a MiLight built-in effect."));
+    printf("This is not a MiLight built-in effect.\n");
     #endif
     return;
   }
   int effectId = atoi(effect.substr(3, 2).c_str());
   if (effectId < 0 || effectId > 9) {
     #ifdef DEBUG_CLIENT_COMMANDS
-    Serial.printf_P(PSTR("Invalid effect ID at position 3-4: %d. MiLights only support effect ids 1-9."), effectId);
+    printf("Invalid effect ID at position 3-4: %d. MiLights only support effect ids 1-9.\n", effectId);
     #endif
     return;
   }

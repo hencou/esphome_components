@@ -46,7 +46,7 @@ const MiLightRemoteConfig* MiLightRemoteConfig::fromReceivedPacket(
 
   // This can happen under normal circumstances, so not an error condition
 #ifdef DEBUG_PRINTF
-  Serial.println(F("MiLightRemoteConfig::fromReceivedPacket: ERROR - tried to fetch remote config for unknown packet"));
+  printf("MiLightRemoteConfig::fromReceivedPacket: ERROR - tried to fetch remote config for unknown packet\n");
 #endif
 
   return NULL;

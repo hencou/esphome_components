@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import pins
+from esphome import core, pins
 from esphome.const import (
     CONF_ID,
     CONF_INPUT,
@@ -40,7 +40,8 @@ async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
   await cg.register_component(var, config)
   
-  cg.add_library("Ticker", None)
+  if core.CORE.using_arduino:
+    cg.add_library("Ticker", None)
   
   if CONF_SYSSHT30_VALUE in config:
     cg.add(var.setSysSHT30(config[CONF_SYSSHT30_VALUE]))

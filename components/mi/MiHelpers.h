@@ -20,11 +20,10 @@ public:
   ~MiHelpers() { }
 
   uint32_t mi_millis() {
-      #ifdef USE_ARDUINO
-      #include <Arduino.h>
-        return millis();
-      #else
-        return esp_timer_get_time() / 1000;
-      #endif
+#ifdef USE_ARDUINO
+      return millis();
+#else
+      return esp_timer_get_time() / 1000;
+#endif
     }
 };
