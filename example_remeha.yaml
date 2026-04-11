@@ -50,13 +50,13 @@ remeha:
 sensor:
 - platform: remeha
   flow_temperature:
-    name: Flow Temperature
+    name: Flow Temperatuur
   outside_temperature:
-    name: Outside Temperature
+    name: Buiten temperatuur
   outside_temperature_3m_avg:
-    name: Outside Temperature 3min avg
+    name: Buiten temperatuur 3min avg
   outside_temperature_2h_avg:
-    name: Outside Temperature 2h avg
+    name: Buiten temperatuur 2h avg
   setpoint:
     name: Setpoint
   relative_power:
@@ -68,9 +68,9 @@ sensor:
   substatus_code:
     name: Substatus Code
   water_pressure:
-    name: Water Pressure
+    name: Waterdruk
   room_temperature:
-    name: Room Temperature
+    name: Kamer temperatuur
   locking_mode:
     name: Locking Mode
   blocking_mode:
@@ -94,17 +94,13 @@ sensor:
 number:
 - platform: remeha
   cp510_setpoint:
-    name: "CP510 Room Setpoint"
-  dhw_comfort_setpoint:
-    name: "DHW Comfort Setpoint"
+    name: "Gewenste kamertemperatuur"
 
 # --- Mode selectors ---
 select:
 - platform: remeha
   zone_mode:
     name: "Zone Mode"
-  dhw_mode:
-    name: "DHW Mode"
 
 # --- Status text ---
 text_sensor:
@@ -127,7 +123,7 @@ text_sensor:
 # --- Climate (thermostat in Home Assistant) ---
 climate:
 - platform: remeha
-  name: "Remeha Thermostat"
+  name: "Remeha Thermostaat"
   visual:
     min_temperature: 5
     max_temperature: 30
