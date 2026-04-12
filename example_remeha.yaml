@@ -94,7 +94,7 @@ sensor:
 number:
 - platform: remeha
   cp510_setpoint:
-    name: "Gewenste kamertemperatuur"
+    name: "CP510 Setpoint"
 
 # --- Mode selectors ---
 select:
