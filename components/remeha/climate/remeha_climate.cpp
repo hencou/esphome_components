@@ -31,7 +31,7 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
-  traits.set_visual_temperature_step(0.1f);
+  traits.set_visual_temperature_step(0.5f);
   return traits;
 }
 
@@ -74,13 +74,13 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
     auto custom_preset = call.get_custom_preset();
     if (this->parent_ != nullptr) {
       if (custom_preset == "Klokprogramma 1") {
-        this->parent_->write_sdo(0x3458, 0x01, 1, 1);
+        this->parent_->write_sdo(0x3458, 0x01, 0, 1);
         this->set_custom_preset_("Klokprogramma 1");
       } else if (custom_preset == "Klokprogramma 2") {
-        this->parent_->write_sdo(0x3458, 0x01, 2, 1);
+        this->parent_->write_sdo(0x3458, 0x01, 1, 1);
         this->set_custom_preset_("Klokprogramma 2");
       } else if (custom_preset == "Klokprogramma 3") {
-        this->parent_->write_sdo(0x3458, 0x01, 3, 1);
+        this->parent_->write_sdo(0x3458, 0x01, 2, 1);
         this->set_custom_preset_("Klokprogramma 3");
       }
     }
@@ -155,13 +155,13 @@ void RemehaClimate::update_action(uint8_t status_code) {
 
 void RemehaClimate::update_time_program(uint8_t program) {
   switch (program) {
-    case 1:
+    case 0:
       this->set_custom_preset_("Klokprogramma 1");
       break;
-    case 2:
+    case 1:
       this->set_custom_preset_("Klokprogramma 2");
       break;
-    case 3:
+    case 2:
       this->set_custom_preset_("Klokprogramma 3");
       break;
     default:
