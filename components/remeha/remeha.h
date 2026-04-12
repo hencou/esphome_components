@@ -149,9 +149,6 @@ class Remeha : public Component {
   uint8_t seg_read_buffer_[96]{};
   int seg_read_buffer_pos_{0};
 
-  uint8_t A = 0;
-  uint8_t B = 0;
-
   void process_trending_data_();
 
 #ifdef USE_SENSOR
