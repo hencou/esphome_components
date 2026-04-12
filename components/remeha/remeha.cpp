@@ -462,6 +462,13 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #endif
     } else
 #endif
+#ifdef USE_CLIMATE
+    if (index == 0x3458 && sub == 0x01 && this->climate_ != nullptr) {
+      uint8_t program = value & 0xFF;
+      this->climate_->update_time_program(program);
+      ESP_LOGD(TAG, "Time program=%d", program);
+    } else
+#endif
 #ifdef USE_SELECT
     if (index == 0x341F && sub == 0x01 && this->zone_mode_ != nullptr) {
       uint8_t mode = value & 0xFF;

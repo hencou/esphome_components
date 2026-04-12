@@ -153,5 +153,23 @@ void RemehaClimate::update_action(uint8_t status_code) {
   this->publish_state();
 }
 
+void RemehaClimate::update_time_program(uint8_t program) {
+  switch (program) {
+    case 1:
+      this->set_custom_preset_("Klokprogramma 1");
+      break;
+    case 2:
+      this->set_custom_preset_("Klokprogramma 2");
+      break;
+    case 3:
+      this->set_custom_preset_("Klokprogramma 3");
+      break;
+    default:
+      this->clear_custom_preset_();
+      break;
+  }
+  this->publish_state();
+}
+
 }  // namespace remeha
 }  // namespace esphome
