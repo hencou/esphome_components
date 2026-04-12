@@ -522,7 +522,7 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Water pressure=%.2f bar (raw=%d)", wp, d[22]);
   }
 
-  // Room temperature: byte 71 and 72, double byte × 0.01
+  // varZoneTRoom: byte 71 and 72, double byte × 0.01
   if (len > 72 && this->room_temperature_ != nullptr) {
     float room_temp = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;  // max 65535 × 0.1
     this->room_temperature_->publish_state(room_temp);
