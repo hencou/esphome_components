@@ -71,6 +71,8 @@ sensor:
     name: Waterdruk
   room_temperature:
     name: Kamer temperatuur
+  room_setpoint:
+    name: Truimte stpunt
   locking_mode:
     name: Locking Mode
   blocking_mode:
