@@ -26,3 +26,5 @@ async def to_code(config):
     parent = await cg.get_variable(config[CONF_REMEHA_ID])
     cg.add(var.set_parent(parent))
     cg.add(parent.set_climate(var))
+    # Poll time program selection (0x3458 sub 1) to display active klokprogramma
+    cg.add(parent.add_sdo_poll(0x3458, 0x01))
