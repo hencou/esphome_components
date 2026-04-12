@@ -101,6 +101,8 @@ select:
 - platform: remeha
   zone_mode:
     name: "Zone Mode"
+  time_program:
+    name: "Klokprogramma"
 
 # --- Status text ---
 text_sensor:

@@ -9,7 +9,7 @@ void RemehaSelect::control(const std::string &value) {
   const auto &options = this->traits.get_options();
   for (size_t i = 0; i < options.size(); i++) {
     if (options[i] == value) {
-      this->parent_->write_sdo(this->sdo_index_, this->sdo_subindex_, (uint32_t) i, 1);
+      this->parent_->write_sdo(this->sdo_index_, this->sdo_subindex_, (uint32_t)(i + this->value_offset_), 1);
       return;
     }
   }

@@ -8,7 +8,7 @@ AUTO_LOAD = ["remeha"]
 RemehaSelect = remeha_ns.class_("RemehaSelect", select.Select, cg.Component)
 
 CONF_ZONE_MODE = "zone_mode"
-CONF_DHW_MODE = "dhw_mode"
+CONF_TIME_PROGRAM = "time_program"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -16,6 +16,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_ZONE_MODE): select.select_schema(
             RemehaSelect,
             icon="mdi:home-switch",
+        ),
+        cv.Optional(CONF_TIME_PROGRAM): select.select_schema(
+            RemehaSelect,
+            icon="mdi:clock-outline",
         ),
     }
 )
@@ -27,6 +31,14 @@ SELECT_PARAMS = {
         "sdo_subindex": 0x01,
         "options": ["Auto", "Heat", "Off"],
         "setter": "set_zone_mode_select",
+        "value_offset": 0,
+    },
+    CONF_TIME_PROGRAM: {
+        "sdo_index": 0x3458,
+        "sdo_subindex": 0x01,
+        "options": ["Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"],
+        "setter": "set_time_program_select",
+        "value_offset": 1,
     },
 }
 
@@ -44,6 +56,7 @@ async def to_code(config):
             cg.add(sel.set_parent(parent))
             cg.add(sel.set_sdo_index(params["sdo_index"]))
             cg.add(sel.set_sdo_subindex(params["sdo_subindex"]))
+            cg.add(sel.set_value_offset(params["value_offset"]))
             cg.add(getattr(parent, params["setter"])(sel))
             # Register SDO poll for read-back
             cg.add(parent.add_sdo_poll(params["sdo_index"], params["sdo_subindex"]))

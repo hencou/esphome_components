@@ -79,6 +79,7 @@ class Remeha : public Component {
 
 #ifdef USE_SELECT
   void set_zone_mode_select(select::Select *s) { this->zone_mode_ = s; }
+  void set_time_program_select(select::Select *s) { this->time_program_ = s; }
 #endif
 
 #ifdef USE_CLIMATE
@@ -185,6 +186,7 @@ class Remeha : public Component {
 
 #ifdef USE_SELECT
   select::Select *zone_mode_{nullptr};
+  select::Select *time_program_{nullptr};
 #endif
 
 #ifdef USE_CLIMATE

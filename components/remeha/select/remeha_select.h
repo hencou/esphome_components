@@ -13,6 +13,7 @@ class RemehaSelect : public select::Select, public Component {
   void set_parent(Remeha *parent) { this->parent_ = parent; }
   void set_sdo_index(uint16_t index) { this->sdo_index_ = index; }
   void set_sdo_subindex(uint8_t subindex) { this->sdo_subindex_ = subindex; }
+  void set_value_offset(uint8_t offset) { this->value_offset_ = offset; }
 
   void setup() override {}
   void dump_config() override {}
@@ -24,6 +25,7 @@ class RemehaSelect : public select::Select, public Component {
   Remeha *parent_{nullptr};
   uint16_t sdo_index_{0};
   uint8_t sdo_subindex_{0};
+  uint8_t value_offset_{0};
 };
 
 }  // namespace remeha

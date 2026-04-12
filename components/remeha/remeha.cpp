@@ -462,13 +462,23 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #endif
     } else
 #endif
-#ifdef USE_CLIMATE
-    if (index == 0x3458 && sub == 0x01 && this->climate_ != nullptr) {
+    if (index == 0x3458 && sub == 0x01) {
       uint8_t program = value & 0xFF;
-      this->climate_->update_time_program(program);
       ESP_LOGD(TAG, "Time program=%d", program);
-    } else
+#ifdef USE_SELECT
+      if (this->time_program_ != nullptr) {
+        const auto &options = this->time_program_->traits.get_options();
+        int idx = program - 1;  // SDO values are 1-indexed
+        if (idx >= 0 && idx < (int)options.size()) {
+          this->time_program_->publish_state(options[idx]);
+        }
+      }
 #endif
+#ifdef USE_CLIMATE
+      if (this->climate_ != nullptr)
+        this->climate_->update_time_program(program);
+#endif
+    } else
 #ifdef USE_SELECT
     if (index == 0x341F && sub == 0x01 && this->zone_mode_ != nullptr) {
       uint8_t mode = value & 0xFF;
