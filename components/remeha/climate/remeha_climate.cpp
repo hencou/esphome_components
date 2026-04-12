@@ -28,6 +28,13 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
   traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_NONE);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_HOME);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_AWAY);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_BOOST);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_COMFORT);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_ECO);
+  traits.add_supported_preset(climate::CLIMATE_PRESET_SLEEP);
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
   traits.set_visual_temperature_step(0.1f);
@@ -67,6 +74,59 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       this->parent_->write_sdo(0x3451, 0x01, raw, 2);
     }
     this->target_temperature = target;
+  }
+
+  if (call.get_preset().has_value()) {
+    auto preset = *call.get_preset();
+    this->preset = preset;
+    if (this->parent_ != nullptr) {
+      switch (preset) {
+        case climate::CLIMATE_PRESET_HOME:
+          // Schedule mode (zone mode auto)
+          this->parent_->write_sdo(0x341F, 0x01, 0, 1);
+          this->mode = climate::CLIMATE_MODE_AUTO;
+          break;
+        case climate::CLIMATE_PRESET_AWAY:
+          // Away: manual mode, reduced setpoint 15°C
+          this->parent_->write_sdo(0x341F, 0x01, 1, 1);
+          this->parent_->write_sdo(0x3451, 0x01, 150, 2);
+          this->target_temperature = 15.0f;
+          this->mode = climate::CLIMATE_MODE_HEAT;
+          break;
+        case climate::CLIMATE_PRESET_BOOST:
+          // Boost: manual mode, high setpoint 25°C
+          this->parent_->write_sdo(0x341F, 0x01, 1, 1);
+          this->parent_->write_sdo(0x3451, 0x01, 250, 2);
+          this->target_temperature = 25.0f;
+          this->mode = climate::CLIMATE_MODE_HEAT;
+          break;
+        case climate::CLIMATE_PRESET_COMFORT:
+          // Comfort: manual mode, comfort setpoint 21°C
+          this->parent_->write_sdo(0x341F, 0x01, 1, 1);
+          this->parent_->write_sdo(0x3451, 0x01, 210, 2);
+          this->target_temperature = 21.0f;
+          this->mode = climate::CLIMATE_MODE_HEAT;
+          break;
+        case climate::CLIMATE_PRESET_ECO:
+          // Eco: manual mode, eco setpoint 18°C
+          this->parent_->write_sdo(0x341F, 0x01, 1, 1);
+          this->parent_->write_sdo(0x3451, 0x01, 180, 2);
+          this->target_temperature = 18.0f;
+          this->mode = climate::CLIMATE_MODE_HEAT;
+          break;
+        case climate::CLIMATE_PRESET_SLEEP:
+          // Sleep: manual mode, night setpoint 16°C
+          this->parent_->write_sdo(0x341F, 0x01, 1, 1);
+          this->parent_->write_sdo(0x3451, 0x01, 160, 2);
+          this->target_temperature = 16.0f;
+          this->mode = climate::CLIMATE_MODE_HEAT;
+          break;
+        case climate::CLIMATE_PRESET_NONE:
+        default:
+          // No preset: keep current mode
+          break;
+      }
+    }
   }
 
   this->publish_state();
