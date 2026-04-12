@@ -27,7 +27,7 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_feature_flags(climate::CLIMATE_SUPPORTS_ACTION);
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
-  traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+  traits.add_supported_mode(climate::CLIMATE_MODE_HEAT_COOL);
   traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
@@ -46,7 +46,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       case climate::CLIMATE_MODE_HEAT:
         zone_mode = 1;
         break;
-      case climate::CLIMATE_MODE_AUTO:
+      case climate::CLIMATE_MODE_HEAT_COOL:
         zone_mode = 0;
         break;
       default:
@@ -108,7 +108,7 @@ void RemehaClimate::update_zone_mode(uint8_t mode) {
       this->mode = climate::CLIMATE_MODE_HEAT;
       break;
     case 0:
-      this->mode = climate::CLIMATE_MODE_AUTO;
+      this->mode = climate::CLIMATE_MODE_HEAT_COOL;
       break;
     default:
       break;
