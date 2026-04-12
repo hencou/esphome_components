@@ -474,10 +474,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         }
       }
 #endif
-#ifdef USE_CLIMATE
-      if (this->climate_ != nullptr)
-        this->climate_->update_time_program(program);
-#endif
     } else
 #ifdef USE_SELECT
     if (index == 0x341F && sub == 0x01 && this->zone_mode_ != nullptr) {

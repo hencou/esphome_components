@@ -20,7 +20,6 @@ class RemehaClimate : public climate::Climate, public Component {
   void update_target_temperature(float temp);
   void update_zone_mode(uint8_t mode);
   void update_action(uint8_t status_code);
-  void update_time_program(uint8_t program);
 
  protected:
   climate::ClimateTraits traits() override;
