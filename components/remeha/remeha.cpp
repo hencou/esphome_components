@@ -529,10 +529,10 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Room temperature=%.1f C", room_temp);
   }
 
-  // varZoneTRoomSetpoint: bytes 23-24, uint16 LE × 0.1
+  // varZoneTRoomSetpoint: bytes 75-76, uint16 LE × 0.1
   // This is the ACTIVE setpoint from the klokprogramma (not CP510)
-  if (len > 24 && this->room_setpoint_ != nullptr) {
-    float setpoint = (uint16_t)(d[23] | (d[24] << 8)) * 0.1f;
+  if (len > 76 && this->room_setpoint_ != nullptr) {
+    float setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
     this->room_setpoint_->publish_state(setpoint);
     ESP_LOGD(TAG, "Room setpoint (Truimte stpunt)=%.1f C", setpoint);
   }
@@ -545,9 +545,9 @@ void Remeha::process_trending_data_() {
     if (room_temp2 > 0.0f && room_temp2 < 50.0f)
       this->climate_->update_current_temperature(room_temp2);
   }
-  // Update climate entity with active setpoint from bytes 23-24 (varZoneTRoomSetpoint)
-  if (this->climate_ != nullptr && len > 24) {
-    float active_setpoint = (uint16_t)(d[23] | (d[24] << 8)) * 0.1f;
+  // Update climate entity with active setpoint from bytes 75-76 (varZoneTRoomSetpoint)
+  if (this->climate_ != nullptr && len > 76) {
+    float active_setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
     if (active_setpoint > 0.0f && active_setpoint < 50.0f)
       this->climate_->update_target_temperature(active_setpoint);
   }
