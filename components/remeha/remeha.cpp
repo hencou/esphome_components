@@ -456,10 +456,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->cp510_setpoint_->publish_state(temp);
       ESP_LOGD(TAG, "CP510 current=%.1f C (raw=%u)", temp, value & 0xFFFF);
-#ifdef USE_CLIMATE
-      if (this->climate_ != nullptr)
-        this->climate_->update_target_temperature(temp);
-#endif
     } else
 #endif
     if (index == 0x3458 && sub == 0x01) {
@@ -533,16 +529,27 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Room temperature=%.1f C", room_temp);
   }
 
-  // Room setpoint: read from CP510 via SDO poll, not from trending data
-  // (bytes 27-28 in trending data is NOT room setpoint)
+  // varZoneTRoomSetpoint: bytes 23-24, uint16 LE × 0.1
+  // This is the ACTIVE setpoint from the klokprogramma (not CP510)
+  if (len > 24 && this->room_setpoint_ != nullptr) {
+    float setpoint = (uint16_t)(d[23] | (d[24] << 8)) * 0.1f;
+    this->room_setpoint_->publish_state(setpoint);
+    ESP_LOGD(TAG, "Room setpoint (Truimte stpunt)=%.1f C", setpoint);
+  }
 #endif
 
 #ifdef USE_CLIMATE
-  // Update climate entity with room temperature from byte 23 and 24
+  // Update climate entity with current room temperature from bytes 71-72
   if (this->climate_ != nullptr && len > 72) {
-    float room_temp2 = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;  // max 65535 × 0.1
+    float room_temp2 = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;
     if (room_temp2 > 0.0f && room_temp2 < 50.0f)
       this->climate_->update_current_temperature(room_temp2);
+  }
+  // Update climate entity with active setpoint from bytes 23-24 (varZoneTRoomSetpoint)
+  if (this->climate_ != nullptr && len > 24) {
+    float active_setpoint = (uint16_t)(d[23] | (d[24] << 8)) * 0.1f;
+    if (active_setpoint > 0.0f && active_setpoint < 50.0f)
+      this->climate_->update_target_temperature(active_setpoint);
   }
 #endif
 }
