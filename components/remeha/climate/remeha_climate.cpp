@@ -27,7 +27,8 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_feature_flags(climate::CLIMATE_SUPPORTS_ACTION);
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
-  traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+  traits.add_supported_mode(climate::CLIMATE_MODE_HEAT_COOL);
+  traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
   traits.set_visual_temperature_step(0.1f);
@@ -45,7 +46,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       case climate::CLIMATE_MODE_HEAT:
         zone_mode = 1;
         break;
-      case climate::CLIMATE_MODE_AUTO:
+      case climate::CLIMATE_MODE_HEAT_COOL:
         zone_mode = 0;
         break;
       default:
@@ -67,6 +68,22 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       this->parent_->write_sdo(0x3451, 0x01, raw, 2);
     }
     this->target_temperature = target;
+  }
+
+  if (call.has_custom_preset()) {
+    auto custom_preset = call.get_custom_preset();
+    if (this->parent_ != nullptr) {
+      if (custom_preset == "Klokprogramma 1") {
+        this->parent_->write_sdo(0x3458, 0x01, 1, 1);
+        this->set_custom_preset_("Klokprogramma 1");
+      } else if (custom_preset == "Klokprogramma 2") {
+        this->parent_->write_sdo(0x3458, 0x01, 2, 1);
+        this->set_custom_preset_("Klokprogramma 2");
+      } else if (custom_preset == "Klokprogramma 3") {
+        this->parent_->write_sdo(0x3458, 0x01, 3, 1);
+        this->set_custom_preset_("Klokprogramma 3");
+      }
+    }
   }
 
   this->publish_state();
@@ -91,7 +108,7 @@ void RemehaClimate::update_zone_mode(uint8_t mode) {
       this->mode = climate::CLIMATE_MODE_HEAT;
       break;
     case 0:
-      this->mode = climate::CLIMATE_MODE_AUTO;
+      this->mode = climate::CLIMATE_MODE_HEAT_COOL;
       break;
     default:
       break;
@@ -136,6 +153,23 @@ void RemehaClimate::update_action(uint8_t status_code) {
   this->publish_state();
 }
 
+void RemehaClimate::update_time_program(uint8_t program) {
+  switch (program) {
+    case 1:
+      this->set_custom_preset_("Klokprogramma 1");
+      break;
+    case 2:
+      this->set_custom_preset_("Klokprogramma 2");
+      break;
+    case 3:
+      this->set_custom_preset_("Klokprogramma 3");
+      break;
+    default:
+      this->clear_custom_preset_();
+      break;
+  }
+  this->publish_state();
+}
 
 }  // namespace remeha
 }  // namespace esphome
