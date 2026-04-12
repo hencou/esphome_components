@@ -70,7 +70,7 @@ sensor:
   water_pressure:
     name: Waterdruk
   room_temperature:
-    name: Kamer temperatuur
+    name: Truimte groep
   room_setpoint:
     name: Truimte stpunt
   locking_mode:
