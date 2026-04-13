@@ -276,7 +276,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       bool is_last = (seg_cmd & 0x01) != 0;
       // Buffer segment data (7 bytes per segment in x[1]-x[7])
       for (int i = 1; i < (int)x.size() && i <= 7; i++) {
-        if (this->seg_read_buffer_pos_ < 96) {
+        if (this->seg_read_buffer_pos_ < 100) {
           this->seg_read_buffer_[this->seg_read_buffer_pos_++] = x[i];
         }
       }
@@ -509,32 +509,108 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
   }
 }
 
-// --- Process buffered trending data (0x501D, 93 bytes) ---
+// --- Process buffered trending data (0x501D, 98 bytes) ---
 void Remeha::process_trending_data_() {
   int len = this->seg_read_buffer_pos_;
   const uint8_t *d = this->seg_read_buffer_;
 
 #ifdef USE_SENSOR
-  // Water pressure: byte 22, single byte × 0.01
-  if (len > 22 && this->water_pressure_ != nullptr) {
-    float wp = d[22] * 0.01f;
-    this->water_pressure_->publish_state(wp);
-    ESP_LOGD(TAG, "Water pressure=%.2f bar (raw=%d)", wp, d[22]);
+  // Boiler temperature (T aanvoer from trending): bytes 10-11, int16 LE × 0.01
+  if (len > 11 && this->boiler_temperature_ != nullptr) {
+    float val = (int16_t)(d[10] | (d[11] << 8)) * 0.01f;
+    this->boiler_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "Boiler temperature=%.2f C", val);
   }
 
-  // varZoneTRoom: byte 71 and 72, double byte × 0.01
+  // Flue gas temperature (Rookgastemperatuur): bytes 12-13, int16 LE × 0.01
+  if (len > 13 && this->flue_gas_temperature_ != nullptr) {
+    float val = (int16_t)(d[12] | (d[13] << 8)) * 0.01f;
+    this->flue_gas_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "Flue gas temperature=%.2f C", val);
+  }
+
+  // Return temperature (T retour): bytes 14-15, int16 LE × 0.01
+  if (len > 15 && this->return_temperature_ != nullptr) {
+    float val = (int16_t)(d[14] | (d[15] << 8)) * 0.01f;
+    this->return_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "Return temperature=%.2f C", val);
+  }
+
+  // DHW temperature (SWW tank temp): bytes 16-17, int16 LE × 0.01
+  if (len > 17 && this->dhw_temperature_ != nullptr) {
+    float val = (int16_t)(d[16] | (d[17] << 8)) * 0.01f;
+    this->dhw_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "DHW temperature=%.2f C", val);
+  }
+
+  // Control temperature (Regeltemperatuur): bytes 20-21, int16 LE × 0.01
+  if (len > 21 && this->control_temperature_ != nullptr) {
+    float val = (int16_t)(d[20] | (d[21] << 8)) * 0.01f;
+    this->control_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "Control temperature=%.2f C", val);
+  }
+
+  // Internal setpoint (Intern setpunt): bytes 22-23, int16 LE × 0.01
+  if (len > 23 && this->internal_setpoint_ != nullptr) {
+    float val = (int16_t)(d[22] | (d[23] << 8)) * 0.01f;
+    this->internal_setpoint_->publish_state(val);
+    ESP_LOGD(TAG, "Internal setpoint=%.2f C", val);
+  }
+
+  // Outside temperature boiler (Tbuiten): bytes 26-27, int16 LE × 0.01
+  if (len > 27 && this->outside_temp_boiler_ != nullptr) {
+    float val = (int16_t)(d[26] | (d[27] << 8)) * 0.01f;
+    this->outside_temp_boiler_->publish_state(val);
+    ESP_LOGD(TAG, "Outside temp boiler=%.2f C", val);
+  }
+
+  // Actual modulation (Act. rel.): bytes 36-37, uint16 LE × 0.01
+  if (len > 37 && this->actual_modulation_ != nullptr) {
+    float val = (uint16_t)(d[36] | (d[37] << 8)) * 0.01f;
+    this->actual_modulation_->publish_state(val);
+    ESP_LOGD(TAG, "Actual modulation=%.2f %%", val);
+  }
+
+  // Flame current (Vlamstroom): byte 39, uint8 × 0.1
+  if (len > 39 && this->flame_current_ != nullptr) {
+    float val = d[39] * 0.1f;
+    this->flame_current_->publish_state(val);
+    ESP_LOGD(TAG, "Flame current=%.1f uA", val);
+  }
+
+  // Pump speed (Pomptoerental): bytes 44-45, uint16 LE × 0.1
+  if (len > 45 && this->pump_speed_ != nullptr) {
+    float val = (uint16_t)(d[44] | (d[45] << 8)) * 0.1f;
+    this->pump_speed_->publish_state(val);
+    ESP_LOGD(TAG, "Pump speed=%.1f %%", val);
+  }
+
+  // Water pressure: byte 49, single byte × 0.1
+  if (len > 49 && this->water_pressure_ != nullptr) {
+    float wp = d[49] * 0.1f;
+    this->water_pressure_->publish_state(wp);
+    ESP_LOGD(TAG, "Water pressure=%.1f bar (raw=%d)", wp, d[49]);
+  }
+
+  // Room temperature (Truimte groep): bytes 71-72, uint16 LE × 0.1
   if (len > 72 && this->room_temperature_ != nullptr) {
-    float room_temp = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;  // max 65535 × 0.1
+    float room_temp = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;
     this->room_temperature_->publish_state(room_temp);
     ESP_LOGD(TAG, "Room temperature=%.1f C", room_temp);
   }
 
-  // varZoneTRoomSetpoint: bytes 75-76, uint16 LE × 0.1
-  // This is the ACTIVE setpoint from the klokprogramma (not CP510)
+  // Room setpoint (Truimte stpunt): bytes 75-76, uint16 LE × 0.1
   if (len > 76 && this->room_setpoint_ != nullptr) {
     float setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
     this->room_setpoint_->publish_state(setpoint);
-    ESP_LOGD(TAG, "Room setpoint (Truimte stpunt)=%.1f C", setpoint);
+    ESP_LOGD(TAG, "Room setpoint=%.1f C", setpoint);
+  }
+
+  // Calculated temperature (Berekende): bytes 79-80, int16 LE × 0.01
+  if (len > 80 && this->calculated_temperature_ != nullptr) {
+    float val = (int16_t)(d[79] | (d[80] << 8)) * 0.01f;
+    this->calculated_temperature_->publish_state(val);
+    ESP_LOGD(TAG, "Calculated temperature=%.2f C", val);
   }
 #endif
 

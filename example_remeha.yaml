@@ -81,6 +81,28 @@ sensor:
     name: Appliance Type
   appliance_variant:
     name: Appliance Variant
+  return_temperature:
+    name: T retour
+  dhw_temperature:
+    name: SWW tank temp
+  control_temperature:
+    name: Regeltemperatuur
+  internal_setpoint:
+    name: Intern setpunt
+  outside_temp_boiler:
+    name: Tbuiten ketel
+  calculated_temperature:
+    name: Berekende temperatuur
+  boiler_temperature:
+    name: T aanvoer (trending)
+  flue_gas_temperature:
+    name: Rookgastemperatuur
+  actual_modulation:
+    name: Act. rel. modulatie
+  pump_speed:
+    name: Pomptoerental
+  flame_current:
+    name: Vlamstroom
 
 - platform: uptime
   name: Uptime

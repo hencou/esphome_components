@@ -6,6 +6,7 @@ from esphome.const import (
     DEVICE_CLASS_PRESSURE,
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
+    UNIT_PERCENT,
 )
 from .. import remeha_ns, CONF_REMEHA_ID, Remeha
 
@@ -29,6 +30,17 @@ CONF_ERROR_HISTORY = "error_history"
 CONF_DIAGNOSTICS = "diagnostics"
 CONF_APPLIANCE_TYPE = "appliance_type"
 CONF_APPLIANCE_VARIANT = "appliance_variant"
+CONF_RETURN_TEMPERATURE = "return_temperature"
+CONF_DHW_TEMPERATURE = "dhw_temperature"
+CONF_CONTROL_TEMPERATURE = "control_temperature"
+CONF_INTERNAL_SETPOINT = "internal_setpoint"
+CONF_OUTSIDE_TEMP_BOILER = "outside_temp_boiler"
+CONF_CALCULATED_TEMPERATURE = "calculated_temperature"
+CONF_BOILER_TEMPERATURE = "boiler_temperature"
+CONF_FLUE_GAS_TEMPERATURE = "flue_gas_temperature"
+CONF_ACTUAL_MODULATION = "actual_modulation"
+CONF_PUMP_SPEED = "pump_speed"
+CONF_FLAME_CURRENT = "flame_current"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -121,6 +133,80 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_APPLIANCE_VARIANT): sensor.sensor_schema(
             accuracy_decimals=0,
         ),
+        cv.Optional(CONF_RETURN_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer",
+        ),
+        cv.Optional(CONF_DHW_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-water",
+        ),
+        cv.Optional(CONF_CONTROL_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer",
+        ),
+        cv.Optional(CONF_INTERNAL_SETPOINT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-chevron-up",
+        ),
+        cv.Optional(CONF_OUTSIDE_TEMP_BOILER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer",
+        ),
+        cv.Optional(CONF_CALCULATED_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-auto",
+        ),
+        cv.Optional(CONF_BOILER_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-high",
+        ),
+        cv.Optional(CONF_FLUE_GAS_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:smoke",
+        ),
+        cv.Optional(CONF_ACTUAL_MODULATION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=2,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:percent",
+        ),
+        cv.Optional(CONF_PUMP_SPEED): sensor.sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:pump",
+        ),
+        cv.Optional(CONF_FLAME_CURRENT): sensor.sensor_schema(
+            unit_of_measurement="\u00b5A",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:fire",
+        ),
     }
 )
 
@@ -135,6 +221,17 @@ SDO_POLL_MAP = {
     CONF_WATER_PRESSURE: (0x501D, 0x00),
     CONF_ROOM_TEMPERATURE: (0x501D, 0x00),
     CONF_ROOM_SETPOINT: (0x501D, 0x00),
+    CONF_RETURN_TEMPERATURE: (0x501D, 0x00),
+    CONF_DHW_TEMPERATURE: (0x501D, 0x00),
+    CONF_CONTROL_TEMPERATURE: (0x501D, 0x00),
+    CONF_INTERNAL_SETPOINT: (0x501D, 0x00),
+    CONF_OUTSIDE_TEMP_BOILER: (0x501D, 0x00),
+    CONF_CALCULATED_TEMPERATURE: (0x501D, 0x00),
+    CONF_BOILER_TEMPERATURE: (0x501D, 0x00),
+    CONF_FLUE_GAS_TEMPERATURE: (0x501D, 0x00),
+    CONF_ACTUAL_MODULATION: (0x501D, 0x00),
+    CONF_PUMP_SPEED: (0x501D, 0x00),
+    CONF_FLAME_CURRENT: (0x501D, 0x00),
 }
 
 
@@ -160,6 +257,17 @@ async def to_code(config):
         CONF_DIAGNOSTICS: "set_diagnostics_sensor",
         CONF_APPLIANCE_TYPE: "set_appliance_type_sensor",
         CONF_APPLIANCE_VARIANT: "set_appliance_variant_sensor",
+        CONF_RETURN_TEMPERATURE: "set_return_temperature_sensor",
+        CONF_DHW_TEMPERATURE: "set_dhw_temperature_sensor",
+        CONF_CONTROL_TEMPERATURE: "set_control_temperature_sensor",
+        CONF_INTERNAL_SETPOINT: "set_internal_setpoint_sensor",
+        CONF_OUTSIDE_TEMP_BOILER: "set_outside_temp_boiler_sensor",
+        CONF_CALCULATED_TEMPERATURE: "set_calculated_temperature_sensor",
+        CONF_BOILER_TEMPERATURE: "set_boiler_temperature_sensor",
+        CONF_FLUE_GAS_TEMPERATURE: "set_flue_gas_temperature_sensor",
+        CONF_ACTUAL_MODULATION: "set_actual_modulation_sensor",
+        CONF_PUMP_SPEED: "set_pump_speed_sensor",
+        CONF_FLAME_CURRENT: "set_flame_current_sensor",
     }
 
     for conf_key, setter in sensor_configs.items():
