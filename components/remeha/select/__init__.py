@@ -38,7 +38,7 @@ SELECT_PARAMS = {
         "sdo_subindex": 0x01,
         "options": ["Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"],
         "setter": "set_time_program_select",
-        "value_offset": 1,
+        "value_offset": 0,
     },
 }
 
