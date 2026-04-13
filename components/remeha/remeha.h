@@ -65,6 +65,16 @@ class Remeha : public Component {
   void set_diagnostics_sensor(sensor::Sensor *s) { this->diagnostics_ = s; }
   void set_appliance_type_sensor(sensor::Sensor *s) { this->appliance_type_ = s; }
   void set_appliance_variant_sensor(sensor::Sensor *s) { this->appliance_variant_ = s; }
+  void set_dhw_temperature_sensor(sensor::Sensor *s) { this->dhw_temperature_ = s; }
+  void set_control_temperature_sensor(sensor::Sensor *s) { this->control_temperature_ = s; }
+  void set_internal_setpoint_sensor(sensor::Sensor *s) { this->internal_setpoint_ = s; }
+  void set_outside_temp_boiler_sensor(sensor::Sensor *s) { this->outside_temp_boiler_ = s; }
+  void set_calculated_temperature_sensor(sensor::Sensor *s) { this->calculated_temperature_ = s; }
+  void set_boiler_temperature_sensor(sensor::Sensor *s) { this->boiler_temperature_ = s; }
+  void set_flue_gas_temperature_sensor(sensor::Sensor *s) { this->flue_gas_temperature_ = s; }
+  void set_actual_modulation_sensor(sensor::Sensor *s) { this->actual_modulation_ = s; }
+  void set_pump_speed_sensor(sensor::Sensor *s) { this->pump_speed_ = s; }
+  void set_flame_current_sensor(sensor::Sensor *s) { this->flame_current_ = s; }
 #endif
 
 #ifdef USE_TEXT_SENSOR
@@ -147,7 +157,7 @@ class Remeha : public Component {
   bool seg_read_active_{false};
   int seg_read_segment_{0};
   uint32_t seg_read_start_ms_{0};
-  uint8_t seg_read_buffer_[96]{};
+  uint8_t seg_read_buffer_[100]{};
   int seg_read_buffer_pos_{0};
 
   void process_trending_data_();
@@ -172,6 +182,16 @@ class Remeha : public Component {
   sensor::Sensor *diagnostics_{nullptr};
   sensor::Sensor *appliance_type_{nullptr};
   sensor::Sensor *appliance_variant_{nullptr};
+  sensor::Sensor *dhw_temperature_{nullptr};
+  sensor::Sensor *control_temperature_{nullptr};
+  sensor::Sensor *internal_setpoint_{nullptr};
+  sensor::Sensor *outside_temp_boiler_{nullptr};
+  sensor::Sensor *calculated_temperature_{nullptr};
+  sensor::Sensor *boiler_temperature_{nullptr};
+  sensor::Sensor *flue_gas_temperature_{nullptr};
+  sensor::Sensor *actual_modulation_{nullptr};
+  sensor::Sensor *pump_speed_{nullptr};
+  sensor::Sensor *flame_current_{nullptr};
 #endif
 
 #ifdef USE_TEXT_SENSOR
