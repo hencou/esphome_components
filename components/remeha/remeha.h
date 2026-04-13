@@ -27,6 +27,9 @@ static const char *const TAG = "remeha";
 #ifdef USE_CLIMATE
 class RemehaClimate;
 #endif
+#ifdef USE_SELECT
+class RemehaSelect;
+#endif
 
 class Remeha : public Component {
  public:
@@ -88,8 +91,8 @@ class Remeha : public Component {
 #endif
 
 #ifdef USE_SELECT
-  void set_zone_mode_select(select::Select *s) { this->zone_mode_ = s; }
-  void set_time_program_select(select::Select *s) { this->time_program_ = s; }
+  void set_zone_mode_select(RemehaSelect *s) { this->zone_mode_ = s; }
+  void set_time_program_select(RemehaSelect *s) { this->time_program_ = s; }
 #endif
 
 #ifdef USE_CLIMATE
@@ -205,8 +208,8 @@ class Remeha : public Component {
 #endif
 
 #ifdef USE_SELECT
-  select::Select *zone_mode_{nullptr};
-  select::Select *time_program_{nullptr};
+  RemehaSelect *zone_mode_{nullptr};
+  RemehaSelect *time_program_{nullptr};
 #endif
 
 #ifdef USE_CLIMATE
