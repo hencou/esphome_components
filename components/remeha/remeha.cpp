@@ -2,6 +2,9 @@
 #ifdef USE_CLIMATE
 #include "climate/remeha_climate.h"
 #endif
+#ifdef USE_SELECT
+#include "select/remeha_select.h"
+#endif
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -463,11 +466,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       ESP_LOGD(TAG, "Time program=%d", program);
 #ifdef USE_SELECT
       if (this->time_program_ != nullptr) {
-        const auto &options = this->time_program_->traits.get_options();
-        int idx = program - 1;  // SDO values are 1-indexed
-        if (idx >= 0 && idx < (int)options.size()) {
-          this->time_program_->publish_state(options[idx]);
-        }
+        this->time_program_->publish_from_sdo(program);
       }
 #endif
 #ifdef USE_CLIMATE
@@ -478,12 +477,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #ifdef USE_SELECT
     if (index == 0x341F && sub == 0x01 && this->zone_mode_ != nullptr) {
       uint8_t mode = value & 0xFF;
-      const auto &options = this->zone_mode_->traits.get_options();
-      if (mode < options.size()) {
-        this->zone_mode_->publish_state(options[mode]);
-      } else {
-        ESP_LOGW(TAG, "Unknown zone mode: %d", mode);
-      }
+      this->zone_mode_->publish_from_sdo(mode);
 #ifdef USE_CLIMATE
       if (this->climate_ != nullptr)
         this->climate_->update_zone_mode(mode);

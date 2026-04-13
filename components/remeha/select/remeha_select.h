@@ -14,6 +14,16 @@ class RemehaSelect : public select::Select, public Component {
   void set_sdo_index(uint16_t index) { this->sdo_index_ = index; }
   void set_sdo_subindex(uint8_t subindex) { this->sdo_subindex_ = subindex; }
   void set_value_offset(uint8_t offset) { this->value_offset_ = offset; }
+  uint8_t get_value_offset() const { return this->value_offset_; }
+
+  // Publish state from raw SDO value, applying value_offset
+  void publish_from_sdo(uint8_t value) {
+    int idx = (int)value - (int)this->value_offset_;
+    const auto &options = this->traits.get_options();
+    if (idx >= 0 && idx < (int)options.size()) {
+      this->publish_state(options[idx]);
+    }
+  }
 
   void setup() override {}
   void dump_config() override {}
