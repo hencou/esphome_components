@@ -15,6 +15,7 @@ void RemehaClimate::setup() {
     this->target_temperature = 20.0f;
   }
   this->publish_state();
+  this->set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
 }
 
 void RemehaClimate::dump_config() {
@@ -28,7 +29,7 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT_COOL);
-  traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
+  //traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
   traits.set_visual_temperature_step(0.5f);
