@@ -88,8 +88,8 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   void set_cp510_setpoint_number(number::Number *n) { this->cp510_setpoint_ = n; }
-  //void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
-  //void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
+  void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
+  void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
   void set_night_setpoint_number(number::Number *n) { this->night_setpoint_ = n; }
   void set_holiday_setpoint_number(number::Number *n) { this->holiday_setpoint_ = n; }
   //void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
