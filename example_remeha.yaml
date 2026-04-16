@@ -117,8 +117,8 @@ sensor:
 # --- Writable parameters ---
 number:
 - platform: remeha
-  cp510_setpoint:
-    name: "CP510 Setpoint"
+  room_setpoint:
+    name: "Room Setpoint"
 
 # --- Mode selectors ---
 select:
