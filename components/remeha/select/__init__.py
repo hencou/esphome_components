@@ -9,6 +9,7 @@ RemehaSelect = remeha_ns.class_("RemehaSelect", select.Select, cg.Component)
 
 CONF_ZONE_MODE = "zone_mode"
 CONF_TIME_PROGRAM = "time_program"
+CONF_CH_ENABLED = "ch_enabled"
 CONF_DHW_ENABLED = "dhw_enabled"
 CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
@@ -23,6 +24,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_TIME_PROGRAM): select.select_schema(
             RemehaSelect,
             icon="mdi:clock-outline",
+        ),
+        cv.Optional(CONF_CH_ENABLED): select.select_schema(
+            RemehaSelect,
+            icon="mdi:radiator",
         ),
         cv.Optional(CONF_DHW_ENABLED): select.select_schema(
             RemehaSelect,
@@ -53,6 +58,13 @@ SELECT_PARAMS = {
         "sdo_subindex": 0x01,
         "options": ["Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"],
         "setter": "set_time_program_select",
+        "value_offset": 0,
+    },
+    CONF_DHW_ENABLED: {
+        "sdo_index": 0x3012,
+        "sdo_subindex": 0x00,
+        "options": ["Uit", "Aan"],
+        "setter": "set_ch_enabled_select",
         "value_offset": 0,
     },
     CONF_DHW_ENABLED: {
