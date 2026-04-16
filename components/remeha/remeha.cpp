@@ -476,7 +476,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->holiday_setpoint_->publish_state(temp);
       ESP_LOGD(TAG, "Holiday setpoint=%.1f C", temp);
     } else if (index == 0x303A && sub == 0x00 && this->summer_winter_threshold_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.1f;
+      float temp = (value & 0xFFFF) * 0.01f;
       this->summer_winter_threshold_->publish_state(temp);
       ESP_LOGD(TAG, "Summer/winter threshold=%.1f C", temp);
     } else if (index == 0x3416 && sub == 0x01 && this->heating_curve_slope_ != nullptr) {
