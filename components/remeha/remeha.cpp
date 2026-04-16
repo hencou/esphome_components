@@ -498,7 +498,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       uint8_t val = value & 0xFF;
       this->ch_enabled_->publish_from_sdo(val);
       ESP_LOGD(TAG, "CH enabled=%d", val);
-    if (index == 0x3013 && sub == 0x00 && this->dhw_enabled_ != nullptr) {
+    } else if (index == 0x3013 && sub == 0x00 && this->dhw_enabled_ != nullptr) {
       uint8_t val = value & 0xFF;
       this->dhw_enabled_->publish_from_sdo(val);
       ESP_LOGD(TAG, "DHW enabled=%d", val);
