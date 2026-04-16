@@ -460,13 +460,13 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->cp510_setpoint_->publish_state(temp);
       ESP_LOGD(TAG, "CP510 current=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
-      float temp = (value & 0xFF) * 1.0f;
+      float temp = (value & 0xFFFF) * 0.01f;
       this->dhw_comfort_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW comfort setpoint=%.0f C", temp);
+      ESP_LOGD(TAG, "DHW comfort setpoint=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
-      float temp = (value & 0xFF) * 1.0f;
+      float temp = (value & 0xFFFF) * 0.01f;
       this->dhw_reduced_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW reduced setpoint=%.0f C", temp);
+      ESP_LOGD(TAG, "DHW reduced setpoint=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x340B && sub == 0x01 && this->night_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->night_setpoint_->publish_state(temp);
