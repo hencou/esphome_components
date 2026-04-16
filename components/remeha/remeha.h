@@ -61,7 +61,6 @@ class Remeha : public Component {
   void set_substatus_code_sensor(sensor::Sensor *s) { this->substatus_code_ = s; }
   void set_water_pressure_sensor(sensor::Sensor *s) { this->water_pressure_ = s; }
   void set_room_temperature_sensor(sensor::Sensor *s) { this->room_temperature_ = s; }
-  void set_room_setpoint_sensor(sensor::Sensor *s) { this->room_setpoint_ = s; }
   void set_locking_mode_sensor(sensor::Sensor *s) { this->locking_mode_ = s; }
   void set_blocking_mode_sensor(sensor::Sensor *s) { this->blocking_mode_ = s; }
   void set_error_history_sensor(sensor::Sensor *s) { this->error_history_ = s; }
@@ -190,7 +189,6 @@ class Remeha : public Component {
   sensor::Sensor *substatus_code_{nullptr};
   sensor::Sensor *water_pressure_{nullptr};
   sensor::Sensor *room_temperature_{nullptr};
-  sensor::Sensor *room_setpoint_{nullptr};
   sensor::Sensor *locking_mode_{nullptr};
   sensor::Sensor *blocking_mode_{nullptr};
   sensor::Sensor *error_history_{nullptr};
