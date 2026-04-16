@@ -455,10 +455,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     } else
 #endif
 #ifdef USE_NUMBER
-    if (index == 0x3451 && sub == 0x01 && this->cp510_setpoint_ != nullptr) {
+    if (index == 0x3451 && sub == 0x01 && this->room_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.1f;
-      this->cp510_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "CP510 current=%.1f C (raw=%u)", temp, value & 0xFFFF);
+      this->room_setpoint_->publish_state(temp);
+      ESP_LOGD(TAG, "Room current=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.01f;
       this->dhw_comfort_setpoint_->publish_state(temp);
