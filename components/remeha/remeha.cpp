@@ -491,10 +491,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       float cal = (int8_t)(value & 0xFF) * 0.1f;
       this->room_sensor_calibration_->publish_state(cal);
       ESP_LOGD(TAG, "Room sensor calibration=%.1f C", cal);
-    //} else if (index == 0x365D && sub == 0x01 && this->anti_legionella_setpoint_ != nullptr) {
-      //float temp = (value & 0xFF) * 1.0f;
-      //this->anti_legionella_setpoint_->publish_state(temp);
-      //ESP_LOGD(TAG, "Anti-legionella setpoint=%.0f C", temp);
+    } else if (index == 0x365D && sub == 0x01 && this->anti_legionella_setpoint_ != nullptr) {
+      float temp = (value & 0xFFFF) * 0.01f;
+      this->anti_legionella_setpoint_->publish_state(temp);
+      ESP_LOGD(TAG, "Anti-legionella setpoint=%.0f C", temp);
     } else
 #endif
 #ifdef USE_SELECT
@@ -502,10 +502,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       uint8_t val = value & 0xFF;
       this->dhw_enabled_->publish_from_sdo(val);
       ESP_LOGD(TAG, "DHW enabled=%d", val);
-    //} else if (index == 0x3604 && sub == 0x00 && this->anti_legionella_mode_ != nullptr) {
-      //uint8_t val = value & 0xFF;
-      //this->anti_legionella_mode_->publish_from_sdo(val);
-      //ESP_LOGD(TAG, "Anti-legionella mode=%d", val);
+    } else if (index == 0x3604 && sub == 0x00 && this->anti_legionella_mode_ != nullptr) {
+      uint8_t val = value & 0xFF;
+      this->anti_legionella_mode_->publish_from_sdo(val);
+      ESP_LOGD(TAG, "Anti-legionella mode=%d", val);
     } else if (index == 0x3455 && sub == 0x01 && this->fireplace_mode_ != nullptr) {
       uint8_t val = value & 0xFF;
       this->fireplace_mode_->publish_from_sdo(val);
