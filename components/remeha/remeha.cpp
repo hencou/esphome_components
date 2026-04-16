@@ -487,10 +487,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       //float temp = (value & 0xFFFF) * 0.01f;
       //this->ch_max_flow_temperature_->publish_state(temp);
       //ESP_LOGD(TAG, "CH max flow temp=%.1f C", temp);
-    //} else if (index == 0x3418 && sub == 0x01 && this->room_sensor_calibration_ != nullptr) {
-      //float cal = (int8_t)(value & 0xFF) * 0.1f;
-      //this->room_sensor_calibration_->publish_state(cal);
-      //ESP_LOGD(TAG, "Room sensor calibration=%.1f C", cal);
+    } else if (index == 0x3418 && sub == 0x01 && this->room_sensor_calibration_ != nullptr) {
+      float cal = (int8_t)(value & 0xFF) * 0.1f;
+      this->room_sensor_calibration_->publish_state(cal);
+      ESP_LOGD(TAG, "Room sensor calibration=%.1f C", cal);
     //} else if (index == 0x365D && sub == 0x01 && this->anti_legionella_setpoint_ != nullptr) {
       //float temp = (value & 0xFF) * 1.0f;
       //this->anti_legionella_setpoint_->publish_state(temp);
