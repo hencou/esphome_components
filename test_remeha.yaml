@@ -1,0 +1,117 @@
+substitutions:
+  device_name: remeha
+  friendly_name: Remeha Test
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+external_components:
+- source:
+    type: local
+    path: /home/ubuntu/repos/esphome_components/components
+  components: [remeha]
+
+logger:
+  level: INFO
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: "test"
+  password: "testtest"
+
+canbus:
+- platform: esp32_can
+  id: can1
+  tx_pin: GPIO5
+  rx_pin: GPIO35
+  can_id: 0x100
+  bit_rate: 1000kbps
+  mode: NORMAL
+
+remeha:
+  canbus_id: can1
+  boot_delay: 10s
+  user_level: 2
+
+sensor:
+- platform: remeha
+  flow_temperature:
+    name: Flow Temperature
+  return_temperature:
+    name: Return Temperature
+  dhw_temperature:
+    name: DHW Temperature
+  control_temperature:
+    name: Control Temperature
+  internal_setpoint:
+    name: Internal Setpoint
+  outside_temp_boiler:
+    name: Outside Temp Boiler
+  calculated_temperature:
+    name: Calculated Temperature
+  boiler_temperature:
+    name: Boiler Temperature
+  flue_gas_temperature:
+    name: Flue Gas Temperature
+  actual_modulation:
+    name: Actual Modulation
+  pump_speed:
+    name: Pump Speed
+  flame_current:
+    name: Flame Current
+  water_pressure:
+    name: Water Pressure
+  room_temperature:
+    name: Room Temperature
+  room_setpoint:
+    name: Room Setpoint
+
+number:
+- platform: remeha
+  cp510_setpoint:
+    name: "CP510 Setpoint"
+  dhw_comfort_setpoint:
+    name: "Warm Water Comfort Setpoint"
+  dhw_reduced_setpoint:
+    name: "Warm Water Reduced Setpoint"
+  night_setpoint:
+    name: "Nacht Setpoint"
+  holiday_setpoint:
+    name: "Vakantie Setpoint"
+  summer_winter_threshold:
+    name: "Zomer/Winter Drempel"
+  heating_curve_slope:
+    name: "Stooklijn Helling"
+  ch_max_flow_temperature:
+    name: "Max CV Aanvoer Temperatuur"
+  room_sensor_calibration:
+    name: "Kamersensor Kalibratie"
+  anti_legionella_setpoint:
+    name: "Anti-Legionella Setpoint"
+
+select:
+- platform: remeha
+  zone_mode:
+    name: "Zone Mode"
+  time_program:
+    name: "Klokprogramma"
+  dhw_enabled:
+    name: "Warm Water"
+  anti_legionella_mode:
+    name: "Anti-Legionella"
+  fireplace_mode:
+    name: "Open Haard"
+
+climate:
+- platform: remeha
+  name: "Thermostaat"
