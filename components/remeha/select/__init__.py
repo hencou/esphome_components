@@ -10,7 +10,7 @@ RemehaSelect = remeha_ns.class_("RemehaSelect", select.Select, cg.Component)
 CONF_ZONE_MODE = "zone_mode"
 CONF_TIME_PROGRAM = "time_program"
 CONF_DHW_ENABLED = "dhw_enabled"
-#CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
+CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
 
 CONFIG_SCHEMA = cv.Schema(
@@ -28,10 +28,10 @@ CONFIG_SCHEMA = cv.Schema(
             RemehaSelect,
             icon="mdi:water-boiler",
         ),
-        #cv.Optional(CONF_ANTI_LEGIONELLA_MODE): select.select_schema(
-        #    RemehaSelect,
-        #    icon="mdi:bacteria-outline",
-        #),
+        cv.Optional(CONF_ANTI_LEGIONELLA_MODE): select.select_schema(
+            RemehaSelect,
+            icon="mdi:bacteria-outline",
+        ),
         cv.Optional(CONF_FIREPLACE_MODE): select.select_schema(
             RemehaSelect,
             icon="mdi:fireplace",
@@ -62,13 +62,13 @@ SELECT_PARAMS = {
         "setter": "set_dhw_enabled_select",
         "value_offset": 0,
     },
-    #CONF_ANTI_LEGIONELLA_MODE: {
-    #    "sdo_index": 0x3604,
-    #    "sdo_subindex": 0x00,
-    #    "options": ["Uit", "Aan", "Auto"],
-    #    "setter": "set_anti_legionella_mode_select",
-    #    "value_offset": 0,
-    #},
+    CONF_ANTI_LEGIONELLA_MODE: {
+        "sdo_index": 0x3604,
+        "sdo_subindex": 0x00,
+        "options": ["Uit", "Aan", "Auto"],
+        "setter": "set_anti_legionella_mode_select",
+        "value_offset": 0,
+    },
     CONF_FIREPLACE_MODE: {
         "sdo_index": 0x3455,
         "sdo_subindex": 0x01,
