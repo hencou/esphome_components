@@ -10,7 +10,7 @@ AUTO_LOAD = ["remeha"]
 
 RemehaNumber = remeha_ns.class_("RemehaNumber", number.Number, cg.Component)
 
-CONF_CP510_SETPOINT = "cp510_setpoint"
+CONF_ROOM_SETPOINT = "room_setpoint"
 CONF_DHW_COMFORT_SETPOINT = "dhw_comfort_setpoint"
 CONF_DHW_REDUCED_SETPOINT = "dhw_reduced_setpoint"
 CONF_NIGHT_SETPOINT = "night_setpoint"
@@ -24,7 +24,7 @@ CONF_HEATING_CURVE_SLOPE = "heating_curve_slope"
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
-        cv.Optional(CONF_CP510_SETPOINT): number.number_schema(
+        cv.Optional(CONF_ROOM_SETPOINT): number.number_schema(
             RemehaNumber,
             unit_of_measurement=UNIT_CELSIUS,
             icon="mdi:home-thermometer",
@@ -78,7 +78,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 # SDO parameters: (index, subindex, size_bytes, scale, min, max, step, is_signed)
 NUMBER_PARAMS = {
-    CONF_CP510_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
+    CONF_ROOM_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
     CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 2, 0.01, 40.0, 65.0, 1.0, False),
     CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 2, 0.01, 10.0, 60.0, 1.0, False),
     CONF_NIGHT_SETPOINT: (0x340B, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
@@ -92,7 +92,7 @@ NUMBER_PARAMS = {
 
 # Setter methods on the parent Remeha class
 PARENT_SETTERS = {
-    CONF_CP510_SETPOINT: "set_cp510_setpoint_number",
+    CONF_ROOM_SETPOINT: "set_room_setpoint_number",
     CONF_DHW_COMFORT_SETPOINT: "set_dhw_comfort_setpoint_number",
     CONF_DHW_REDUCED_SETPOINT: "set_dhw_reduced_setpoint_number",
     CONF_NIGHT_SETPOINT: "set_night_setpoint_number",
