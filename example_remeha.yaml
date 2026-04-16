@@ -20,7 +20,7 @@ external_components:
   refresh: 0s
 
 logger:
-  level: INFO
+  level: WARN
 
 api:
 
@@ -51,58 +51,76 @@ sensor:
 - platform: remeha
   flow_temperature:
     name: Flow Temperatuur
+    entity_category: DIAGNOSTIC
   outside_temperature:
     name: Buiten temperatuur
+    entity_category: DIAGNOSTIC
   outside_temperature_3m_avg:
     name: Buiten temperatuur 3min avg
+    entity_category: DIAGNOSTIC
   outside_temperature_2h_avg:
     name: Buiten temperatuur 2h avg
+    entity_category: DIAGNOSTIC
   setpoint:
     name: Setpoint
+    entity_category: DIAGNOSTIC
   relative_power:
     name: Relative Power
+    entity_category: DIAGNOSTIC
   relative_power2:
     name: Relative Power 2
+    entity_category: DIAGNOSTIC
   status_code:
     name: Status Code
+    entity_category: DIAGNOSTIC
   substatus_code:
     name: Substatus Code
+    entity_category: DIAGNOSTIC
   water_pressure:
     name: Waterdruk
   room_temperature:
     name: Truimte groep
-  room_setpoint:
-    name: Truimte stpunt
   locking_mode:
     name: Locking Mode
+    entity_category: DIAGNOSTIC
   blocking_mode:
     name: Blocking Mode
+    entity_category: DIAGNOSTIC
   appliance_type:
     name: Appliance Type
+    entity_category: DIAGNOSTIC
   appliance_variant:
     name: Appliance Variant
+    entity_category: DIAGNOSTIC
   return_temperature:
     name: T retour
-  dhw_temperature:
-    name: SWW tank temp
+  #dhw_temperature:
+  #  name: SWW tank temp
   control_temperature:
     name: Regeltemperatuur
+    entity_category: DIAGNOSTIC
   internal_setpoint:
     name: Intern setpunt
+    entity_category: DIAGNOSTIC
   outside_temp_boiler:
     name: Tbuiten ketel
   calculated_temperature:
     name: Berekende temperatuur
+    entity_category: DIAGNOSTIC
   boiler_temperature:
     name: T aanvoer (trending)
   flue_gas_temperature:
     name: Rookgastemperatuur
+    entity_category: DIAGNOSTIC
   actual_modulation:
     name: Act. rel. modulatie
+    entity_category: DIAGNOSTIC
   pump_speed:
     name: Pomptoerental
+    entity_category: DIAGNOSTIC
   flame_current:
     name: Vlamstroom
+    entity_category: DIAGNOSTIC
 
 - platform: uptime
   name: Uptime
@@ -118,7 +136,31 @@ sensor:
 number:
 - platform: remeha
   room_setpoint:
-    name: "Room Setpoint"
+    name: "Truimte stpunt"
+  dhw_comfort_setpoint:
+    name: "Warm Water Comfort Setpoint"
+    entity_category: CONFIG
+  dhw_reduced_setpoint:
+    name: "Warm Water Reduced Setpoint"
+    entity_category: CONFIG
+  night_setpoint:
+    name: "Nacht Setpoint"
+    entity_category: CONFIG
+  holiday_setpoint:
+    name: "Vakantie Setpoint"
+    entity_category: CONFIG
+  summer_winter_threshold:
+    name: "Zomer/Winter Drempel"
+    entity_category: CONFIG
+  heating_curve_slope:
+    name: "Stooklijn Helling"
+    entity_category: CONFIG
+  room_sensor_calibration:
+    name: "Kamersensor Kalibratie"
+    entity_category: CONFIG
+  anti_legionella_setpoint:
+    name: "Anti-Legionella Setpoint"
+    entity_category: CONFIG
 
 # --- Mode selectors ---
 select:
@@ -127,16 +169,28 @@ select:
     name: "Zone Mode"
   time_program:
     name: "Klokprogramma"
+  ch_enabled:
+    name: "CV Bedrijf"
+  dhw_enabled:
+    name: "Warm Water"
+  anti_legionella_mode:
+    name: "Anti-Legionella"
+    entity_category: CONFIG
+  fireplace_mode:
+    name: "Open Haard"
 
 # --- Status text ---
 text_sensor:
 - platform: remeha
   status_text:
     name: Status Text
+    entity_category: DIAGNOSTIC
   substatus_text:
     name: Substatus Text
+    entity_category: DIAGNOSTIC
   write_status:
     name: SDO Write Status
+    entity_category: DIAGNOSTIC
 
 - platform: version
   name: ESPHome Version
@@ -150,10 +204,6 @@ text_sensor:
 climate:
 - platform: remeha
   name: "Thermostaat"
-  visual:
-    min_temperature: 5
-    max_temperature: 30
-    temperature_step: 0.5
 
 button:
 - platform: restart
