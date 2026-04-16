@@ -88,22 +88,22 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   void set_cp510_setpoint_number(number::Number *n) { this->cp510_setpoint_ = n; }
-  void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
-  void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
+  //void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
+  //void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
   void set_night_setpoint_number(number::Number *n) { this->night_setpoint_ = n; }
   void set_holiday_setpoint_number(number::Number *n) { this->holiday_setpoint_ = n; }
-  void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
-  void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
-  void set_ch_max_flow_temperature_number(number::Number *n) { this->ch_max_flow_temperature_ = n; }
-  void set_room_sensor_calibration_number(number::Number *n) { this->room_sensor_calibration_ = n; }
-  void set_anti_legionella_setpoint_number(number::Number *n) { this->anti_legionella_setpoint_ = n; }
+  //void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
+  //void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
+  //void set_ch_max_flow_temperature_number(number::Number *n) { this->ch_max_flow_temperature_ = n; }
+  //void set_room_sensor_calibration_number(number::Number *n) { this->room_sensor_calibration_ = n; }
+  //void set_anti_legionella_setpoint_number(number::Number *n) { this->anti_legionella_setpoint_ = n; }
 #endif
 
 #ifdef USE_SELECT
   void set_zone_mode_select(RemehaSelect *s) { this->zone_mode_ = s; }
   void set_time_program_select(RemehaSelect *s) { this->time_program_ = s; }
   void set_dhw_enabled_select(RemehaSelect *s) { this->dhw_enabled_ = s; }
-  void set_anti_legionella_mode_select(RemehaSelect *s) { this->anti_legionella_mode_ = s; }
+  //void set_anti_legionella_mode_select(RemehaSelect *s) { this->anti_legionella_mode_ = s; }
   void set_fireplace_mode_select(RemehaSelect *s) { this->fireplace_mode_ = s; }
 #endif
 
@@ -217,22 +217,22 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   number::Number *cp510_setpoint_{nullptr};
-  number::Number *dhw_comfort_setpoint_{nullptr};
-  number::Number *dhw_reduced_setpoint_{nullptr};
+  //number::Number *dhw_comfort_setpoint_{nullptr};
+  //number::Number *dhw_reduced_setpoint_{nullptr};
   number::Number *night_setpoint_{nullptr};
   number::Number *holiday_setpoint_{nullptr};
-  number::Number *summer_winter_threshold_{nullptr};
-  number::Number *heating_curve_slope_{nullptr};
-  number::Number *ch_max_flow_temperature_{nullptr};
-  number::Number *room_sensor_calibration_{nullptr};
-  number::Number *anti_legionella_setpoint_{nullptr};
+  //number::Number *summer_winter_threshold_{nullptr};
+  //number::Number *heating_curve_slope_{nullptr};
+  //number::Number *ch_max_flow_temperature_{nullptr};
+  //number::Number *room_sensor_calibration_{nullptr};
+  //number::Number *anti_legionella_setpoint_{nullptr};
 #endif
 
 #ifdef USE_SELECT
   RemehaSelect *zone_mode_{nullptr};
   RemehaSelect *time_program_{nullptr};
   RemehaSelect *dhw_enabled_{nullptr};
-  RemehaSelect *anti_legionella_mode_{nullptr};
+  //RemehaSelect *anti_legionella_mode_{nullptr};
   RemehaSelect *fireplace_mode_{nullptr};
 #endif
 
