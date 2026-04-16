@@ -79,8 +79,8 @@ CONFIG_SCHEMA = cv.Schema(
 # SDO parameters: (index, subindex, size_bytes, scale, min, max, step, is_signed)
 NUMBER_PARAMS = {
     CONF_CP510_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
-    CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 1, 1.0, 40.0, 65.0, 1.0, False),
-    CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 1, 1.0, 10.0, 60.0, 1.0, False),
+    CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 2, 0.01, 40.0, 65.0, 1.0, False),
+    CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 2, 0.01, 10.0, 60.0, 1.0, False),
     CONF_NIGHT_SETPOINT: (0x340B, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
     CONF_HOLIDAY_SETPOINT: (0x340A, 0x01, 2, 0.1, 0.5, 20.0, 0.5, False),
     #CONF_SUMMER_WINTER_THRESHOLD: (0x303A, 0x00, 2, 0.1, 15.0, 30.5, 0.5, False),
