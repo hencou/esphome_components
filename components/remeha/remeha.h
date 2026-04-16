@@ -92,8 +92,8 @@ class Remeha : public Component {
   void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
   void set_night_setpoint_number(number::Number *n) { this->night_setpoint_ = n; }
   void set_holiday_setpoint_number(number::Number *n) { this->holiday_setpoint_ = n; }
-  //void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
-  //void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
+  void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
+  void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
   //void set_ch_max_flow_temperature_number(number::Number *n) { this->ch_max_flow_temperature_ = n; }
   //void set_room_sensor_calibration_number(number::Number *n) { this->room_sensor_calibration_ = n; }
   //void set_anti_legionella_setpoint_number(number::Number *n) { this->anti_legionella_setpoint_ = n; }
@@ -222,7 +222,7 @@ class Remeha : public Component {
   number::Number *night_setpoint_{nullptr};
   number::Number *holiday_setpoint_{nullptr};
   number::Number *summer_winter_threshold_{nullptr};
-  //number::Number *heating_curve_slope_{nullptr};
+  number::Number *heating_curve_slope_{nullptr};
   //number::Number *ch_max_flow_temperature_{nullptr};
   //number::Number *room_sensor_calibration_{nullptr};
   //number::Number *anti_legionella_setpoint_{nullptr};
