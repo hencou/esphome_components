@@ -60,7 +60,7 @@ SELECT_PARAMS = {
         "setter": "set_time_program_select",
         "value_offset": 0,
     },
-    CONF_DHW_ENABLED: {
+    CONF_CH_ENABLED: {
         "sdo_index": 0x3012,
         "sdo_subindex": 0x00,
         "options": ["Uit", "Aan"],
