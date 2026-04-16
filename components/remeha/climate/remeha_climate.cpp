@@ -64,7 +64,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
   if (call.get_target_temperature().has_value()) {
     float target = *call.get_target_temperature();
     if (this->parent_ != nullptr) {
-      // Write CP510 setpoint via SDO (0x3451 sub 1, uint16, scale x10)
+      // Write room setpoint via SDO (0x3451 sub 1, uint16, scale x10)
       uint16_t raw = (uint16_t)(target * 10.0f);
       this->parent_->write_sdo(0x3451, 0x01, raw, 2);
     }
