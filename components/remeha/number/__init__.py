@@ -11,8 +11,8 @@ AUTO_LOAD = ["remeha"]
 RemehaNumber = remeha_ns.class_("RemehaNumber", number.Number, cg.Component)
 
 CONF_CP510_SETPOINT = "cp510_setpoint"
-#CONF_DHW_COMFORT_SETPOINT = "dhw_comfort_setpoint"
-#CONF_DHW_REDUCED_SETPOINT = "dhw_reduced_setpoint"
+CONF_DHW_COMFORT_SETPOINT = "dhw_comfort_setpoint"
+CONF_DHW_REDUCED_SETPOINT = "dhw_reduced_setpoint"
 CONF_NIGHT_SETPOINT = "night_setpoint"
 CONF_HOLIDAY_SETPOINT = "holiday_setpoint"
 #CONF_SUMMER_WINTER_THRESHOLD = "summer_winter_threshold"
@@ -29,16 +29,16 @@ CONFIG_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_CELSIUS,
             icon="mdi:home-thermometer",
         ),
-        #cv.Optional(CONF_DHW_COMFORT_SETPOINT): number.number_schema(
-        #    RemehaNumber,
-        #    unit_of_measurement=UNIT_CELSIUS,
-        #    icon="mdi:water-thermometer",
-        #),
-        #cv.Optional(CONF_DHW_REDUCED_SETPOINT): number.number_schema(
-        #    RemehaNumber,
-        #    unit_of_measurement=UNIT_CELSIUS,
-        #    icon="mdi:water-thermometer-outline",
-        #),
+        cv.Optional(CONF_DHW_COMFORT_SETPOINT): number.number_schema(
+            RemehaNumber,
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:water-thermometer",
+        ),
+        cv.Optional(CONF_DHW_REDUCED_SETPOINT): number.number_schema(
+            RemehaNumber,
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:water-thermometer-outline",
+        ),
         cv.Optional(CONF_NIGHT_SETPOINT): number.number_schema(
             RemehaNumber,
             unit_of_measurement=UNIT_CELSIUS,
@@ -79,8 +79,8 @@ CONFIG_SCHEMA = cv.Schema(
 # SDO parameters: (index, subindex, size_bytes, scale, min, max, step, is_signed)
 NUMBER_PARAMS = {
     CONF_CP510_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
-    #CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 1, 1.0, 40.0, 65.0, 1.0, False),
-    #CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 1, 1.0, 10.0, 60.0, 1.0, False),
+    CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 1, 1.0, 40.0, 65.0, 1.0, False),
+    CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 1, 1.0, 10.0, 60.0, 1.0, False),
     CONF_NIGHT_SETPOINT: (0x340B, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
     CONF_HOLIDAY_SETPOINT: (0x340A, 0x01, 2, 0.1, 0.5, 20.0, 0.5, False),
     #CONF_SUMMER_WINTER_THRESHOLD: (0x303A, 0x00, 2, 0.1, 15.0, 30.5, 0.5, False),
@@ -93,8 +93,8 @@ NUMBER_PARAMS = {
 # Setter methods on the parent Remeha class
 PARENT_SETTERS = {
     CONF_CP510_SETPOINT: "set_cp510_setpoint_number",
-    #CONF_DHW_COMFORT_SETPOINT: "set_dhw_comfort_setpoint_number",
-    #CONF_DHW_REDUCED_SETPOINT: "set_dhw_reduced_setpoint_number",
+    CONF_DHW_COMFORT_SETPOINT: "set_dhw_comfort_setpoint_number",
+    CONF_DHW_REDUCED_SETPOINT: "set_dhw_reduced_setpoint_number",
     CONF_NIGHT_SETPOINT: "set_night_setpoint_number",
     CONF_HOLIDAY_SETPOINT: "set_holiday_setpoint_number",
     #CONF_SUMMER_WINTER_THRESHOLD: "set_summer_winter_threshold_number",
