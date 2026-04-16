@@ -217,11 +217,11 @@ class Remeha : public Component {
 
 #ifdef USE_NUMBER
   number::Number *cp510_setpoint_{nullptr};
-  //number::Number *dhw_comfort_setpoint_{nullptr};
-  //number::Number *dhw_reduced_setpoint_{nullptr};
+  number::Number *dhw_comfort_setpoint_{nullptr};
+  number::Number *dhw_reduced_setpoint_{nullptr};
   number::Number *night_setpoint_{nullptr};
   number::Number *holiday_setpoint_{nullptr};
-  //number::Number *summer_winter_threshold_{nullptr};
+  number::Number *summer_winter_threshold_{nullptr};
   //number::Number *heating_curve_slope_{nullptr};
   //number::Number *ch_max_flow_temperature_{nullptr};
   //number::Number *room_sensor_calibration_{nullptr};
