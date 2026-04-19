@@ -14,6 +14,9 @@ class RemehaClimate : public climate::Climate, public Component {
   float get_setup_priority() const override { return setup_priority::DATA; }
 
   void set_parent(Remeha *parent) { this->parent_ = parent; }
+  void set_time_program_name(int index, const std::string &name) {
+    if (index >= 0 && index < 3) this->time_program_names_[index] = name;
+  }
 
   // Called by the parent Remeha component when new data arrives
   void update_current_temperature(float temp);
@@ -27,6 +30,7 @@ class RemehaClimate : public climate::Climate, public Component {
   void control(const climate::ClimateCall &call) override;
 
   Remeha *parent_{nullptr};
+  std::string time_program_names_[3] = {"Time Program 1", "Time Program 2", "Time Program 3"};
 };
 
 }  // namespace remeha
