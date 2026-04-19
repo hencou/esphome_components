@@ -5,6 +5,8 @@ from esphome.const import CONF_ID
 
 from .. import remeha_ns, Remeha, CONF_REMEHA_ID
 
+CONF_TIME_PROGRAM_NAMES = "time_program_names"
+
 DEPENDENCIES = ["remeha"]
 CODEOWNERS = ["@hencou"]
 
