@@ -95,6 +95,7 @@ class Remeha : public Component {
   void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
   void set_room_sensor_calibration_number(number::Number *n) { this->room_sensor_calibration_ = n; }
   void set_anti_legionella_setpoint_number(number::Number *n) { this->anti_legionella_setpoint_ = n; }
+  void set_dhw_boost_start_number(number::Number *n) { this->dhw_boost_start_ = n; }
 #endif
 
 #ifdef USE_SELECT
@@ -104,7 +105,6 @@ class Remeha : public Component {
   void set_dhw_enabled_select(RemehaSelect *s) { this->dhw_enabled_ = s; }
   void set_anti_legionella_mode_select(RemehaSelect *s) { this->anti_legionella_mode_ = s; }
   void set_fireplace_mode_select(RemehaSelect *s) { this->fireplace_mode_ = s; }
-  void set_dhw_boost_start_select(RemehaSelect *s) { this->dhw_boost_start_ = s; }
 #endif
 
 #ifdef USE_CLIMATE
@@ -224,6 +224,7 @@ class Remeha : public Component {
   number::Number *heating_curve_slope_{nullptr};
   number::Number *room_sensor_calibration_{nullptr};
   number::Number *anti_legionella_setpoint_{nullptr};
+  number::Number *dhw_boost_start_{nullptr};
 #endif
 
 #ifdef USE_SELECT
@@ -233,7 +234,6 @@ class Remeha : public Component {
   RemehaSelect *dhw_enabled_{nullptr};
   RemehaSelect *anti_legionella_mode_{nullptr};
   RemehaSelect *fireplace_mode_{nullptr};
-  RemehaSelect *dhw_boost_start_{nullptr};
 #endif
 
 #ifdef USE_CLIMATE
