@@ -13,7 +13,7 @@ CONF_CH_ENABLED = "ch_enabled"
 CONF_DHW_ENABLED = "dhw_enabled"
 CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
-CONF_FIREPLACE_MODE = "eco_mode"
+CONF_ECO_MODE = "eco_mode"
 
 CONF_OPTIONS = "options"
  
