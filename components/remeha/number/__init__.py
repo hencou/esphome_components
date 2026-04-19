@@ -19,7 +19,6 @@ CONF_SUMMER_WINTER_THRESHOLD = "summer_winter_threshold"
 CONF_HEATING_CURVE_SLOPE = "heating_curve_slope"
 CONF_ROOM_SENSOR_CALIBRATION = "room_sensor_calibration"
 CONF_ANTI_LEGIONELLA_SETPOINT = "anti_legionella_setpoint"
-CONF_DHW_BOOST_START = "dhw_boost_start"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -68,10 +67,6 @@ CONFIG_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_CELSIUS,
             icon="mdi:bacteria-outline",
         ),
-        cv.Optional(CONF_DHW_BOOST_START): number.number_schema(
-            RemehaNumber,
-            icon="mdi:rocket-launch",
-        ),
     }
 )
 
@@ -86,7 +81,6 @@ NUMBER_PARAMS = {
     CONF_HEATING_CURVE_SLOPE: (0x3416, 0x01, 1, 0.1, 0.0, 4.0, 0.1, False),
     CONF_ROOM_SENSOR_CALIBRATION: (0x3418, 0x01, 1, 0.1, -5.0, 5.0, 0.1, True),
     CONF_ANTI_LEGIONELLA_SETPOINT: (0x365D, 0x01, 1, 1.0, 60.0, 90.0, 1.0, False),
-    CONF_DHW_BOOST_START: (0x3620, 0x00, 1, 1.0, 0.0, 255.0, 1.0, False),
 }
 
 # Setter methods on the parent Remeha class
@@ -100,7 +94,6 @@ PARENT_SETTERS = {
     CONF_HEATING_CURVE_SLOPE: "set_heating_curve_slope_number",
     CONF_ROOM_SENSOR_CALIBRATION: "set_room_sensor_calibration_number",
     CONF_ANTI_LEGIONELLA_SETPOINT: "set_anti_legionella_setpoint_number",
-    CONF_DHW_BOOST_START: "set_dhw_boost_start_number",
 }
 
 
