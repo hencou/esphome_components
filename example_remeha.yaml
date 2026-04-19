@@ -168,9 +168,9 @@ select:
   zone_mode:
     name: "Zone Mode"
     options:
-      - "Uit"
-      - "Aan"
       - "Auto"
+      - "Verwarmen"
+      - "Uit"
   time_program:
     name: "Klokprogramma"
     options:
@@ -192,6 +192,7 @@ select:
     options:
       - "Uit"
       - "Aan"
+      - "Auto"
     entity_category: CONFIG
   fireplace_mode:
     name: "Open Haard"
