@@ -167,17 +167,37 @@ select:
 - platform: remeha
   zone_mode:
     name: "Zone Mode"
+    options:
+      - "Uit"
+      - "Aan"
+      - "Auto"
   time_program:
     name: "Klokprogramma"
+    options:
+      - "Klokprogramma 1"
+      - "Klokprogramma 2"
+      - "Klokprogramma 3"
   ch_enabled:
     name: "CV Bedrijf"
+    options:
+      - "Uit"
+      - "Aan"
   dhw_enabled:
     name: "Warm Water"
+    options:
+      - "Uit"
+      - "Aan"
   anti_legionella_mode:
     name: "Anti-Legionella"
+    options:
+      - "Uit"
+      - "Aan"
     entity_category: CONFIG
   fireplace_mode:
     name: "Open Haard"
+    options:
+      - "Uit"
+      - "Aan"
 
 # --- Status text ---
 text_sensor:
@@ -204,6 +224,10 @@ text_sensor:
 climate:
 - platform: remeha
   name: "Thermostaat"
+  time_program_names:
+    - "Klokprogramma 1"
+    - "Klokprogramma 2"
+    - "Klokprogramma 3"
 
 button:
 - platform: restart
