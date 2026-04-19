@@ -15,7 +15,7 @@ void RemehaClimate::setup() {
     this->target_temperature = 20.0f;
   }
   this->publish_state();
-  this->set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
+  this->set_supported_custom_presets({this->time_program_names_[0], this->time_program_names_[1], this->time_program_names_[2]});
 }
 
 void RemehaClimate::dump_config() {
@@ -29,7 +29,6 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT_COOL);
-  //traits.set_supported_custom_presets({"Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"});
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
   traits.set_visual_temperature_step(0.5f);
@@ -74,15 +73,12 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
   if (call.has_custom_preset()) {
     auto custom_preset = call.get_custom_preset();
     if (this->parent_ != nullptr) {
-      if (custom_preset == "Klokprogramma 1") {
-        this->parent_->write_sdo(0x3458, 0x01, 0, 1);
-        this->set_custom_preset_("Klokprogramma 1");
-      } else if (custom_preset == "Klokprogramma 2") {
-        this->parent_->write_sdo(0x3458, 0x01, 1, 1);
-        this->set_custom_preset_("Klokprogramma 2");
-      } else if (custom_preset == "Klokprogramma 3") {
-        this->parent_->write_sdo(0x3458, 0x01, 2, 1);
-        this->set_custom_preset_("Klokprogramma 3");
+      for (int i = 0; i < 3; i++) {
+        if (custom_preset == this->time_program_names_[i]) {
+          this->parent_->write_sdo(0x3458, 0x01, i, 1);
+          this->set_custom_preset_(this->time_program_names_[i]);
+          break;
+        }
       }
     }
   }
@@ -155,19 +151,10 @@ void RemehaClimate::update_action(uint8_t status_code) {
 }
 
 void RemehaClimate::update_time_program(uint8_t program) {
-  switch (program) {
-    case 0:
-      this->set_custom_preset_("Klokprogramma 1");
-      break;
-    case 1:
-      this->set_custom_preset_("Klokprogramma 2");
-      break;
-    case 2:
-      this->set_custom_preset_("Klokprogramma 3");
-      break;
-    default:
-      this->clear_custom_preset_();
-      break;
+  if (program < 3) {
+    this->set_custom_preset_(this->time_program_names_[program]);
+  } else {
+    this->clear_custom_preset_();
   }
   this->publish_state();
 }
