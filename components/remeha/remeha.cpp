@@ -491,6 +491,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       float temp = (value & 0xFFFF) * 0.01f;
       this->anti_legionella_setpoint_->publish_state(temp);
       ESP_LOGD(TAG, "Anti-legionella setpoint=%.0f C", temp);
+    } else if (index == 0x3620 && sub == 0x00 && this->dhw_boost_start_ != nullptr) {
+      uint8_t val = value & 0xFF;
+      this->dhw_boost_start_->publish_state(val);
+      ESP_LOGD(TAG, "DHW Boost start=%d", val);
     } else
 #endif
 #ifdef USE_SELECT
@@ -510,10 +514,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       uint8_t val = value & 0xFF;
       this->fireplace_mode_->publish_from_sdo(val);
       ESP_LOGD(TAG, "Fireplace mode=%d", val);
-    } else if (index == 0x3620 && sub == 0x00 && this->dhw_boost_start_ != nullptr) {
-      uint8_t val = value & 0xFF;
-      this->dhw_boost_start_->publish_from_sdo(val);
-      ESP_LOGD(TAG, "DHW Boost start=%d", val);
     } else
 #endif
     if (index == 0x3458 && sub == 0x01) {
