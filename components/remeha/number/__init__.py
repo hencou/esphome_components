@@ -70,8 +70,7 @@ CONFIG_SCHEMA = cv.Schema(
         ),
         cv.Optional(CONF_DHW_BOOST_START): number.number_schema(
             RemehaNumber,
-            unit_of_measurement=UNIT_CELSIUS,
-            icon="mdi:bacteria-outline",
+            icon="mdi:rocket-launch",
         ),
     }
 )
