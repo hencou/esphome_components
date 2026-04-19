@@ -104,6 +104,7 @@ class Remeha : public Component {
   void set_dhw_enabled_select(RemehaSelect *s) { this->dhw_enabled_ = s; }
   void set_anti_legionella_mode_select(RemehaSelect *s) { this->anti_legionella_mode_ = s; }
   void set_fireplace_mode_select(RemehaSelect *s) { this->fireplace_mode_ = s; }
+  void set_eco_mode_select(RemehaSelect *s) { this->eco_mode_ = s; }
 #endif
 
 #ifdef USE_CLIMATE
@@ -232,6 +233,7 @@ class Remeha : public Component {
   RemehaSelect *dhw_enabled_{nullptr};
   RemehaSelect *anti_legionella_mode_{nullptr};
   RemehaSelect *fireplace_mode_{nullptr};
+  RemehaSelect *eco_mode_{nullptr};
 #endif
 
 #ifdef USE_CLIMATE
