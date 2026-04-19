@@ -15,7 +15,7 @@ void RemehaClimate::setup() {
     this->target_temperature = 20.0f;
   }
   this->publish_state();
-  this->set_supported_custom_presets({this->time_program_names_[0], this->time_program_names_[1], this->time_program_names_[2]});
+  this->set_supported_custom_presets({this->time_program_names_[0].c_str(), this->time_program_names_[1].c_str(), this->time_program_names_[2].c_str()});
 }
 
 void RemehaClimate::dump_config() {
@@ -76,7 +76,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       for (int i = 0; i < 3; i++) {
         if (custom_preset == this->time_program_names_[i]) {
           this->parent_->write_sdo(0x3458, 0x01, i, 1);
-          this->set_custom_preset_(this->time_program_names_[i]);
+          this->set_custom_preset_(this->time_program_names_[i].c_str());
           break;
         }
       }
@@ -152,7 +152,7 @@ void RemehaClimate::update_action(uint8_t status_code) {
 
 void RemehaClimate::update_time_program(uint8_t program) {
   if (program < 3) {
-    this->set_custom_preset_(this->time_program_names_[program]);
+    this->set_custom_preset_(this->time_program_names_[program].c_str());
   } else {
     this->clear_custom_preset_();
   }
