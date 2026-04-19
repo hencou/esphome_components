@@ -14,33 +14,29 @@ CONF_DHW_ENABLED = "dhw_enabled"
 CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
 
+CONF_OPTIONS = "options"
+ 
+def _select_schema_with_options(icon):
+    return select.select_schema(
+        RemehaSelect,
+        icon=icon,
+    ).extend(
+        {
+            cv.Optional(CONF_OPTIONS): cv.All(
+                cv.ensure_list(cv.string), cv.Length(min=2)
+            ),
+        }
+    )
+ 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
-        cv.Optional(CONF_ZONE_MODE): select.select_schema(
-            RemehaSelect,
-            icon="mdi:home-switch",
-        ),
-        cv.Optional(CONF_TIME_PROGRAM): select.select_schema(
-            RemehaSelect,
-            icon="mdi:clock-outline",
-        ),
-        cv.Optional(CONF_CH_ENABLED): select.select_schema(
-            RemehaSelect,
-            icon="mdi:radiator",
-        ),
-        cv.Optional(CONF_DHW_ENABLED): select.select_schema(
-            RemehaSelect,
-            icon="mdi:water-boiler",
-        ),
-        cv.Optional(CONF_ANTI_LEGIONELLA_MODE): select.select_schema(
-            RemehaSelect,
-            icon="mdi:bacteria-outline",
-        ),
-        cv.Optional(CONF_FIREPLACE_MODE): select.select_schema(
-            RemehaSelect,
-            icon="mdi:fireplace",
-        ),
+        cv.Optional(CONF_ZONE_MODE): _select_schema_with_options("mdi:home-switch"),
+        cv.Optional(CONF_TIME_PROGRAM): _select_schema_with_options("mdi:clock-outline"),
+        cv.Optional(CONF_CH_ENABLED): _select_schema_with_options("mdi:radiator"),
+        cv.Optional(CONF_DHW_ENABLED): _select_schema_with_options("mdi:water-boiler"),
+        cv.Optional(CONF_ANTI_LEGIONELLA_MODE): _select_schema_with_options("mdi:bacteria-outline"),
+        cv.Optional(CONF_FIREPLACE_MODE): _select_schema_with_options("mdi:fireplace"),
     }
 )
 
@@ -56,7 +52,7 @@ SELECT_PARAMS = {
     CONF_TIME_PROGRAM: {
         "sdo_index": 0x3458,
         "sdo_subindex": 0x01,
-        "options": ["Klokprogramma 1", "Klokprogramma 2", "Klokprogramma 3"],
+        "options": ["Time Program 1", "Time Program 2", "Time Program 3"],
         "setter": "set_time_program_select",
         "value_offset": 0,
     },
@@ -70,21 +66,21 @@ SELECT_PARAMS = {
     CONF_DHW_ENABLED: {
         "sdo_index": 0x3013,
         "sdo_subindex": 0x00,
-        "options": ["Uit", "Aan"],
+        "options": ["Off", "On"],
         "setter": "set_dhw_enabled_select",
         "value_offset": 0,
     },
     CONF_ANTI_LEGIONELLA_MODE: {
         "sdo_index": 0x3604,
         "sdo_subindex": 0x00,
-        "options": ["Uit", "Aan", "Auto"],
+        "options": ["Off", "On", "Auto"],
         "setter": "set_anti_legionella_mode_select",
         "value_offset": 0,
     },
     CONF_FIREPLACE_MODE: {
         "sdo_index": 0x3455,
         "sdo_subindex": 0x01,
-        "options": ["Uit", "Aan"],
+        "options": ["Off", "On"],
         "setter": "set_fireplace_mode_select",
         "value_offset": 0,
     },
@@ -96,9 +92,12 @@ async def to_code(config):
 
     for conf_key, params in SELECT_PARAMS.items():
         if conf_key in config:
+            # Use user-provided options if available, otherwise use defaults
+            options = config[conf_key].get(CONF_OPTIONS, params["options"])
+            
             sel = await select.new_select(
                 config[conf_key],
-                options=params["options"],
+                options=options,
             )
             await cg.register_component(sel, config[conf_key])
             cg.add(sel.set_parent(parent))
