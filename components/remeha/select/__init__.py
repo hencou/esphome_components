@@ -13,6 +13,7 @@ CONF_CH_ENABLED = "ch_enabled"
 CONF_DHW_ENABLED = "dhw_enabled"
 CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
+CONF_FIREPLACE_MODE = "eco_mode"
 
 CONF_OPTIONS = "options"
  
@@ -37,6 +38,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_DHW_ENABLED): _select_schema_with_options("mdi:water-boiler"),
         cv.Optional(CONF_ANTI_LEGIONELLA_MODE): _select_schema_with_options("mdi:bacteria-outline"),
         cv.Optional(CONF_FIREPLACE_MODE): _select_schema_with_options("mdi:fireplace"),
+        cv.Optional(CONF_ECO_MODE): _select_schema_with_options("mdi:sprout"),
     }
 )
 
@@ -82,6 +84,13 @@ SELECT_PARAMS = {
         "sdo_subindex": 0x01,
         "options": ["Off", "On"],
         "setter": "set_fireplace_mode_select",
+        "value_offset": 0,
+    },
+    CONF_ECO_MODE: {
+        "sdo_index": 0x3015,
+        "sdo_subindex": 0x00,
+        "options": ["Off", "On"],
+        "setter": "set_eco_mode_select",
         "value_offset": 0,
     },
 }
