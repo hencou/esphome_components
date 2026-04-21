@@ -12,7 +12,9 @@ esp32:
     type: esp-idf
 
 external_components:
-- source: github://hencou/esphome_components
+- source:
+    type: local
+    path: my_components
   components: [remeha]
   refresh: 0s
 - source: github://hencou/esphome_gvret
@@ -52,24 +54,38 @@ sensor:
   flow_temperature:
     name: Flow Temperatuur
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   outside_temperature:
     name: Buiten temperatuur
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   outside_temperature_3m_avg:
     name: Buiten temperatuur 3min avg
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   outside_temperature_2h_avg:
     name: Buiten temperatuur 2h avg
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   setpoint:
     name: Setpoint
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   relative_power:
     name: Relative Power
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   relative_power2:
     name: Relative Power 2
     entity_category: DIAGNOSTIC
+    filters:
+      - delta: 0.1
   status_code:
     name: Status Code
     entity_category: DIAGNOSTIC
