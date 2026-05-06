@@ -166,7 +166,7 @@ number:
     name: "Vakantie Setpoint"
     entity_category: CONFIG
   summer_winter_threshold:
-    name: "Zomer/Winter Drempel"
+    name: "Zomer-Winter Drempel"
     entity_category: CONFIG
   heating_curve_slope:
     name: "Stooklijn Helling"
