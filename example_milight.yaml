@@ -120,6 +120,9 @@ binary_sensor:
       number: D1
       mode: INPUT_PULLUP
       inverted: True
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
     on_multi_click:
       - timing:
           - ON for at most 0.5s
