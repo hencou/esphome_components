@@ -53,6 +53,9 @@ CONF_RF24_LISTEN_CHANNEL = "rf24_listen_channel"
 CONF_PACKET_REPEATS_PER_LOOP = "packet_repeats_per_loop"
 CONF_ON_COMMAND_RECEIVED = "on_command_received"
 CONF_RESEND_LAST_COMMAND = "resend_last_command"
+CONF_SPI_MOSI_PIN = "spi_mosi_pin"
+CONF_SPI_MISO_PIN = "spi_miso_pin"
+CONF_SPI_SCLK_PIN = "spi_sclk_pin"
 
 MiBridgeData = mi_ns.struct("MiBridgeData")
 MiBridgeReceivedCodeTrigger = mi_ns.class_(
@@ -80,6 +83,9 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_RF24_LISTEN_CHANNEL) : cv.enum(CHANNELS),
       cv.Optional(CONF_PACKET_REPEATS_PER_LOOP) : cv.uint16_t,
       cv.Optional(CONF_RESEND_LAST_COMMAND) : cv.boolean,
+      cv.Optional(CONF_SPI_MOSI_PIN) : cv.int_range(min=0, max=48),
+      cv.Optional(CONF_SPI_MISO_PIN) : cv.int_range(min=0, max=48),
+      cv.Optional(CONF_SPI_SCLK_PIN) : cv.int_range(min=0, max=48),
       cv.Optional(CONF_ON_COMMAND_RECEIVED): automation.validate_automation(
           {
             cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
@@ -153,6 +159,25 @@ async def to_code(config):
       
     if CONF_RESEND_LAST_COMMAND in config:
       cg.add(var.set_resend_last_command(config[CONF_RESEND_LAST_COMMAND]))
+
+    has_custom_spi = any(key in config for key in [CONF_SPI_MOSI_PIN, CONF_SPI_MISO_PIN, CONF_SPI_SCLK_PIN])
+    if has_custom_spi:
+      if not core.CORE.using_arduino:
+        if CONF_SPI_MOSI_PIN in config:
+          cg.add_build_flag(f"-DRF24_DEFAULT_MOSI={config[CONF_SPI_MOSI_PIN]}")
+        if CONF_SPI_MISO_PIN in config:
+          cg.add_build_flag(f"-DRF24_DEFAULT_MISO={config[CONF_SPI_MISO_PIN]}")
+        if CONF_SPI_SCLK_PIN in config:
+          cg.add_build_flag(f"-DRF24_DEFAULT_SCLK={config[CONF_SPI_SCLK_PIN]}")
+      else:
+        if core.CORE.is_esp32:
+          cg.add_build_flag("-DUSE_ESP32_ALTERNATE_SPI")
+          if CONF_SPI_MISO_PIN in config:
+            cg.add_build_flag(f"-DALT_SPI_MISO_PIN={config[CONF_SPI_MISO_PIN]}")
+          if CONF_SPI_MOSI_PIN in config:
+            cg.add_build_flag(f"-DALT_SPI_MOSI_PIN={config[CONF_SPI_MOSI_PIN]}")
+          if CONF_SPI_SCLK_PIN in config:
+            cg.add_build_flag(f"-DALT_SPI_SCLK_PIN={config[CONF_SPI_SCLK_PIN]}")
 
     if CONF_RF24_CHANNELS in config:
       cg.add(var.del_rf24_channels())

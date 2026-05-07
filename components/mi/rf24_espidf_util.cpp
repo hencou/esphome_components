@@ -21,6 +21,15 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 
+// Compatibility: ESP32-C3, ESP32-C6, and other variants only have SPI2
+// and do not define the legacy HSPI_HOST / VSPI_HOST aliases.
+#if !defined(HSPI_HOST) && defined(SPI2_HOST)
+#define HSPI_HOST SPI2_HOST
+#endif
+#if !defined(VSPI_HOST) && defined(SPI2_HOST)
+#define VSPI_HOST SPI2_HOST
+#endif
+
 // --- Forward declarations matching RF24's esp-idf utility headers ---
 
 typedef uint8_t rf24_gpio_pin_t;

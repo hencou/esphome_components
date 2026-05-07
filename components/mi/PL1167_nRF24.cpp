@@ -14,6 +14,12 @@
 #include "RadioUtils.h"
 #include "MiLightRadioConfig.h"
 
+// Compatibility: ESP32-C3, ESP32-C6, and similar variants do not define
+// the legacy HSPI / VSPI constants used by the Arduino ESP32 SPIClass.
+#if defined(USE_ARDUINO) && defined(ESP32) && !defined(HSPI)
+#define HSPI SPI2_HOST
+#endif
+
 static uint16_t calc_crc(uint8_t *data, size_t data_length);
 
 PL1167_nRF24::PL1167_nRF24(RF24 &radio)
@@ -21,7 +27,7 @@ PL1167_nRF24::PL1167_nRF24(RF24 &radio)
 {
 #ifdef USE_ESP32_ALTERNATE_SPI
 #ifdef USE_ARDUINO
-  _spiBus = new SPIClass(HSPI); //defaults to VSPI
+  _spiBus = new SPIClass(HSPI);
 #if defined(ALT_SPI_MISO_PIN) && \
     defined(ALT_SPI_MOSI_PIN) && \
     defined(ALT_SPI_SCLK_PIN) && \
