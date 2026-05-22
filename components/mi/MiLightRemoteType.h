@@ -12,6 +12,7 @@ enum MiLightRemoteType {
   REMOTE_TYPE_FUT091  = 5,
   REMOTE_TYPE_FUT020  = 6,
   REMOTE_TYPE_S2      = 7,
+  REMOTE_TYPE_FUT022  = 8,
 };
 
 class MiLightRemoteTypeHelpers {

@@ -26,6 +26,7 @@ REMOTE_TYPES = {
     "fut089": "fut089",
     "fut091": "fut091",
     "fut020": "fut020",
+    "fut022": "fut022",
     "s2": "s2",
 }
 

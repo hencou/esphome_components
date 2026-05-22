@@ -8,6 +8,7 @@
 #include "FUT089PacketFormatter.h"
 #include "FUT091PacketFormatter.h"
 #include "FUT020PacketFormatter.h"
+#include "FUT022PacketFormatter.h"
 #include "S2PacketFormatter.h"
 #include "PacketFormatter.h"
 
@@ -50,6 +51,7 @@ extern const MiLightRemoteConfig FUT089Config; //rgb+cct B8 / FUT089
 extern const MiLightRemoteConfig FUT098Config; //rgb
 extern const MiLightRemoteConfig FUT091Config; //v2 cct
 extern const MiLightRemoteConfig FUT020Config;
+extern const MiLightRemoteConfig FUT022Config;
 extern const MiLightRemoteConfig S2Config;
 
 #endif
