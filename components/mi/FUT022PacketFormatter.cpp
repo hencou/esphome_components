@@ -26,27 +26,26 @@ void FUT022PacketFormatter::decreaseBrightness() {
 
 void FUT022PacketFormatter::updateBrightness(uint8_t value) {
   // MiLightClient passes brightness as 0-100.
-  // Map to ring brightness range (0x80-0xFF).
+  // Map to ring brightness range (RING_BRIGHTNESS_MIN-RING_BRIGHTNESS_MAX).
   uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_BRIGHTNESS_MAX - RING_BRIGHTNESS_MIN, 100);
   ringValue += RING_BRIGHTNESS_MIN;
   command(static_cast<uint8_t>(FUT022Command::RING), ringValue);
 }
 
 void FUT022PacketFormatter::increaseTemperature() {
-  // No dedicated temp+ button on FUT022 — simulate via ring
-  // This is a workaround: send a slightly warmer ring position
-  command(static_cast<uint8_t>(FUT022Command::RING), 0x60);
+  // No dedicated temp+ button on FUT022 — simulate via ring (warmer)
+  command(static_cast<uint8_t>(FUT022Command::RING), RING_TEMP_MIN);
 }
 
 void FUT022PacketFormatter::decreaseTemperature() {
-  // No dedicated temp- button — simulate via ring
-  command(static_cast<uint8_t>(FUT022Command::RING), 0x20);
+  // No dedicated temp- button — simulate via ring (cooler)
+  command(static_cast<uint8_t>(FUT022Command::RING), RING_TEMP_MAX);
 }
 
 void FUT022PacketFormatter::updateTemperature(uint8_t value) {
   // MiLightClient passes temperature as 0-100 (0=cold, 100=warm).
-  // Ring temperature range: 0x7F=cold, 0x00=warm (inverted).
-  uint8_t ringValue = RING_TEMP_MAX - Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX, 100);
+  // Ring: RING_TEMP_MAX=cold, RING_TEMP_MIN=warm.
+  uint8_t ringValue = RING_TEMP_MAX - Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX - RING_TEMP_MIN, 100);
   command(static_cast<uint8_t>(FUT022Command::RING), ringValue);
 }
 
@@ -97,9 +96,9 @@ BulbId FUT022PacketFormatter::parsePacket(const uint8_t* packet, JsonObject resu
       ESP_LOGW("FUT022", "RING raw arg=0x%02X (%d)", arg, arg);
       if (arg >= RING_BRIGHTNESS_MIN) {
         // Left half of ring → absolute brightness
-        // Map 0x80-0xFF → 1-255 (never fully off from ring)
+        uint8_t clamped = constrain(arg, RING_BRIGHTNESS_MIN, RING_BRIGHTNESS_MAX);
         uint8_t brightness = Units::rescale<uint8_t, uint16_t>(
-          arg - RING_BRIGHTNESS_MIN,
+          clamped - RING_BRIGHTNESS_MIN,
           255,
           RING_BRIGHTNESS_MAX - RING_BRIGHTNESS_MIN
         );
@@ -107,8 +106,11 @@ BulbId FUT022PacketFormatter::parsePacket(const uint8_t* packet, JsonObject resu
         result[GroupStateFieldNames::BRIGHTNESS] = brightness;
       } else {
         // Right half of ring → absolute color temperature
-        // Ring value 0x7F = cold (153 mireds), 0x00 = warm (370 mireds)
-        uint16_t mireds = Units::rescale<uint16_t, uint16_t>(RING_TEMP_MAX - arg, 370 - 153, RING_TEMP_MAX);
+        // RING_TEMP_MAX = coldest, RING_TEMP_MIN = warmest
+        uint8_t clamped = constrain(arg, RING_TEMP_MIN, RING_TEMP_MAX);
+        uint16_t mireds = Units::rescale<uint16_t, uint16_t>(
+          RING_TEMP_MAX - clamped, 370 - 153, RING_TEMP_MAX - RING_TEMP_MIN
+        );
         mireds += 153;
         result[GroupStateFieldNames::COLOR_TEMP] = mireds;
       }

@@ -49,9 +49,9 @@ public:
   // Instead, the configured output's remoteConfig is used as fallback.
   virtual bool canHandle(const uint8_t* packet, const size_t len) override { return false; }
 
-  // Ring arg value ranges
-  static const uint8_t RING_BRIGHTNESS_MIN = 0x80;  // left half of ring
-  static const uint8_t RING_BRIGHTNESS_MAX = 0xFF;
-  static const uint8_t RING_TEMP_MIN       = 0x00;  // right half of ring
-  static const uint8_t RING_TEMP_MAX       = 0x7F;
+  // Ring arg value ranges (calibrated from physical remote captures)
+  static const uint8_t RING_BRIGHTNESS_MIN = 0x90;  // left half of ring — dimmest
+  static const uint8_t RING_BRIGHTNESS_MAX = 0xF5;  // left half of ring — brightest
+  static const uint8_t RING_TEMP_MIN       = 0x15;  // right half of ring — warmest
+  static const uint8_t RING_TEMP_MAX       = 0x75;  // right half of ring — coldest
 };
