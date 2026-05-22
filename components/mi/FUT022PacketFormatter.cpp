@@ -2,6 +2,7 @@
 #include "Units.h"
 #include "GroupStateField.h"
 #include "MiLightCommands.h"
+#include "esphome/core/log.h"
 
 // ============================================================
 // SENDING — generate packets to control the CCT receiver
@@ -93,6 +94,7 @@ BulbId FUT022PacketFormatter::parsePacket(const uint8_t* packet, JsonObject resu
       break;
 
     case FUT022Command::RING:
+      ESP_LOGW("FUT022", "RING raw arg=0x%02X (%d)", arg, arg);
       if (arg >= RING_BRIGHTNESS_MIN) {
         // Left half of ring → absolute brightness
         // Map 0x80-0xFF → 1-255 (never fully off from ring)
