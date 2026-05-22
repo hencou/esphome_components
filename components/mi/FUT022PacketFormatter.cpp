@@ -24,9 +24,9 @@ void FUT022PacketFormatter::decreaseBrightness() {
 }
 
 void FUT022PacketFormatter::updateBrightness(uint8_t value) {
-  // Use the touch ring to set absolute brightness.
-  // Map 0-255 → ring brightness range (0x80-0xFF).
-  uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_BRIGHTNESS_MAX - RING_BRIGHTNESS_MIN, 255);
+  // MiLightClient passes brightness as 0-100.
+  // Map to ring brightness range (0x80-0xFF).
+  uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_BRIGHTNESS_MAX - RING_BRIGHTNESS_MIN, 100);
   ringValue += RING_BRIGHTNESS_MIN;
   command(static_cast<uint8_t>(FUT022Command::RING), ringValue);
 }
@@ -43,9 +43,9 @@ void FUT022PacketFormatter::decreaseTemperature() {
 }
 
 void FUT022PacketFormatter::updateTemperature(uint8_t value) {
-  // Map 0-255 → ring temperature range (0x00-0x7F).
-  // 0 = coldest, 255 = warmest → ring 0x00 = cold end, 0x7F = warm end
-  uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX, 255);
+  // MiLightClient passes temperature as 0-100 (0=cold, 100=warm).
+  // Map to ring temperature range (0x00-0x7F).
+  uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX, 100);
   command(static_cast<uint8_t>(FUT022Command::RING), ringValue);
 }
 
