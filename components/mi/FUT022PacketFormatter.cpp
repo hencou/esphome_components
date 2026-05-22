@@ -44,8 +44,8 @@ void FUT022PacketFormatter::decreaseTemperature() {
 
 void FUT022PacketFormatter::updateTemperature(uint8_t value) {
   // MiLightClient passes temperature as 0-100 (0=cold, 100=warm).
-  // Map to ring temperature range (0x00-0x7F).
-  uint8_t ringValue = Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX, 100);
+  // Ring temperature range: 0x7F=cold, 0x00=warm (inverted).
+  uint8_t ringValue = RING_TEMP_MAX - Units::rescale<uint8_t, uint16_t>(value, RING_TEMP_MAX, 100);
   command(static_cast<uint8_t>(FUT022Command::RING), ringValue);
 }
 
@@ -105,10 +105,8 @@ BulbId FUT022PacketFormatter::parsePacket(const uint8_t* packet, JsonObject resu
         result[GroupStateFieldNames::BRIGHTNESS] = brightness;
       } else {
         // Right half of ring → absolute color temperature
-        // Map 0x00-0x7F → 153-370 mireds (warm to cold, typical CCT range)
-        // 153 mireds = 6500K (cold), 370 mireds = 2700K (warm)
-        // Ring value 0x00 = cold end, 0x7F = warm end
-        uint16_t mireds = Units::rescale<uint16_t, uint16_t>(arg, 370 - 153, RING_TEMP_MAX);
+        // Ring value 0x7F = cold (153 mireds), 0x00 = warm (370 mireds)
+        uint16_t mireds = Units::rescale<uint16_t, uint16_t>(RING_TEMP_MAX - arg, 370 - 153, RING_TEMP_MAX);
         mireds += 153;
         result[GroupStateFieldNames::COLOR_TEMP] = mireds;
       }
