@@ -248,8 +248,15 @@ namespace esphome {
           packetLen
         );
 
+        // Prefer the configured output's formatter when the auto-detected config
+        // shares the same radio config (handles FUT022 vs FUT020 disambiguation —
+        // they share identical over-the-air format but have different command semantics).
+        const MiLightRemoteConfig& effectiveConfig =
+            (newRemoteConfig && &newRemoteConfig->radioConfig != &remoteConfig->radioConfig)
+            ? *newRemoteConfig : *remoteConfig;
+
         // update state to reflect this packet
-        onPacketReceivedHandler(readPacket, newRemoteConfig? *newRemoteConfig : *remoteConfig);
+        onPacketReceivedHandler(readPacket, effectiveConfig);
       }
 
       i++;

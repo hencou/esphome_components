@@ -9,6 +9,7 @@ static const char* REMOTE_NAME_RGB     = "rgb";
 static const char* REMOTE_NAME_FUT091  = "fut091";
 static const char* REMOTE_NAME_FUT020  = "fut020";
 static const char* REMOTE_NAME_S2      = "s2";
+static const char* REMOTE_NAME_FUT022  = "fut022";
 
 const MiLightRemoteType MiLightRemoteTypeHelpers::remoteTypeFromString(const std::string& type) {
   if (esphome::str_equals_case_insensitive(type, REMOTE_NAME_RGBW) || esphome::str_equals_case_insensitive(type, "fut096")) {
@@ -43,6 +44,10 @@ const MiLightRemoteType MiLightRemoteTypeHelpers::remoteTypeFromString(const std
     return REMOTE_TYPE_S2;
   }
 
+  if (esphome::str_equals_case_insensitive(type, REMOTE_NAME_FUT022)) {
+    return REMOTE_TYPE_FUT022;
+  }
+
   //Serial.print(F("remoteTypeFromString: ERROR - tried to fetch remote config for type: "));
   //Serial.println(type);
 
@@ -67,6 +72,8 @@ const std::string MiLightRemoteTypeHelpers::remoteTypeToString(const MiLightRemo
       return REMOTE_NAME_FUT020;
     case REMOTE_TYPE_S2:
       return REMOTE_NAME_S2;
+    case REMOTE_TYPE_FUT022:
+      return REMOTE_NAME_FUT022;
     default:
       //Serial.print(F("remoteTypeToString: ERROR - tried to fetch remote config name for unknown type: "));
       //Serial.println(type);
@@ -103,6 +110,7 @@ const bool MiLightRemoteTypeHelpers::supportsColorTemp(const MiLightRemoteType t
     case REMOTE_TYPE_CCT:
     case REMOTE_TYPE_FUT089:
     case REMOTE_TYPE_FUT091:
+    case REMOTE_TYPE_FUT022:
     case REMOTE_TYPE_RGB_CCT:
     case REMOTE_TYPE_S2:
       return true;

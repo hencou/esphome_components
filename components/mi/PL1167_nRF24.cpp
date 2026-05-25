@@ -14,14 +14,21 @@
 #include "RadioUtils.h"
 #include "MiLightRadioConfig.h"
 
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+#include "esphome/core/log.h"
+#include "hal/usb_serial_jtag_ll.h"
+static const char *const TAG_RADIO = "mi";
+#endif
+
 static uint16_t calc_crc(uint8_t *data, size_t data_length);
 
 PL1167_nRF24::PL1167_nRF24(RF24 &radio)
   : _radio(radio)
 {
-#ifdef USE_ESP32_ALTERNATE_SPI
-#ifdef USE_ARDUINO
-  _spiBus = new SPIClass(HSPI); //defaults to VSPI
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+  // SPI init deferred to open() — must happen AFTER USB-JTAG pad is released on ESP32-C3
+#elif defined(USE_ESP32_ALTERNATE_SPI) && defined(USE_ARDUINO)
+  _spiBus = new SPIClass(HSPI);
 #if defined(ALT_SPI_MISO_PIN) && \
     defined(ALT_SPI_MOSI_PIN) && \
     defined(ALT_SPI_SCLK_PIN) && \
@@ -31,13 +38,32 @@ PL1167_nRF24::PL1167_nRF24(RF24 &radio)
 #else
   _spiBus->begin();
 #endif
-#endif // USE_ARDUINO
-#endif // USE_ESP32_ALTERNATE_SPI
+#endif
 }
 
 int PL1167_nRF24::open() {
 
-#if defined(USE_ESP32_ALTERNATE_SPI) && defined(USE_ARDUINO)
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+  // Explicitly release GPIO18/GPIO19 from USB-Serial-JTAG peripheral
+  usb_serial_jtag_ll_phy_enable_pad(false);
+  ESP_LOGD(TAG_RADIO, "USB-Serial-JTAG pad disabled — GPIO18/19 freed");
+
+#ifdef USE_ESP32_ALTERNATE_SPI
+#ifdef USE_ARDUINO
+#if defined(ALT_SPI_MISO_PIN) && \
+    defined(ALT_SPI_MOSI_PIN) && \
+    defined(ALT_SPI_SCLK_PIN) && \
+    defined(ALT_SPI_SS_PIN)
+  // Init SPI AFTER USB-JTAG release so GPIO mux succeeds
+  SPI.begin(ALT_SPI_SCLK_PIN, ALT_SPI_MISO_PIN, ALT_SPI_MOSI_PIN, ALT_SPI_SS_PIN);
+  pinMode(ALT_SPI_SS_PIN, OUTPUT);
+  digitalWrite(ALT_SPI_SS_PIN, HIGH);
+  _spiBus = &SPI;
+#endif
+#endif
+#endif
+  _radio.begin(_spiBus);
+#elif defined(USE_ESP32_ALTERNATE_SPI) && defined(USE_ARDUINO)
   _radio.begin(_spiBus);
 #else
   _radio.begin();
