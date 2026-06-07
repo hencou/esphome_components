@@ -391,6 +391,16 @@ void LD2410S::parse_cmd_frame_() {
       if (this->rx_.payload_size() < 8)
         break;
       this->parse_ack_config_start_(data);
+      if (this->calibrating_ && this->tx_schedule_.is_idle()) {
+        uint32_t now = millis();
+        if (now - this->last_config_recovery_ms_ > 3000) {
+          this->last_config_recovery_ms_ = now;
+          ESP_LOGW(TAG, "Sensor entered config mode during calibration, sending config end to recover");
+          static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
+          this->write_array(CFG_END, sizeof(CFG_END));
+          this->flush();
+        }
+      }
       break;
 
     case CONFIG_MODE_END_CMD | CMD_CONFIRMATION:
