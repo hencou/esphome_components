@@ -48,7 +48,10 @@ void LD2410S::read_all_() {
 }
 
 // button
-void LD2410S::calibration() { this->tx_schedule_.append(CALIBRATION_CMD); }
+void LD2410S::calibration() {
+  this->calibrating_ = true;
+  this->tx_schedule_.append(CALIBRATION_CMD);
+}
 void LD2410S::factory_reset() {
   ESP_LOGI(TAG, "factory_reset");
 
