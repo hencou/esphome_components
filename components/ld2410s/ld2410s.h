@@ -292,6 +292,7 @@ class LD2410S : public Component, public uart::UARTDevice {
   bool minimal_output_{true};
   bool calibrating_{false};
   bool minimal_output_before_calibration_{false};
+  uint32_t last_config_recovery_ms_{0};
 
   uint32_t loop_count_{0};
   bool init_done_{false};
