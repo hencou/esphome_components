@@ -332,6 +332,7 @@ void LD2410S::parse_data_frame_() {
       uint16_t progress = encode_uint16(this->rx_.payload_data()[2], this->rx_.payload_data()[1]);
 
       this->sending_pause_();
+      this->last_calibration_progress_ms_ = millis();
 
       if (progress == 100) {
         this->calibrating_ = false;
@@ -393,8 +394,8 @@ void LD2410S::parse_cmd_frame_() {
       this->parse_ack_config_start_(data);
       if (this->tx_schedule_.is_idle()) {
         uint32_t now = millis();
-        if (this->calibrating_ && now - this->calibration_start_ms_ > 150000) {
-          ESP_LOGI(TAG, "Calibration timeout reached (150s), finalizing");
+        if (this->calibrating_ && now - this->last_calibration_progress_ms_ > 120000) {
+          ESP_LOGI(TAG, "Calibration stalled (no progress for 120s), finalizing");
           this->calibrating_ = false;
           if (this->minimal_output_before_calibration_) {
             ESP_LOGI(TAG, "Restoring minimal output mode");

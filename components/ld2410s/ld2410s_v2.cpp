@@ -51,6 +51,7 @@ void LD2410S::read_all_() {
 void LD2410S::calibration() {
   this->calibrating_ = true;
   this->calibration_start_ms_ = millis();
+  this->last_calibration_progress_ms_ = millis();
   this->last_config_recovery_ms_ = 0;
   this->minimal_output_before_calibration_ = this->minimal_output_;
   if (this->minimal_output_) {
