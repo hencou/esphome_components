@@ -50,6 +50,12 @@ void LD2410S::read_all_() {
 // button
 void LD2410S::calibration() {
   this->calibrating_ = true;
+  this->minimal_output_before_calibration_ = this->minimal_output_;
+  if (this->minimal_output_) {
+    ESP_LOGI(TAG, "Switching to standard output mode for calibration");
+    this->minimal_output_ = false;
+    this->tx_schedule_.append(OUTPUT_MODE_SWITCH_CMD);
+  }
   this->tx_schedule_.append(CALIBRATION_CMD);
 }
 void LD2410S::factory_reset() {
