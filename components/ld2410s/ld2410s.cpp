@@ -393,7 +393,17 @@ void LD2410S::parse_cmd_frame_() {
       this->parse_ack_config_start_(data);
       if (this->calibrating_ && this->tx_schedule_.is_idle()) {
         uint32_t now = millis();
-        if (now - this->last_config_recovery_ms_ > 3000) {
+        if (now - this->calibration_start_ms_ > 150000) {
+          ESP_LOGI(TAG, "Calibration timeout reached (150s), finalizing");
+          this->calibrating_ = false;
+          if (this->minimal_output_before_calibration_) {
+            ESP_LOGI(TAG, "Restoring minimal output mode");
+            this->set_minimal_output(true);
+          }
+          this->publish_calibration_progress_(100, true);
+          this->publish_calibration_running_(false);
+          this->read_all_thresholds_();
+        } else if (now - this->last_config_recovery_ms_ > 3000) {
           this->last_config_recovery_ms_ = now;
           ESP_LOGW(TAG, "Sensor entered config mode during calibration, sending config end to recover");
           static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
