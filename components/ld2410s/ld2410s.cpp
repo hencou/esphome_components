@@ -404,15 +404,21 @@ void LD2410S::parse_cmd_frame_() {
           this->publish_calibration_running_(false);
           this->read_all_thresholds_();
         }
-        // Always send CONFIG_MODE_END to exit unsolicited config mode.
-        // Throttle the log message to avoid spam (sensor re-enters every ~1s).
-        if (now - this->last_config_recovery_ms_ > 3000) {
-          ESP_LOGD(TAG, "Sending config end to exit unsolicited config mode");
+        // During calibration: use 2s cooldown so the sensor gets stable normal-mode
+        // windows to send calibration progress frames. Responding to every entry
+        // bounces the sensor too fast (~400ms) and it can't generate progress data.
+        // During normal operation: always respond immediately to prevent the sensor
+        // from staying stuck in config mode (it won't retry on its own).
+        bool should_send = !this->calibrating_ || (now - this->last_config_recovery_ms_ > 2000);
+        if (should_send) {
+          if (now - this->last_config_recovery_ms_ > 3000) {
+            ESP_LOGD(TAG, "Sending config end to exit unsolicited config mode");
+          }
+          this->last_config_recovery_ms_ = now;
+          static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
+          this->write_array(CFG_END, sizeof(CFG_END));
+          this->flush();
         }
-        this->last_config_recovery_ms_ = now;
-        static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
-        this->write_array(CFG_END, sizeof(CFG_END));
-        this->flush();
       }
       break;
 
