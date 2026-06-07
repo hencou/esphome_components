@@ -396,6 +396,10 @@ void LD2410S::parse_cmd_frame_() {
         if (now - this->calibration_start_ms_ > 150000) {
           ESP_LOGI(TAG, "Calibration timeout reached (150s), finalizing");
           this->calibrating_ = false;
+          // Sensor is in config mode right now, send CONFIG_MODE_END to exit
+          static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
+          this->write_array(CFG_END, sizeof(CFG_END));
+          this->flush();
           if (this->minimal_output_before_calibration_) {
             ESP_LOGI(TAG, "Restoring minimal output mode");
             this->set_minimal_output(true);
