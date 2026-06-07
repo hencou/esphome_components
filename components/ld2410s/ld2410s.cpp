@@ -396,9 +396,6 @@ void LD2410S::parse_cmd_frame_() {
         if (this->calibrating_ && now - this->calibration_start_ms_ > 150000) {
           ESP_LOGI(TAG, "Calibration timeout reached (150s), finalizing");
           this->calibrating_ = false;
-          static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
-          this->write_array(CFG_END, sizeof(CFG_END));
-          this->flush();
           if (this->minimal_output_before_calibration_) {
             ESP_LOGI(TAG, "Restoring minimal output mode");
             this->set_minimal_output(true);
@@ -406,13 +403,16 @@ void LD2410S::parse_cmd_frame_() {
           this->publish_calibration_progress_(100, true);
           this->publish_calibration_running_(false);
           this->read_all_thresholds_();
-        } else if (now - this->last_config_recovery_ms_ > 3000) {
-          this->last_config_recovery_ms_ = now;
-          ESP_LOGD(TAG, "Sensor entered config mode while idle, sending config end to exit");
-          static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
-          this->write_array(CFG_END, sizeof(CFG_END));
-          this->flush();
         }
+        // Always send CONFIG_MODE_END to exit unsolicited config mode.
+        // Throttle the log message to avoid spam (sensor re-enters every ~1s).
+        if (now - this->last_config_recovery_ms_ > 3000) {
+          ESP_LOGD(TAG, "Sending config end to exit unsolicited config mode");
+        }
+        this->last_config_recovery_ms_ = now;
+        static const uint8_t CFG_END[] = {0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xFE, 0x00, 0x04, 0x03, 0x02, 0x01};
+        this->write_array(CFG_END, sizeof(CFG_END));
+        this->flush();
       }
       break;
 
