@@ -78,7 +78,7 @@ LambdaLightEffect = cg.esphome_ns.namespace("light").class_("LambdaLightEffect")
 async def mi_light_effect_to_code(config, effect_id):
 
     lambda_code = cg.RawExpression(f"""
-        [](bool initial_run) -> void {{
+        [](esphome::light::LightState &, bool initial_run) -> void {{
           if (initial_run) {{
             auto call = {OUTPUT_NAME}->make_call();
             call.set_effect("{config[CONF_NAME]}");
