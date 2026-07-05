@@ -102,7 +102,15 @@ void SPIClass::begin(spi_host_device_t busNo, uint32_t speed)
 void SPIClass::begin(spi_host_device_t busNo, uint32_t speed, uint8_t mode, spi_bus_config_t* busConfig)
 {
     esp_err_t ret = spi_bus_initialize(busNo, busConfig, SPI_DMA_DISABLED);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
+
+    // If bus already started (ESP_ERR_INVALID_STATE), thats OK!
+    if (ret == ESP_ERR_INVALID_STATE) {
+      esp_rom_printf("--- [DEBUG] SPI bus already intitialized, reuse it. ---\n");
+    } else {
+    // Crash only at real errors
+      ESP_ERROR_CHECK(ret);
+    }
 
     spi_device_interface_config_t device_conf;
     memset(&device_conf, 0, sizeof(device_conf));
