@@ -1,4 +1,9 @@
 #include <RF24.h>
+// RF24 defines `printf_P` as `Serial.printf` on the ESP32 Arduino core, which
+// collides with ESPAsyncWebServer's AsyncWebSocket::printf_P. Drop it here.
+#ifdef printf_P
+#undef printf_P
+#endif
 #include <string>
 
 #ifndef _RF24_POWER_LEVEL_H

@@ -7,6 +7,14 @@
 
 #include "RF24.h"
 
+// The RF24 library (ESP32 Arduino core) defines `printf_P` as `Serial.printf`.
+// This macro leaks into other headers pulled in by esphome.h and collides with
+// ESPAsyncWebServer's AsyncWebSocket::printf_P member function. This component
+// does not use RF24's printf helpers, so drop the macro after including RF24.h.
+#ifdef printf_P
+#undef printf_P
+#endif
+
 // #define DEBUG_PRINTF
 
 #ifndef PL1167_NRF24_H_
