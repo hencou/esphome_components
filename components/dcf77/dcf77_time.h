@@ -53,6 +53,12 @@ class DCF77Time : public time::RealTimeClock {
 
   void setup() override;
   void loop() override;
+  /// RealTimeClock derives from PollingComponent, which requires update() to
+  /// be implemented. This component does its actual work continuously in
+  /// loop() instead (a valid DCF77 frame arrives roughly once per minute,
+  /// asynchronously, so a fixed update_interval poll doesn't fit), so this
+  /// is intentionally a no-op.
+  void update() override {}
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
