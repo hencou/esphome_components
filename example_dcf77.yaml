@@ -32,7 +32,7 @@ time:
 - platform: dcf77
     id: dcftime
     pin:
-      number: GPIO3
+      number: D5
       inverted: true  # only needed if wired through an opto-isolated input
     timezone: "Europe/Amsterdam"
     on_time_sync:
