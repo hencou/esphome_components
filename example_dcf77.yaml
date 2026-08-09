@@ -33,7 +33,10 @@ time:
     id: dcftime
     pin:
       number: D5
-      inverted: true  # only needed if wired through an opto-isolated input
+      mode:
+        input: true
+        pullup: true
+    update_interval: 30min
     timezone: "Europe/Amsterdam"
     on_time_sync:
       then:
