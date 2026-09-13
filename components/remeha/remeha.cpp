@@ -110,13 +110,13 @@ void Remeha::loop() {
     }
 
     // If not authenticated, start auth
-    if (!this->authenticated_ && this->auth_step_ == 0) {
+    if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
       this->start_auth_();
       return;
     }
 
     // SDO reads (round-robin)
-    if (this->authenticated_ && this->auth_step_ == 0) {
+    if ((this->authenticated_ || !this->auth_required_()) && this->auth_step_ == 0) {
       this->poll_next_sdo_();
     }
   }
@@ -126,6 +126,7 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "Remeha:");
   ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", this->boot_delay_ms_);
   ESP_LOGCONFIG(TAG, "  User level: %u", this->user_level_);
+  ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "not set");
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", this->sdo_poll_list_.size());
 }
 
@@ -247,7 +248,7 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
       if (!this->gateway_enabled_) {
         ESP_LOGI(TAG, "0x4004=0x%02X: custom SDO gateway READY", x[4]);
         this->gateway_enabled_ = true;
-        if (!this->authenticated_ && this->auth_step_ == 0) {
+        if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
           this->start_auth_();
         }
       }
@@ -255,7 +256,7 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
       if (!this->gateway_enabled_) {
         ESP_LOGI(TAG, "Write to 0x4004 confirmed, gateway enabled");
         this->gateway_enabled_ = true;
-        if (!this->authenticated_ && this->auth_step_ == 0) {
+        if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
           this->start_auth_();
         }
       }
@@ -413,7 +414,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 
     if (index == 0x4001 && sub == 0x00 && this->auth_step_ == 2) {
       uint32_t v[2] = {this->user_level_, this->user_level_};
-      uint32_t k[4] = {0x15EFA43Fu, this->auth_serial_, value, this->user_level_};
+      uint32_t k[4] = {this->auth_key_, this->auth_serial_, value, this->user_level_};
       tea_encrypt_(v, k);
       this->auth_sub1_ = v[0];
       this->auth_sub2_ = v[1];

@@ -46,7 +46,11 @@ canbus:
 remeha:
   canbus_id: can1
   boot_delay: 10s
-  user_level: 2  # 1=GUEST, 2=SERVICE (needed for parameter writes)
+  user_level: 2  # 0=no authentication, 1=GUEST, 2=SERVICE (needed for parameter writes)
+  # 32-bit hex key word for the boiler authentication, kept in secrets.yaml as
+  #   remeha_auth_key: 0x........
+  # Required for user_level >= 1, unused for user_level: 0
+  auth_key: !secret remeha_auth_key
 
 # --- Sensors ---
 sensor:
