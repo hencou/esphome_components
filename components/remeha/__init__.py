@@ -16,7 +16,7 @@ CONF_AUTH_KEY = "auth_key"
 
 
 def auth_key(value):
-    """Validate the 32-bit TEA key word as a hex value.
+    """Validate the 32-bit key word as a hex value.
 
     Accepts an int or a (secret) string such as "0x1234ABCD" or "1234ABCD".
     """
@@ -31,20 +31,32 @@ def auth_key(value):
                 f"{CONF_AUTH_KEY} must be a 32-bit hex value like 0x1234ABCD, got '{value}'"
             ) from err
     value = cv.int_(value)
-    if not 0 <= value <= 0xFFFFFFFF:
-        raise cv.Invalid(f"{CONF_AUTH_KEY} must fit in 32 bits")
+    if not 0 < value <= 0xFFFFFFFF:
+        raise cv.Invalid(f"{CONF_AUTH_KEY} must be a non-zero 32-bit value")
     return value
 
 
-CONFIG_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(): cv.declare_id(Remeha),
-        cv.Required(CONF_CANBUS_ID): cv.use_id(CanbusComponent),
-        cv.Required(CONF_AUTH_KEY): auth_key,
-        cv.Optional(CONF_BOOT_DELAY, default="10s"): cv.positive_time_period_milliseconds,
-        cv.Optional(CONF_USER_LEVEL, default=2): cv.int_range(min=1, max=3),
-    }
-).extend(cv.COMPONENT_SCHEMA)
+def validate_auth(config):
+    if config[CONF_USER_LEVEL] > 0 and CONF_AUTH_KEY not in config:
+        raise cv.Invalid(
+            f"'{CONF_AUTH_KEY}' is required for {CONF_USER_LEVEL} {config[CONF_USER_LEVEL]}; "
+            f"use '{CONF_USER_LEVEL}: 0' to run without authentication"
+        )
+    return config
+
+
+CONFIG_SCHEMA = cv.All(
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.declare_id(Remeha),
+            cv.Required(CONF_CANBUS_ID): cv.use_id(CanbusComponent),
+            cv.Optional(CONF_AUTH_KEY): auth_key,
+            cv.Optional(CONF_BOOT_DELAY, default="10s"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_USER_LEVEL, default=2): cv.int_range(min=0, max=3),
+        }
+    ).extend(cv.COMPONENT_SCHEMA),
+    validate_auth,
+)
 
 
 async def to_code(config):
@@ -56,4 +68,5 @@ async def to_code(config):
 
     cg.add(var.set_boot_delay(config[CONF_BOOT_DELAY]))
     cg.add(var.set_user_level(config[CONF_USER_LEVEL]))
-    cg.add(var.set_auth_key(config[CONF_AUTH_KEY]))
+    if CONF_AUTH_KEY in config:
+        cg.add(var.set_auth_key(config[CONF_AUTH_KEY]))

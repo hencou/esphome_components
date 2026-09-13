@@ -125,6 +125,7 @@ class Remeha : public Component {
 
   void send_boot_sequence_();
   void start_auth_();
+  bool auth_required_() const { return this->user_level_ > 0; }
   void poll_next_sdo_();
 
   static void tea_encrypt_(uint32_t v[2], const uint32_t k[4]);

@@ -110,13 +110,13 @@ void Remeha::loop() {
     }
 
     // If not authenticated, start auth
-    if (!this->authenticated_ && this->auth_step_ == 0) {
+    if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
       this->start_auth_();
       return;
     }
 
     // SDO reads (round-robin)
-    if (this->authenticated_ && this->auth_step_ == 0) {
+    if ((this->authenticated_ || !this->auth_required_()) && this->auth_step_ == 0) {
       this->poll_next_sdo_();
     }
   }
@@ -126,7 +126,7 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "Remeha:");
   ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", this->boot_delay_ms_);
   ESP_LOGCONFIG(TAG, "  User level: %u", this->user_level_);
-  ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "NOT SET");
+  ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "not set");
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", this->sdo_poll_list_.size());
 }
 
@@ -146,10 +146,6 @@ void Remeha::add_sdo_poll(uint16_t index, uint8_t subindex) {
 }
 
 void Remeha::start_auth_() {
-  if (this->auth_key_ == 0) {
-    ESP_LOGE(TAG, "No auth_key configured, cannot authenticate");
-    return;
-  }
   ESP_LOGI(TAG, "Attempting authentication (level %u)...", this->user_level_);
   // Read serial number from 0x2001 sub 0x0A
   uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
@@ -252,7 +248,7 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
       if (!this->gateway_enabled_) {
         ESP_LOGI(TAG, "0x4004=0x%02X: custom SDO gateway READY", x[4]);
         this->gateway_enabled_ = true;
-        if (!this->authenticated_ && this->auth_step_ == 0) {
+        if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
           this->start_auth_();
         }
       }
@@ -260,7 +256,7 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
       if (!this->gateway_enabled_) {
         ESP_LOGI(TAG, "Write to 0x4004 confirmed, gateway enabled");
         this->gateway_enabled_ = true;
-        if (!this->authenticated_ && this->auth_step_ == 0) {
+        if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
           this->start_auth_();
         }
       }
