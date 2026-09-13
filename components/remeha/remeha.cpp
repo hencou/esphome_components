@@ -79,6 +79,7 @@ void Remeha::loop() {
       ESP_LOGW(TAG, "Auth timeout at step %d, resetting", this->auth_step_);
       this->auth_step_ = 0;
       this->authenticated_ = false;
+      this->effective_level_ = 0;
     }
 
     // Write timeout
@@ -127,6 +128,7 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", this->boot_delay_ms_);
   ESP_LOGCONFIG(TAG, "  User level: %u", this->user_level_);
   ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "not set");
+  ESP_LOGCONFIG(TAG, "  Minimum level for writes: %u", this->min_write_level_);
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", this->sdo_poll_list_.size());
 }
 
@@ -173,6 +175,15 @@ bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t
 #ifdef USE_TEXT_SENSOR
     if (this->write_status_ != nullptr)
       this->write_status_->publish_state("Not authenticated");
+#endif
+    return false;
+  }
+  if (this->effective_level_ < this->min_write_level_) {
+    ESP_LOGW(TAG, "Cannot write: access level %u is below the required level %u",
+             this->effective_level_, this->min_write_level_);
+#ifdef USE_TEXT_SENSOR
+    if (this->write_status_ != nullptr)
+      this->write_status_->publish_state("Access level too low");
 #endif
     return false;
   }
@@ -341,12 +352,15 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 
     if (abort_code == 0x06010000) {
       ESP_LOGW(TAG, "Access denied for 0x%04X sub %d, re-auth needed", index, sub);
-      if (this->auth_step_ == 0)
+      if (this->auth_step_ == 0) {
         this->authenticated_ = false;
+        this->effective_level_ = 0;
+      }
     } else if (abort_code == 0x06040043) {
       ESP_LOGW(TAG, "Auth rejected (param incompatibility), will retry");
       this->auth_step_ = 0;
       this->authenticated_ = false;
+      this->effective_level_ = 0;
     } else {
       ESP_LOGD(TAG, "SDO ABORT 0x%04X sub %d code 0x%08X", index, sub, abort_code);
     }
@@ -356,7 +370,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
   // ---------- WRITE ACK handling (auth steps) ----------
   if (cmd == 0x60) {
     if (index == 0x4003 && sub == 0x03 && this->auth_step_ == 3) {
-      ESP_LOGI(TAG, "Auth step3: sub3 ack, writing sub1=0x%08X", this->auth_sub1_);
+      ESP_LOGI(TAG, "Auth step3: sub3 ack, writing sub1");
       uint32_t s1 = this->auth_sub1_;
       uint8_t data[8] = {0x23, 0x03, 0x40, 0x01,
                          (uint8_t)(s1 & 0xFF), (uint8_t)((s1 >> 8) & 0xFF),
@@ -364,7 +378,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->send_can_(0x241, data, 8);
       this->auth_step_ = 4;
     } else if (index == 0x4003 && sub == 0x01 && this->auth_step_ == 4) {
-      ESP_LOGI(TAG, "Auth step4: sub1 ack, writing sub2=0x%08X", this->auth_sub2_);
+      ESP_LOGI(TAG, "Auth step4: sub1 ack, writing sub2");
       uint32_t s2 = this->auth_sub2_;
       uint8_t data[8] = {0x23, 0x03, 0x40, 0x02,
                          (uint8_t)(s2 & 0xFF), (uint8_t)((s2 >> 8) & 0xFF),
@@ -405,7 +419,8 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     // --- Auth state machine ---
     if (index == 0x2001 && sub == 0x0A && this->auth_step_ == 1) {
       this->auth_serial_ = value;
-      ESP_LOGI(TAG, "Auth step1: serial=0x%08X, reading token...", value);
+      ESP_LOGI(TAG, "Auth step1: serial received, reading token...");
+      ESP_LOGV(TAG, "Auth step1: serial=0x%08X", value);
       uint8_t data[8] = {0x40, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
       this->send_can_(0x241, data, 8);
       this->auth_step_ = 2;
@@ -418,7 +433,8 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       tea_encrypt_(v, k);
       this->auth_sub1_ = v[0];
       this->auth_sub2_ = v[1];
-      ESP_LOGI(TAG, "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X", value, v[0], v[1]);
+      ESP_LOGI(TAG, "Auth step2: token received, writing response...");
+      ESP_LOGV(TAG, "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X", value, v[0], v[1]);
       uint8_t wd[8] = {0x2F, 0x03, 0x40, 0x03, (uint8_t)this->user_level_, 0x00, 0x00, 0x00};
       this->send_can_(0x241, wd, 8);
       this->auth_step_ = 3;
@@ -426,14 +442,17 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     }
 
     if (index == 0x4002 && sub == 0x00 && this->auth_step_ == 6) {
-      if (value >= 1) {
+      if (value == this->user_level_) {
         ESP_LOGI(TAG, "*** AUTHENTICATED *** (access level = %u)", value);
         this->authenticated_ = true;
+        this->effective_level_ = (uint8_t) value;
         this->auth_step_ = 0;
         this->sdo_read_step_ = 0;
       } else {
-        ESP_LOGW(TAG, "Auth FAILED: access level = %u", value);
+        ESP_LOGW(TAG, "Auth FAILED: requested level %u, effective level %u", this->user_level_,
+                 value);
         this->authenticated_ = false;
+        this->effective_level_ = 0;
         this->auth_step_ = 0;
       }
       return;

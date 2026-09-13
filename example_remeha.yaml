@@ -51,6 +51,7 @@ remeha:
   #   remeha_auth_key: 0x........
   # Required for user_level >= 1, unused for user_level: 0
   auth_key: !secret remeha_auth_key
+  min_write_level: 2  # parameter writes are refused below this verified access level
 
 # --- Sensors ---
 sensor:
