@@ -55,7 +55,6 @@ remeha:
   canbus_id: can1
   user_level: 2  # 0=no authentication, 1=GUEST, 2=SERVICE
   auth_key: !secret remeha_auth_key
-  min_write_level: 2  # refuse parameter writes below this verified access level
 ```
 
 The value may be written with or without the `0x` prefix and is always interpreted as hexadecimal. With `user_level: 0` the handshake is skipped entirely and `auth_key` can be omitted; only the broadcast data is then available.
