@@ -27,7 +27,7 @@ void Remeha::setup() {
   });
 
   ESP_LOGI(TAG, "Remeha component initialized, boot delay %u ms, user level %u",
-           (unsigned) this->boot_delay_ms_, this->user_level_);
+           this->boot_delay_ms_, this->user_level_);
 }
 
 void Remeha::loop() {
@@ -128,11 +128,11 @@ void Remeha::loop() {
 
 void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "Remeha:");
-  ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", (unsigned) this->boot_delay_ms_);
+  ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", this->boot_delay_ms_);
   ESP_LOGCONFIG(TAG, "  User level: %u", this->user_level_);
   ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "not set");
   ESP_LOGCONFIG(TAG, "  Minimum level for writes: %u", this->min_write_level_);
-  ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", (unsigned) this->sdo_poll_list_.size());
+  ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", this->sdo_poll_list_.size());
 }
 
 void Remeha::send_can_(uint32_t can_id, const uint8_t *data, size_t len) {
@@ -252,7 +252,7 @@ bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t
   this->write_pending_ = true;
   this->write_start_ms_ = millis();
 
-  ESP_LOGI(TAG, "WRITE SDO 0x%04X sub %d = %u (cmd=0x%02X)", index, subindex, (unsigned) value, cmd);
+  ESP_LOGI(TAG, "WRITE SDO 0x%04X sub %d = %u (cmd=0x%02X)", index, subindex, value, cmd);
 
 #ifdef USE_TEXT_SENSOR
   if (this->write_status_ != nullptr)
@@ -380,8 +380,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       else if (abort_code == 0x06090030) reason = "value out of range";
       else if (abort_code == 0x06090031) reason = "value too high";
       else if (abort_code == 0x06090032) reason = "value too low";
-      ESP_LOGW(TAG, "WRITE FAILED 0x%04X sub %d: %s (0x%08X)", index, sub, reason,
-               (unsigned) abort_code);
+      ESP_LOGW(TAG, "WRITE FAILED 0x%04X sub %d: %s (0x%08X)", index, sub, reason, abort_code);
       this->write_pending_ = false;
 #ifdef USE_TEXT_SENSOR
       if (this->write_status_ != nullptr) {
@@ -408,7 +407,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->authenticated_ = false;
       this->effective_level_ = 0;
     } else {
-      ESP_LOGD(TAG, "SDO ABORT 0x%04X sub %d code 0x%08X", index, sub, (unsigned) abort_code);
+      ESP_LOGD(TAG, "SDO ABORT 0x%04X sub %d code 0x%08X", index, sub, abort_code);
     }
     return;
   }
@@ -466,7 +465,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     if (index == 0x2001 && sub == 0x0A && this->auth_step_ == 1) {
       this->auth_serial_ = value;
       ESP_LOGI(TAG, "Auth step1: serial received, reading token...");
-      ESP_LOGV(TAG, "Auth step1: serial=0x%08X", (unsigned) value);
+      ESP_LOGV(TAG, "Auth step1: serial=0x%08X", value);
       uint8_t data[8] = {0x40, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
       this->send_can_(0x241, data, 8);
       this->auth_step_ = 2;
@@ -480,8 +479,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->auth_sub1_ = v[0];
       this->auth_sub2_ = v[1];
       ESP_LOGI(TAG, "Auth step2: token received, writing response...");
-      ESP_LOGV(TAG, "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X", (unsigned) value,
-               (unsigned) v[0], (unsigned) v[1]);
+      ESP_LOGV(TAG, "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X", value, v[0], v[1]);
       uint8_t wd[8] = {0x2F, 0x03, 0x40, 0x03, (uint8_t)this->user_level_, 0x00, 0x00, 0x00};
       this->send_can_(0x241, wd, 8);
       this->auth_step_ = 3;
@@ -490,14 +488,14 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 
     if (index == 0x4002 && sub == 0x00 && this->auth_step_ == 6) {
       if (value == this->user_level_) {
-        ESP_LOGI(TAG, "*** AUTHENTICATED *** (access level = %u)", (unsigned) value);
+        ESP_LOGI(TAG, "*** AUTHENTICATED *** (access level = %u)", value);
         this->authenticated_ = true;
         this->effective_level_ = (uint8_t) value;
         this->auth_step_ = 0;
         this->sdo_read_step_ = 0;
       } else {
         ESP_LOGW(TAG, "Auth FAILED: requested level %u, effective level %u", this->user_level_,
-                 (unsigned) value);
+                 value);
         this->authenticated_ = false;
         this->effective_level_ = 0;
         this->auth_step_ = 0;
@@ -528,15 +526,15 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     if (index == 0x3451 && sub == 0x01 && this->room_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->room_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "Room current=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      ESP_LOGD(TAG, "Room current=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.01f;
       this->dhw_comfort_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW comfort setpoint=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      ESP_LOGD(TAG, "DHW comfort setpoint=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.01f;
       this->dhw_reduced_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW reduced setpoint=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      ESP_LOGD(TAG, "DHW reduced setpoint=%.1f C (raw=%u)", temp, value & 0xFFFF);
     } else if (index == 0x340B && sub == 0x01 && this->night_setpoint_ != nullptr) {
       float temp = (value & 0xFFFF) * 0.1f;
       this->night_setpoint_->publish_state(temp);
@@ -619,8 +617,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         return;
       }
     } else {
-      ESP_LOGD(TAG, "SDO READ 0x%04X sub %d = 0x%08X (%u)", index, sub, (unsigned) value,
-               (unsigned) value);
+      ESP_LOGD(TAG, "SDO READ 0x%04X sub %d = 0x%08X (%u)", index, sub, value, value);
     }
   }
 }
