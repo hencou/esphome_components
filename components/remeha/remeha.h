@@ -42,6 +42,7 @@ class Remeha : public Component {
   void set_boot_delay(uint32_t delay_ms) { this->boot_delay_ms_ = delay_ms; }
   void set_user_level(uint8_t level) { this->user_level_ = level; }
   void set_auth_key(uint32_t key) { this->auth_key_ = key; }
+  void set_min_write_level(uint8_t level) { this->min_write_level_ = level; }
 
   // SDO write interface (called by RemehaNumber and RemehaSelect)
   bool write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t size);
@@ -138,6 +139,7 @@ class Remeha : public Component {
   uint32_t boot_delay_ms_{10000};
   uint8_t user_level_{2};
   uint32_t auth_key_{0};
+  uint8_t min_write_level_{2};
 
   // Boot state
   uint32_t boot_time_ms_{0};
@@ -155,6 +157,7 @@ class Remeha : public Component {
   uint8_t auth_step_{0};
   uint32_t auth_start_ms_{0};
   uint32_t auth_serial_{0};
+  uint8_t effective_level_{0};
   uint32_t auth_sub1_{0};
   uint32_t auth_sub2_{0};
 

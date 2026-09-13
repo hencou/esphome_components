@@ -13,6 +13,7 @@ CONF_REMEHA_ID = "remeha_id"
 CONF_BOOT_DELAY = "boot_delay"
 CONF_USER_LEVEL = "user_level"
 CONF_AUTH_KEY = "auth_key"
+CONF_MIN_WRITE_LEVEL = "min_write_level"
 
 
 def auth_key(value):
@@ -42,6 +43,11 @@ def validate_auth(config):
             f"'{CONF_AUTH_KEY}' is required for {CONF_USER_LEVEL} {config[CONF_USER_LEVEL]}; "
             f"use '{CONF_USER_LEVEL}: 0' to run without authentication"
         )
+    if 0 < config[CONF_USER_LEVEL] < config[CONF_MIN_WRITE_LEVEL]:
+        raise cv.Invalid(
+            f"'{CONF_MIN_WRITE_LEVEL}' {config[CONF_MIN_WRITE_LEVEL]} can never be reached with "
+            f"{CONF_USER_LEVEL} {config[CONF_USER_LEVEL]}; writes would always be refused"
+        )
     return config
 
 
@@ -53,6 +59,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_AUTH_KEY): auth_key,
             cv.Optional(CONF_BOOT_DELAY, default="10s"): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_USER_LEVEL, default=2): cv.int_range(min=0, max=3),
+            cv.Optional(CONF_MIN_WRITE_LEVEL, default=2): cv.int_range(min=1, max=3),
         }
     ).extend(cv.COMPONENT_SCHEMA),
     validate_auth,
@@ -68,5 +75,6 @@ async def to_code(config):
 
     cg.add(var.set_boot_delay(config[CONF_BOOT_DELAY]))
     cg.add(var.set_user_level(config[CONF_USER_LEVEL]))
+    cg.add(var.set_min_write_level(config[CONF_MIN_WRITE_LEVEL]))
     if CONF_AUTH_KEY in config:
         cg.add(var.set_auth_key(config[CONF_AUTH_KEY]))
