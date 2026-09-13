@@ -43,3 +43,17 @@ The connection is as follows:
 
 I am using a Olimex ESP32-EVP board for this, because this board has already a CANbus connection onboard. By a 24V to 5V buck converter inbetween the ESP32 and service connector pin 6 the ESP32 can be power supplied from the Remeha service bus.
 (Use at your own risk)
+
+Reading and writing service parameters requires an authentication handshake with the boiler. The handshake uses a fixed 32-bit key word which is not included in this repository; it must be supplied through the required `auth_key` option:
+
+```yaml
+# secrets.yaml
+remeha_auth_key: 0x........
+
+# device config
+remeha:
+  canbus_id: can1
+  auth_key: !secret remeha_auth_key
+```
+
+The value may be written with or without the `0x` prefix and is always interpreted as hexadecimal.

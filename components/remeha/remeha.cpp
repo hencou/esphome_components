@@ -126,6 +126,7 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "Remeha:");
   ESP_LOGCONFIG(TAG, "  Boot delay: %u ms", this->boot_delay_ms_);
   ESP_LOGCONFIG(TAG, "  User level: %u", this->user_level_);
+  ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "NOT SET");
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", this->sdo_poll_list_.size());
 }
 
@@ -145,6 +146,10 @@ void Remeha::add_sdo_poll(uint16_t index, uint8_t subindex) {
 }
 
 void Remeha::start_auth_() {
+  if (this->auth_key_ == 0) {
+    ESP_LOGE(TAG, "No auth_key configured, cannot authenticate");
+    return;
+  }
   ESP_LOGI(TAG, "Attempting authentication (level %u)...", this->user_level_);
   // Read serial number from 0x2001 sub 0x0A
   uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
@@ -413,7 +418,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 
     if (index == 0x4001 && sub == 0x00 && this->auth_step_ == 2) {
       uint32_t v[2] = {this->user_level_, this->user_level_};
-      uint32_t k[4] = {0x15EFA43Fu, this->auth_serial_, value, this->user_level_};
+      uint32_t k[4] = {this->auth_key_, this->auth_serial_, value, this->user_level_};
       tea_encrypt_(v, k);
       this->auth_sub1_ = v[0];
       this->auth_sub2_ = v[1];
