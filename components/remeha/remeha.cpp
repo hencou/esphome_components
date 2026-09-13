@@ -10,12 +10,6 @@
 namespace esphome {
 namespace remeha {
 
-// One full round of SDO reads per minute, sent back to back with a short gap
-// so the boiler (and the bus) is not flooded.
-static const uint32_t SDO_CYCLE_INTERVAL_MS = 60000;
-static const uint32_t SDO_READ_GAP_MS = 150;
-static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
-
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
   this->boot_phase_ = 0;
@@ -121,9 +115,12 @@ void Remeha::loop() {
       this->start_auth_();
       return;
     }
-  }
 
-  this->service_sdo_polling_(now);
+    // SDO reads (round-robin)
+    if ((this->authenticated_ || !this->auth_required_()) && this->auth_step_ == 0) {
+      this->poll_next_sdo_();
+    }
+  }
 }
 
 void Remeha::dump_config() {
@@ -159,56 +156,17 @@ void Remeha::start_auth_() {
   this->auth_start_ms_ = millis();
 }
 
-void Remeha::send_sdo_read_(size_t entry) {
-  uint16_t idx = this->sdo_poll_list_[entry].index;
-  uint8_t sub = this->sdo_poll_list_[entry].subindex;
+void Remeha::poll_next_sdo_() {
+  if (this->sdo_poll_list_.empty())
+    return;
+
+  int step = this->sdo_read_step_ % this->sdo_poll_list_.size();
+  uint16_t idx = this->sdo_poll_list_[step].index;
+  uint8_t sub = this->sdo_poll_list_[step].subindex;
   uint8_t data[8] = {0x40, (uint8_t)(idx & 0xFF), (uint8_t)(idx >> 8), sub,
                      0x00, 0x00, 0x00, 0x00};
   this->send_can_(0x241, data, 8);
-  this->sdo_pending_ = true;
-  this->sdo_pending_index_ = idx;
-  this->sdo_pending_sub_ = sub;
-  this->sdo_sent_ms_ = millis();
-}
-
-// Walks the poll list one entry at a time, advancing as soon as the previous
-// response arrives, so a full round takes seconds instead of one read per tick.
-void Remeha::service_sdo_polling_(uint32_t now) {
-  if (this->sdo_poll_list_.empty() || !this->gateway_enabled_ || this->auth_step_ != 0)
-    return;
-  if (this->auth_required_() && !this->authenticated_)
-    return;
-
-  if (this->sdo_pending_) {
-    if ((now - this->sdo_sent_ms_) < SDO_READ_TIMEOUT_MS)
-      return;
-    ESP_LOGD(TAG, "No SDO response for 0x%04X sub %d, skipping", this->sdo_pending_index_,
-             this->sdo_pending_sub_);
-    this->sdo_pending_ = false;
-  }
-
-  if (this->write_pending_ || this->seg_read_active_)
-    return;
-
-  if (!this->sdo_cycle_active_) {
-    if (this->sdo_cycle_end_ms_ != 0 && (now - this->sdo_cycle_end_ms_) < SDO_CYCLE_INTERVAL_MS)
-      return;
-    this->sdo_cycle_active_ = true;
-    this->sdo_read_step_ = 0;
-  }
-
-  if (this->sdo_read_step_ >= this->sdo_poll_list_.size()) {
-    ESP_LOGD(TAG, "SDO poll cycle complete (%u entries)", (unsigned) this->sdo_poll_list_.size());
-    this->sdo_cycle_active_ = false;
-    this->sdo_cycle_end_ms_ = now;
-    return;
-  }
-
-  if ((now - this->sdo_sent_ms_) < SDO_READ_GAP_MS)
-    return;
-
-  this->send_sdo_read_(this->sdo_read_step_);
-  this->sdo_read_step_++;
+  this->sdo_read_step_ = (step + 1) % this->sdo_poll_list_.size();
 }
 
 bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t size) {
@@ -392,9 +350,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       return;
     }
 
-    if (this->sdo_pending_ && index == this->sdo_pending_index_ && sub == this->sdo_pending_sub_)
-      this->sdo_pending_ = false;
-
     if (abort_code == 0x06010000) {
       ESP_LOGW(TAG, "Access denied for 0x%04X sub %d, re-auth needed", index, sub);
       if (this->auth_step_ == 0) {
@@ -502,9 +457,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       }
       return;
     }
-
-    if (this->sdo_pending_ && index == this->sdo_pending_index_ && sub == this->sdo_pending_sub_)
-      this->sdo_pending_ = false;
 
     // --- Data parsing for SDO reads ---
 #ifdef USE_SENSOR
