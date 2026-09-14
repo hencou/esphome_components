@@ -130,6 +130,7 @@ class Remeha : public Component {
   void set_sdo_channel_(uint8_t channel);
   void service_sdo_polling_(uint32_t now);
   void send_sdo_read_(size_t entry);
+  void service_bus_recovery_();
 
   static void tea_encrypt_(uint32_t v[2], const uint32_t k[4]);
   static const char *get_status_text_(uint8_t status);
@@ -148,8 +149,9 @@ class Remeha : public Component {
   uint8_t boot_phase_{0};  // 0=waiting, 1=nmt_reset_sent, 2=nmt_start_sent, 3=gw_read_sent, 4=done
 
   // Timing
-  uint32_t last_heartbeat_ms_{0};
   uint32_t last_poll_ms_{0};
+  uint32_t last_bus_check_ms_{0};
+  bool bus_recovering_{false};
 
   // Gateway state: the boiler hands out a channel number via 0x4004 and the
   // request/response CAN ids follow from it (1 = 0x241/0x1C1, 2 = 0x341/0x2C1).
