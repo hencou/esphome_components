@@ -6,6 +6,9 @@
 #include "select/remeha_select.h"
 #endif
 #include "esphome/core/log.h"
+#ifdef USE_ESP32
+#include <driver/twai.h>
+#endif
 
 namespace esphome {
 namespace remeha {
@@ -17,6 +20,7 @@ static const uint32_t SDO_CYCLE_INTERVAL_MS = 60000;
 static const uint32_t SDO_READ_GAP_MS = 20;
 static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
 static const uint32_t SDO_KEEPALIVE_MS = 10000;
+static const uint32_t BUS_CHECK_INTERVAL_MS = 1000;
 
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
@@ -34,6 +38,11 @@ void Remeha::setup() {
 
 void Remeha::loop() {
   uint32_t now = millis();
+
+  if (now - this->last_bus_check_ms_ >= BUS_CHECK_INTERVAL_MS) {
+    this->last_bus_check_ms_ = now;
+    this->service_bus_recovery_();
+  }
 
   // --- Boot sequence (phased) ---
   if (this->boot_phase_ < 4) {
@@ -69,13 +78,6 @@ void Remeha::loop() {
       this->boot_phase_ = 4;
     }
     return;
-  }
-
-  // --- Heartbeat every second ---
-  if (now - this->last_heartbeat_ms_ >= 1000) {
-    uint8_t hb[8] = {0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    this->send_can_(0x281, hb, 8);
-    this->last_heartbeat_ms_ = now;
   }
 
   // --- Every 10 seconds: timeouts + gateway check + auth ---
@@ -137,6 +139,44 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", (unsigned) this->sdo_poll_list_.size());
   ESP_LOGCONFIG(TAG, "  SDO channel: %u (0x%03X/0x%03X)", this->sdo_channel_, (unsigned) this->sdo_tx_id_,
                 (unsigned) this->sdo_rx_id_);
+}
+
+// The TWAI controller stops transmitting once it goes bus-off and stays there
+// until recovery is requested and the driver is started again.
+void Remeha::service_bus_recovery_() {
+#ifdef USE_ESP32
+  twai_status_info_t status;
+  if (twai_get_status_info(&status) != ESP_OK)
+    return;
+
+  if (status.state == TWAI_STATE_BUS_OFF) {
+    ESP_LOGW(TAG, "CAN bus-off detected, starting recovery");
+    twai_initiate_recovery();
+    this->bus_recovering_ = true;
+  } else if (status.state == TWAI_STATE_STOPPED && this->bus_recovering_) {
+    if (twai_start() != ESP_OK) {
+      ESP_LOGW(TAG, "CAN restart after recovery failed");
+      return;
+    }
+    ESP_LOGI(TAG, "CAN bus recovered, restarting boot sequence");
+    this->bus_recovering_ = false;
+    this->gateway_enabled_ = false;
+    this->authenticated_ = false;
+    this->effective_level_ = 0;
+    this->auth_step_ = 0;
+    this->sdo_pending_ = false;
+    this->sdo_cycle_active_ = false;
+    this->sdo_cycle_start_ms_ = 0;
+    this->write_pending_ = false;
+    this->seg_read_active_ = false;
+    this->seg_read_segment_ = 0;
+    this->seg_read_buffer_pos_ = 0;
+    this->boot_phase_ = 0;
+    this->boot_time_ms_ = millis();
+  } else if (status.state == TWAI_STATE_RUNNING) {
+    this->bus_recovering_ = false;
+  }
+#endif
 }
 
 void Remeha::send_can_(uint32_t can_id, const uint8_t *data, size_t len) {
