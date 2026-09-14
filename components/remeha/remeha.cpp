@@ -741,13 +741,6 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Room temperature=%.1f C", room_temp);
   }
 
-  // Room setpoint (Truimte stpunt): bytes 75-76, uint16 LE × 0.1
-  if (len > 76 && this->room_setpoint_ != nullptr) {
-    float setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
-    this->room_setpoint_->publish_state(setpoint);
-    ESP_LOGD(TAG, "Room setpoint=%.1f C", setpoint);
-  }
-
   // Calculated temperature (Berekende): bytes 79-80, int16 LE × 0.01
   if (len > 80 && this->calculated_temperature_ != nullptr) {
     float val = (int16_t)(d[79] | (d[80] << 8)) * 0.01f;
