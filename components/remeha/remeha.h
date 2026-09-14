@@ -127,7 +127,9 @@ class Remeha : public Component {
   void send_boot_sequence_();
   void start_auth_();
   bool auth_required_() const { return this->user_level_ > 0; }
-  void poll_next_sdo_();
+  void set_sdo_channel_(uint8_t channel);
+  void service_sdo_polling_(uint32_t now);
+  void send_sdo_read_(size_t entry);
 
   static void tea_encrypt_(uint32_t v[2], const uint32_t k[4]);
   static const char *get_status_text_(uint8_t status);
@@ -149,8 +151,12 @@ class Remeha : public Component {
   uint32_t last_heartbeat_ms_{0};
   uint32_t last_poll_ms_{0};
 
-  // Gateway state
+  // Gateway state: the boiler hands out a channel number via 0x4004 and the
+  // request/response CAN ids follow from it (1 = 0x241/0x1C1, 2 = 0x341/0x2C1).
   bool gateway_enabled_{false};
+  uint8_t sdo_channel_{0};
+  uint32_t sdo_tx_id_{0x241};
+  uint32_t sdo_rx_id_{0x1C1};
 
   // Auth state
   bool authenticated_{false};
@@ -167,7 +173,14 @@ class Remeha : public Component {
     uint8_t subindex;
   };
   std::vector<SdoPollEntry> sdo_poll_list_;
-  int sdo_read_step_{0};
+  size_t sdo_read_step_{0};
+  size_t sdo_keepalive_step_{0};
+  bool sdo_cycle_active_{false};
+  uint32_t sdo_cycle_start_ms_{0};
+  bool sdo_pending_{false};
+  uint32_t sdo_sent_ms_{0};
+  uint16_t sdo_pending_index_{0};
+  uint8_t sdo_pending_sub_{0};
 
   // SDO write state
   bool write_pending_{false};

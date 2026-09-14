@@ -10,6 +10,14 @@
 namespace esphome {
 namespace remeha {
 
+// A full round of SDO reads is sent back to back, the next request following the
+// previous response. Between rounds single reads keep the channel from going
+// idle, which the boiler answers for as long as the authorisation lives.
+static const uint32_t SDO_CYCLE_INTERVAL_MS = 60000;
+static const uint32_t SDO_READ_GAP_MS = 20;
+static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
+static const uint32_t SDO_KEEPALIVE_MS = 10000;
+
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
   this->boot_phase_ = 0;
@@ -70,7 +78,7 @@ void Remeha::loop() {
     this->last_heartbeat_ms_ = now;
   }
 
-  // --- Every 10 seconds: timeouts + gateway check + auth + SDO reads ---
+  // --- Every 10 seconds: timeouts + gateway check + auth ---
   if (now - this->last_poll_ms_ >= 10000) {
     this->last_poll_ms_ = now;
 
@@ -115,12 +123,9 @@ void Remeha::loop() {
       this->start_auth_();
       return;
     }
-
-    // SDO reads (round-robin)
-    if ((this->authenticated_ || !this->auth_required_()) && this->auth_step_ == 0) {
-      this->poll_next_sdo_();
-    }
   }
+
+  this->service_sdo_polling_(now);
 }
 
 void Remeha::dump_config() {
@@ -130,6 +135,8 @@ void Remeha::dump_config() {
   ESP_LOGCONFIG(TAG, "  Auth key: %s", this->auth_key_ != 0 ? "set" : "not set");
   ESP_LOGCONFIG(TAG, "  Minimum level for writes: %u", this->min_write_level_);
   ESP_LOGCONFIG(TAG, "  SDO poll entries: %u", (unsigned) this->sdo_poll_list_.size());
+  ESP_LOGCONFIG(TAG, "  SDO channel: %u (0x%03X/0x%03X)", this->sdo_channel_, (unsigned) this->sdo_tx_id_,
+                (unsigned) this->sdo_rx_id_);
 }
 
 void Remeha::send_can_(uint32_t can_id, const uint8_t *data, size_t len) {
@@ -151,22 +158,74 @@ void Remeha::start_auth_() {
   ESP_LOGI(TAG, "Attempting authentication (level %u)...", this->user_level_);
   // Read serial number from 0x2001 sub 0x0A
   uint8_t rd[8] = {0x40, 0x01, 0x20, 0x0A, 0x00, 0x00, 0x00, 0x00};
-  this->send_can_(0x241, rd, 8);
+  this->send_can_(this->sdo_tx_id_, rd, 8);
   this->auth_step_ = 1;
   this->auth_start_ms_ = millis();
 }
 
-void Remeha::poll_next_sdo_() {
-  if (this->sdo_poll_list_.empty())
-    return;
+void Remeha::set_sdo_channel_(uint8_t channel) {
+  this->sdo_channel_ = channel;
+  this->sdo_tx_id_ = 0x141 + 0x100 * (uint32_t) channel;
+  this->sdo_rx_id_ = 0x0C1 + 0x100 * (uint32_t) channel;
+}
 
-  int step = this->sdo_read_step_ % this->sdo_poll_list_.size();
-  uint16_t idx = this->sdo_poll_list_[step].index;
-  uint8_t sub = this->sdo_poll_list_[step].subindex;
+void Remeha::send_sdo_read_(size_t entry) {
+  uint16_t idx = this->sdo_poll_list_[entry].index;
+  uint8_t sub = this->sdo_poll_list_[entry].subindex;
   uint8_t data[8] = {0x40, (uint8_t)(idx & 0xFF), (uint8_t)(idx >> 8), sub,
                      0x00, 0x00, 0x00, 0x00};
-  this->send_can_(0x241, data, 8);
-  this->sdo_read_step_ = (step + 1) % this->sdo_poll_list_.size();
+  this->send_can_(this->sdo_tx_id_, data, 8);
+  this->sdo_pending_ = true;
+  this->sdo_pending_index_ = idx;
+  this->sdo_pending_sub_ = sub;
+  this->sdo_sent_ms_ = millis();
+}
+
+// Walks the poll list one entry at a time, advancing as soon as the previous
+// response arrives, so a full round takes under a second instead of one read
+// per tick.
+void Remeha::service_sdo_polling_(uint32_t now) {
+  if (this->sdo_poll_list_.empty() || !this->gateway_enabled_ || this->auth_step_ != 0)
+    return;
+  if (this->auth_required_() && !this->authenticated_)
+    return;
+
+  if (this->sdo_pending_) {
+    if ((now - this->sdo_sent_ms_) < SDO_READ_TIMEOUT_MS)
+      return;
+    ESP_LOGD(TAG, "No SDO response for 0x%04X sub %d, skipping", this->sdo_pending_index_,
+             this->sdo_pending_sub_);
+    this->sdo_pending_ = false;
+  }
+
+  if (this->write_pending_ || this->seg_read_active_)
+    return;
+
+  if (this->sdo_cycle_active_) {
+    if (this->sdo_read_step_ >= this->sdo_poll_list_.size()) {
+      ESP_LOGD(TAG, "SDO poll cycle complete (%u entries)", (unsigned) this->sdo_poll_list_.size());
+      this->sdo_cycle_active_ = false;
+      return;
+    }
+    if ((now - this->sdo_sent_ms_) < SDO_READ_GAP_MS)
+      return;
+    this->send_sdo_read_(this->sdo_read_step_);
+    this->sdo_read_step_++;
+    return;
+  }
+
+  if (this->sdo_cycle_start_ms_ == 0 || (now - this->sdo_cycle_start_ms_) >= SDO_CYCLE_INTERVAL_MS) {
+    this->sdo_cycle_active_ = true;
+    this->sdo_cycle_start_ms_ = now;
+    this->sdo_read_step_ = 0;
+    return;
+  }
+
+  if ((now - this->sdo_sent_ms_) >= SDO_KEEPALIVE_MS) {
+    this->sdo_keepalive_step_ = this->sdo_keepalive_step_ % this->sdo_poll_list_.size();
+    this->send_sdo_read_(this->sdo_keepalive_step_);
+    this->sdo_keepalive_step_++;
+  }
 }
 
 bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t size) {
@@ -206,7 +265,7 @@ bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t
   uint8_t data[8] = {cmd, (uint8_t)(index & 0xFF), (uint8_t)(index >> 8), subindex,
                      (uint8_t)(value & 0xFF), (uint8_t)((value >> 8) & 0xFF),
                      (uint8_t)((value >> 16) & 0xFF), (uint8_t)((value >> 24) & 0xFF)};
-  this->send_can_(0x241, data, 8);
+  this->send_can_(this->sdo_tx_id_, data, 8);
   this->write_pending_ = true;
   this->write_start_ms_ = millis();
 
@@ -235,9 +294,13 @@ void Remeha::tea_encrypt_(uint32_t v[2], const uint32_t k[4]) {
 // --- CAN frame dispatcher ---
 void Remeha::handle_frame_(uint32_t can_id, bool use_extended_id, bool remote_transmission_request,
                            const std::vector<uint8_t> &data) {
+  if (can_id == this->sdo_rx_id_) {
+    this->handle_0x1c1_(data);
+    return;
+  }
+
   switch (can_id) {
     case 0x581: this->handle_0x581_(data); break;
-    case 0x1C1: this->handle_0x1c1_(data); break;
     case 0x282: this->handle_pdo_0x282_(data); break;
     case 0x381: this->handle_pdo_0x381_(data); break;
     case 0x382: this->handle_pdo_0x382_(data); break;
@@ -247,7 +310,7 @@ void Remeha::handle_frame_(uint32_t can_id, bool use_extended_id, bool remote_tr
   }
 }
 
-// --- Standard SDO response (0x581): gateway ready detection ---
+// --- Standard SDO response (0x581): channel assignment ---
 void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
   if (x.size() < 4) return;
   uint8_t cmd = x[0];
@@ -256,16 +319,23 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
 
   if (index == 0x4004 && sub == 0x00) {
     if ((cmd == 0x4F || cmd == 0x4B || cmd == 0x43) && x.size() > 4 && x[4] > 0) {
-      if (!this->gateway_enabled_) {
-        ESP_LOGI(TAG, "0x4004=0x%02X: custom SDO gateway READY", x[4]);
+      if (!this->gateway_enabled_ || x[4] != this->sdo_channel_) {
+        this->set_sdo_channel_(x[4]);
+        ESP_LOGI(TAG, "SDO channel %u assigned, using 0x%03X/0x%03X", this->sdo_channel_,
+                 (unsigned) this->sdo_tx_id_, (unsigned) this->sdo_rx_id_);
         this->gateway_enabled_ = true;
-        if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
+        this->authenticated_ = false;
+        this->effective_level_ = 0;
+        this->auth_step_ = 0;
+        if (this->auth_required_()) {
           this->start_auth_();
         }
       }
     } else if (cmd == 0x60) {
       if (!this->gateway_enabled_) {
-        ESP_LOGI(TAG, "Write to 0x4004 confirmed, gateway enabled");
+        this->set_sdo_channel_(1);
+        ESP_LOGI(TAG, "Write to 0x4004 confirmed, using channel 1 (0x%03X/0x%03X)",
+                 (unsigned) this->sdo_tx_id_, (unsigned) this->sdo_rx_id_);
         this->gateway_enabled_ = true;
         if (this->auth_required_() && !this->authenticated_ && this->auth_step_ == 0) {
           this->start_auth_();
@@ -279,7 +349,7 @@ void Remeha::handle_0x581_(const std::vector<uint8_t> &x) {
   }
 }
 
-// --- Custom SDO response (0x1C1): auth + data parsing ---
+// --- Custom SDO channel response: auth + data parsing ---
 void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
   if (x.size() < 4) return;
 
@@ -305,7 +375,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         this->seg_read_segment_ = seg + 1;
         uint8_t toggle = ((seg + 1) & 1) ? 0x70 : 0x60;
         uint8_t req[8] = {toggle, 0, 0, 0, 0, 0, 0, 0};
-        this->send_can_(0x241, req, 8);
+        this->send_can_(this->sdo_tx_id_, req, 8);
       }
       return;
     }
@@ -320,6 +390,10 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
   uint8_t cmd = x[0];
   uint16_t index = ((uint16_t)x[2] << 8) | x[1];
   uint8_t sub = x[3];
+
+  if (this->sdo_pending_ && index == this->sdo_pending_index_ && sub == this->sdo_pending_sub_) {
+    this->sdo_pending_ = false;
+  }
 
   // ---------- ABORT handling ----------
   if (cmd == 0x80) {
@@ -376,7 +450,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       uint8_t data[8] = {0x23, 0x03, 0x40, 0x01,
                          (uint8_t)(s1 & 0xFF), (uint8_t)((s1 >> 8) & 0xFF),
                          (uint8_t)((s1 >> 16) & 0xFF), (uint8_t)((s1 >> 24) & 0xFF)};
-      this->send_can_(0x241, data, 8);
+      this->send_can_(this->sdo_tx_id_, data, 8);
       this->auth_step_ = 4;
     } else if (index == 0x4003 && sub == 0x01 && this->auth_step_ == 4) {
       ESP_LOGI(TAG, "Auth step4: sub1 ack, writing sub2");
@@ -384,12 +458,12 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       uint8_t data[8] = {0x23, 0x03, 0x40, 0x02,
                          (uint8_t)(s2 & 0xFF), (uint8_t)((s2 >> 8) & 0xFF),
                          (uint8_t)((s2 >> 16) & 0xFF), (uint8_t)((s2 >> 24) & 0xFF)};
-      this->send_can_(0x241, data, 8);
+      this->send_can_(this->sdo_tx_id_, data, 8);
       this->auth_step_ = 5;
     } else if (index == 0x4003 && sub == 0x02 && this->auth_step_ == 5) {
       ESP_LOGI(TAG, "Auth step5: sub2 ack, reading access level (0x4002)");
       uint8_t data[8] = {0x40, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
-      this->send_can_(0x241, data, 8);
+      this->send_can_(this->sdo_tx_id_, data, 8);
       this->auth_step_ = 6;
     } else {
       // Parameter write ACK
@@ -403,7 +477,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         // Read back the written parameter to confirm new value
         uint8_t rd[8] = {0x40, (uint8_t)(index & 0xFF), (uint8_t)(index >> 8), sub,
                          0x00, 0x00, 0x00, 0x00};
-        this->send_can_(0x241, rd, 8);
+        this->send_can_(this->sdo_tx_id_, rd, 8);
       } else {
         ESP_LOGD(TAG, "Write ACK 0x%04X sub %d", index, sub);
       }
@@ -423,7 +497,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       ESP_LOGI(TAG, "Auth step1: serial received, reading token...");
       ESP_LOGV(TAG, "Auth step1: serial=0x%08X", (unsigned) value);
       uint8_t data[8] = {0x40, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
-      this->send_can_(0x241, data, 8);
+      this->send_can_(this->sdo_tx_id_, data, 8);
       this->auth_step_ = 2;
       return;
     }
@@ -438,7 +512,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       ESP_LOGV(TAG, "Auth step2: token=0x%08X => sub1=0x%08X sub2=0x%08X", (unsigned) value,
                (unsigned) v[0], (unsigned) v[1]);
       uint8_t wd[8] = {0x2F, 0x03, 0x40, 0x03, (uint8_t)this->user_level_, 0x00, 0x00, 0x00};
-      this->send_can_(0x241, wd, 8);
+      this->send_can_(this->sdo_tx_id_, wd, 8);
       this->auth_step_ = 3;
       return;
     }
@@ -566,7 +640,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
         this->seg_read_start_ms_ = millis();
         this->seg_read_buffer_pos_ = 0;
         uint8_t req[8] = {0x60, 0, 0, 0, 0, 0, 0, 0};
-        this->send_can_(0x241, req, 8);
+        this->send_can_(this->sdo_tx_id_, req, 8);
         ESP_LOGD(TAG, "Segmented read of 0x501D started");
         return;
       }
