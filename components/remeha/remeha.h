@@ -131,6 +131,7 @@ class Remeha : public Component {
   void service_sdo_polling_(uint32_t now);
   void send_sdo_read_(size_t entry);
   void service_bus_recovery_();
+  void restart_bus_session_();
 
   static void tea_encrypt_(uint32_t v[2], const uint32_t k[4]);
   static const char *get_status_text_(uint8_t status);
@@ -151,6 +152,7 @@ class Remeha : public Component {
   // Timing
   uint32_t last_poll_ms_{0};
   uint32_t last_bus_check_ms_{0};
+  uint32_t tx_stall_since_ms_{0};
   bool bus_recovering_{false};
 
   // Gateway state: the boiler hands out a channel number via 0x4004 and the

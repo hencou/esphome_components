@@ -22,6 +22,11 @@ static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
 static const uint32_t SDO_KEEPALIVE_MS = 10000;
 static const uint32_t BUS_CHECK_INTERVAL_MS = 1000;
 
+// A transmitter that is error passive and gets no acknowledgement does not
+// increase its error counter any further, so the controller never reaches
+// bus-off: it keeps retrying the same frame and the TX queue stays full.
+static const uint32_t TX_STALL_TIMEOUT_MS = 15000;
+
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
   this->boot_phase_ = 0;
@@ -160,23 +165,52 @@ void Remeha::service_bus_recovery_() {
     }
     ESP_LOGI(TAG, "CAN bus recovered, restarting boot sequence");
     this->bus_recovering_ = false;
-    this->gateway_enabled_ = false;
-    this->authenticated_ = false;
-    this->effective_level_ = 0;
-    this->auth_step_ = 0;
-    this->sdo_pending_ = false;
-    this->sdo_cycle_active_ = false;
-    this->sdo_cycle_start_ms_ = 0;
-    this->write_pending_ = false;
-    this->seg_read_active_ = false;
-    this->seg_read_segment_ = 0;
-    this->seg_read_buffer_pos_ = 0;
-    this->boot_phase_ = 0;
-    this->boot_time_ms_ = millis();
+    this->restart_bus_session_();
   } else if (status.state == TWAI_STATE_RUNNING) {
     this->bus_recovering_ = false;
+
+    bool stalled = status.msgs_to_tx > 0 && status.tx_error_counter >= 128;
+    if (!stalled) {
+      this->tx_stall_since_ms_ = 0;
+      return;
+    }
+
+    uint32_t now = millis();
+    if (this->tx_stall_since_ms_ == 0) {
+      this->tx_stall_since_ms_ = now;
+      return;
+    }
+    if (now - this->tx_stall_since_ms_ < TX_STALL_TIMEOUT_MS)
+      return;
+
+    ESP_LOGW(TAG, "CAN transmit stalled (TEC %u, %u queued), restarting controller",
+             (unsigned) status.tx_error_counter, (unsigned) status.msgs_to_tx);
+    this->tx_stall_since_ms_ = 0;
+    // Stopping and starting aborts the pending frame and clears the error
+    // counters, which is what a reboot of the module does today.
+    if (twai_stop() != ESP_OK || twai_start() != ESP_OK) {
+      ESP_LOGW(TAG, "CAN controller restart failed");
+      return;
+    }
+    this->restart_bus_session_();
   }
 #endif
+}
+
+void Remeha::restart_bus_session_() {
+  this->gateway_enabled_ = false;
+  this->authenticated_ = false;
+  this->effective_level_ = 0;
+  this->auth_step_ = 0;
+  this->sdo_pending_ = false;
+  this->sdo_cycle_active_ = false;
+  this->sdo_cycle_start_ms_ = 0;
+  this->write_pending_ = false;
+  this->seg_read_active_ = false;
+  this->seg_read_segment_ = 0;
+  this->seg_read_buffer_pos_ = 0;
+  this->boot_phase_ = 0;
+  this->boot_time_ms_ = millis();
 }
 
 void Remeha::send_can_(uint32_t can_id, const uint8_t *data, size_t len) {
