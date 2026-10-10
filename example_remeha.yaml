@@ -188,15 +188,18 @@ select:
   zone_mode:
     name: "Zone Mode"
     options:
-      - "Auto"
-      - "Verwarmen"
+      - "Klokprogramma"
+      - "Handmatig"
       - "Uit"
+      - "Tijdelijk"
+      - "Extern"
   time_program:
     name: "Klokprogramma"
     options:
       - "Klokprogramma 1"
       - "Klokprogramma 2"
       - "Klokprogramma 3"
+      - "Koelen"
   ch_enabled:
     name: "CV Bedrijf"
     options:
@@ -211,8 +214,9 @@ select:
     name: "Anti-Legionella"
     options:
       - "Uit"
-      - "Aan"
-      - "Auto"
+      - "Wekelijks"
+      - "Dagelijks"
+      - "Extern"
     entity_category: CONFIG
   fireplace_mode:
     name: "Open Haard"
@@ -252,6 +256,7 @@ climate:
     - "Klokprogramma 1"
     - "Klokprogramma 2"
     - "Klokprogramma 3"
+    - "Koelen"
 
 button:
 - platform: restart

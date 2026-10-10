@@ -47,21 +47,21 @@ SELECT_PARAMS = {
     CONF_ZONE_MODE: {
         "sdo_index": 0x341F,
         "sdo_subindex": None,
-        "options": ["Auto", "Heat", "Off"],
+        "options": ["Scheduling", "Manual", "Off", "Temporary", "External"],
         "setter": "set_zone_mode_select",
         "value_offset": 0,
     },
     CONF_TIME_PROGRAM: {
         "sdo_index": 0x3458,
         "sdo_subindex": None,
-        "options": ["Time Program 1", "Time Program 2", "Time Program 3"],
+        "options": ["Schedule 1", "Schedule 2", "Schedule 3", "Cooling"],
         "setter": "set_time_program_select",
         "value_offset": 0,
     },
     CONF_CH_ENABLED: {
         "sdo_index": 0x3012,
         "sdo_subindex": 0x00,
-        "options": ["Uit", "Aan"],
+        "options": ["Off", "On"],
         "setter": "set_ch_enabled_select",
         "value_offset": 0,
     },
@@ -75,7 +75,7 @@ SELECT_PARAMS = {
     CONF_ANTI_LEGIONELLA_MODE: {
         "sdo_index": 0x3604,
         "sdo_subindex": 0x00,
-        "options": ["Off", "On", "Auto"],
+        "options": ["Disabled", "Weekly", "Daily", "External"],
         "setter": "set_anti_legionella_mode_select",
         "value_offset": 0,
     },
