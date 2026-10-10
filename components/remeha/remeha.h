@@ -53,6 +53,9 @@ class Remeha : public Component {
   // Register an SDO object for periodic polling
   void add_sdo_poll(uint16_t index, uint8_t subindex);
 
+  // Report a write rejected by client side validation
+  void report_write_rejected(const char *reason);
+
 #ifdef USE_SENSOR
   void set_flow_temperature_sensor(sensor::Sensor *s) { this->flow_temperature_ = s; }
   void set_return_temperature_sensor(sensor::Sensor *s) { this->return_temperature_ = s; }
@@ -88,6 +91,10 @@ class Remeha : public Component {
   void set_status_text_sensor(text_sensor::TextSensor *s) { this->status_text_ = s; }
   void set_substatus_text_sensor(text_sensor::TextSensor *s) { this->substatus_text_ = s; }
   void set_write_status_text_sensor(text_sensor::TextSensor *s) { this->write_status_ = s; }
+  void set_error_log_text_sensor(text_sensor::TextSensor *s) {
+    this->error_log_ = s;
+    this->error_log_enabled_ = true;
+  }
 #endif
 
 #ifdef USE_NUMBER
@@ -133,6 +140,7 @@ class Remeha : public Component {
   void set_sdo_channel_(uint8_t channel);
   void service_sdo_polling_(uint32_t now);
   void send_sdo_read_(size_t entry);
+  void send_sdo_read_object_(uint16_t index, uint8_t subindex);
   void service_bus_recovery_();
   void restart_bus_session_();
 
@@ -189,6 +197,22 @@ class Remeha : public Component {
   uint16_t sdo_pending_index_{0};
   uint8_t sdo_pending_sub_{0};
 
+  // Error history enumeration (0x1003 struct array, 0x2004 customer codes)
+  bool error_log_enabled_{false};
+  bool error_log_active_{false};
+  bool error_log_customer_phase_{false};
+  uint8_t error_log_count_{0};
+  uint8_t error_log_step_{0};
+  uint32_t error_log_last_ms_{0};
+  std::vector<uint16_t> error_log_entries_;
+  std::vector<uint32_t> error_log_customer_codes_;
+  void service_error_log_(uint32_t now);
+  bool handle_error_log_response_(uint16_t index, uint8_t sub, uint32_t value);
+  void publish_error_log_();
+
+  // Reject a write before it reaches the bus
+  bool reject_write_(const char *reason);
+
   // SDO write state
   bool write_pending_{false};
   uint32_t write_start_ms_{0};
@@ -237,6 +261,7 @@ class Remeha : public Component {
   text_sensor::TextSensor *status_text_{nullptr};
   text_sensor::TextSensor *substatus_text_{nullptr};
   text_sensor::TextSensor *write_status_{nullptr};
+  text_sensor::TextSensor *error_log_{nullptr};
 #endif
 
 #ifdef USE_NUMBER

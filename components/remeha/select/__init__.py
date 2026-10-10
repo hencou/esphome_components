@@ -15,6 +15,7 @@ CONF_ANTI_LEGIONELLA_MODE = "anti_legionella_mode"
 CONF_FIREPLACE_MODE = "fireplace_mode"
 
 CONF_OPTIONS = "options"
+CONF_ZONE = "zone"
  
 def _select_schema_with_options(icon):
     return select.select_schema(
@@ -31,6 +32,7 @@ def _select_schema_with_options(icon):
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
+        cv.Optional(CONF_ZONE, default=1): cv.int_range(min=1, max=10),
         cv.Optional(CONF_ZONE_MODE): _select_schema_with_options("mdi:home-switch"),
         cv.Optional(CONF_TIME_PROGRAM): _select_schema_with_options("mdi:clock-outline"),
         cv.Optional(CONF_CH_ENABLED): _select_schema_with_options("mdi:radiator"),
@@ -44,14 +46,14 @@ CONFIG_SCHEMA = cv.Schema(
 SELECT_PARAMS = {
     CONF_ZONE_MODE: {
         "sdo_index": 0x341F,
-        "sdo_subindex": 0x01,
+        "sdo_subindex": None,
         "options": ["Auto", "Heat", "Off"],
         "setter": "set_zone_mode_select",
         "value_offset": 0,
     },
     CONF_TIME_PROGRAM: {
         "sdo_index": 0x3458,
-        "sdo_subindex": 0x01,
+        "sdo_subindex": None,
         "options": ["Time Program 1", "Time Program 2", "Time Program 3"],
         "setter": "set_time_program_select",
         "value_offset": 0,
@@ -79,7 +81,7 @@ SELECT_PARAMS = {
     },
     CONF_FIREPLACE_MODE: {
         "sdo_index": 0x3455,
-        "sdo_subindex": 0x01,
+        "sdo_subindex": None,
         "options": ["Off", "On"],
         "setter": "set_fireplace_mode_select",
         "value_offset": 0,
@@ -94,6 +96,9 @@ async def to_code(config):
         if conf_key in config:
             # Use user-provided options if available, otherwise use defaults
             options = config[conf_key].get(CONF_OPTIONS, params["options"])
+            sdo_sub = params["sdo_subindex"]
+            if sdo_sub is None:
+                sdo_sub = config[CONF_ZONE]
             
             sel = await select.new_select(
                 config[conf_key],
@@ -102,8 +107,8 @@ async def to_code(config):
             await cg.register_component(sel, config[conf_key])
             cg.add(sel.set_parent(parent))
             cg.add(sel.set_sdo_index(params["sdo_index"]))
-            cg.add(sel.set_sdo_subindex(params["sdo_subindex"]))
+            cg.add(sel.set_sdo_subindex(sdo_sub))
             cg.add(sel.set_value_offset(params["value_offset"]))
             cg.add(getattr(parent, params["setter"])(sel))
             # Register SDO poll for read-back
-            cg.add(parent.add_sdo_poll(params["sdo_index"], params["sdo_subindex"]))
+            cg.add(parent.add_sdo_poll(params["sdo_index"], sdo_sub))

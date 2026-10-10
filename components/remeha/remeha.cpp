@@ -1,4 +1,5 @@
 #include "remeha.h"
+#include <algorithm>
 #ifdef USE_CLIMATE
 #include "climate/remeha_climate.h"
 #endif
@@ -23,6 +24,8 @@ static const uint32_t SDO_CYCLE_INTERVAL_MS = 60000;
 static const uint32_t SDO_READ_GAP_MS = 20;
 static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
 static const uint32_t SDO_KEEPALIVE_MS = 10000;
+static const uint32_t ERROR_LOG_INTERVAL_MS = 900000;
+static const uint8_t ERROR_LOG_MAX_ENTRIES = 32;
 static const uint32_t BUS_CHECK_INTERVAL_MS = 1000;
 
 // A transmitter that is error passive and gets no acknowledgement does not
@@ -246,16 +249,18 @@ void Remeha::set_sdo_channel_(uint8_t channel) {
   this->sdo_rx_id_ = 0x0C1 + 0x100 * (uint32_t) channel;
 }
 
-void Remeha::send_sdo_read_(size_t entry) {
-  uint16_t idx = this->sdo_poll_list_[entry].index;
-  uint8_t sub = this->sdo_poll_list_[entry].subindex;
-  uint8_t data[8] = {0x40, (uint8_t)(idx & 0xFF), (uint8_t)(idx >> 8), sub,
+void Remeha::send_sdo_read_object_(uint16_t index, uint8_t subindex) {
+  uint8_t data[8] = {0x40, (uint8_t)(index & 0xFF), (uint8_t)(index >> 8), subindex,
                      0x00, 0x00, 0x00, 0x00};
   this->send_can_(this->sdo_tx_id_, data, 8);
   this->sdo_pending_ = true;
-  this->sdo_pending_index_ = idx;
-  this->sdo_pending_sub_ = sub;
+  this->sdo_pending_index_ = index;
+  this->sdo_pending_sub_ = subindex;
   this->sdo_sent_ms_ = millis();
+}
+
+void Remeha::send_sdo_read_(size_t entry) {
+  this->send_sdo_read_object_(this->sdo_poll_list_[entry].index, this->sdo_poll_list_[entry].subindex);
 }
 
 // Walks the poll list one entry at a time, advancing as soon as the previous
@@ -273,9 +278,18 @@ void Remeha::service_sdo_polling_(uint32_t now) {
     ESP_LOGD(TAG, "No SDO response for 0x%04X sub %d, skipping", this->sdo_pending_index_,
              this->sdo_pending_sub_);
     this->sdo_pending_ = false;
+    if (this->error_log_active_) {
+      ESP_LOGD(TAG, "Error history read timed out, aborting this round");
+      this->error_log_active_ = false;
+      this->error_log_last_ms_ = now;
+    }
   }
 
   if (this->write_pending_ || this->seg_read_active_)
+    return;
+
+  this->service_error_log_(now);
+  if (this->error_log_active_)
     return;
 
   if (this->sdo_cycle_active_) {
@@ -305,6 +319,111 @@ void Remeha::service_sdo_polling_(uint32_t now) {
   }
 }
 
+// Reads the error history arrays object by object: 0x1003:00 holds the number
+// of entries, 0x1003:n a two byte {code, category} struct and 0x2004:n the
+// matching customer code.
+void Remeha::service_error_log_(uint32_t now) {
+  if (!this->error_log_enabled_)
+    return;
+
+  if (!this->error_log_active_) {
+    if (this->error_log_last_ms_ != 0 && (now - this->error_log_last_ms_) < ERROR_LOG_INTERVAL_MS)
+      return;
+    if (this->sdo_cycle_active_)
+      return;
+    this->error_log_active_ = true;
+    this->error_log_customer_phase_ = false;
+    this->error_log_step_ = 0;
+    this->error_log_count_ = 0;
+    this->error_log_entries_.clear();
+    this->error_log_customer_codes_.clear();
+    this->send_sdo_read_object_(0x1003, 0x00);
+    return;
+  }
+
+  if (this->sdo_pending_ || (now - this->sdo_sent_ms_) < SDO_READ_GAP_MS)
+    return;
+
+  uint16_t index = this->error_log_customer_phase_ ? 0x2004 : 0x1003;
+  this->send_sdo_read_object_(index, this->error_log_step_);
+}
+
+bool Remeha::handle_error_log_response_(uint16_t index, uint8_t sub, uint32_t value) {
+  if (index == 0x1003 && sub == 0x00) {
+    this->error_log_count_ = (uint8_t) std::min<uint32_t>(value & 0xFF, ERROR_LOG_MAX_ENTRIES);
+    if (this->error_log_count_ == 0) {
+      this->publish_error_log_();
+      return true;
+    }
+    this->error_log_step_ = 1;
+    return true;
+  }
+
+  if (index == 0x1003 && sub >= 1 && sub <= this->error_log_count_) {
+    this->error_log_entries_.push_back((uint16_t)(value & 0xFFFF));
+    if (sub >= this->error_log_count_) {
+      this->error_log_customer_phase_ = true;
+      this->error_log_step_ = 1;
+    } else {
+      this->error_log_step_ = sub + 1;
+    }
+    return true;
+  }
+
+  if (index == 0x2004 && sub >= 1 && sub <= this->error_log_count_) {
+    this->error_log_customer_codes_.push_back(value);
+    if (sub >= this->error_log_count_) {
+      this->publish_error_log_();
+    } else {
+      this->error_log_step_ = sub + 1;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+void Remeha::publish_error_log_() {
+  this->error_log_active_ = false;
+  this->error_log_customer_phase_ = false;
+  this->error_log_last_ms_ = millis();
+
+  std::string out;
+  for (size_t i = 0; i < this->error_log_entries_.size(); i++) {
+    uint8_t code = this->error_log_entries_[i] & 0xFF;
+    uint8_t category = (this->error_log_entries_[i] >> 8) & 0xFF;
+    char buf[32];
+    if (i < this->error_log_customer_codes_.size()) {
+      snprintf(buf, sizeof(buf), "%u.%02u/%u", category, code,
+               (unsigned) this->error_log_customer_codes_[i]);
+    } else {
+      snprintf(buf, sizeof(buf), "%u.%02u", category, code);
+    }
+    if (!out.empty())
+      out += ", ";
+    out += buf;
+  }
+  if (out.empty())
+    out = "No errors";
+
+  ESP_LOGD(TAG, "Error history (%u entries): %s", this->error_log_count_, out.c_str());
+#ifdef USE_TEXT_SENSOR
+  if (this->error_log_ != nullptr)
+    this->error_log_->publish_state(out);
+#endif
+}
+
+void Remeha::report_write_rejected(const char *reason) {
+  ESP_LOGW(TAG, "Write rejected: %s", reason);
+#ifdef USE_TEXT_SENSOR
+  if (this->write_status_ != nullptr) {
+    char status[64];
+    snprintf(status, sizeof(status), "REJECTED: %s", reason);
+    this->write_status_->publish_state(status);
+  }
+#endif
+}
+
 bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t size) {
   if (!this->authenticated_) {
     ESP_LOGW(TAG, "Cannot write: not authenticated");
@@ -329,6 +448,18 @@ bool Remeha::write_sdo(uint16_t index, uint8_t subindex, uint32_t value, uint8_t
     if (this->write_status_ != nullptr)
       this->write_status_->publish_state("Busy");
 #endif
+    return false;
+  }
+
+  // The boiler aborts a value that does not fit the object, but a truncated
+  // frame would silently write a different value, so check it here first.
+  int32_t as_signed = (int32_t) value;
+  if (size == 1 && (value > 0xFF && (as_signed < -128 || as_signed > 127))) {
+    this->report_write_rejected("value does not fit in 1 byte");
+    return false;
+  }
+  if (size == 2 && (value > 0xFFFF && (as_signed < -32768 || as_signed > 32767))) {
+    this->report_write_rejected("value does not fit in 2 bytes");
     return false;
   }
 
@@ -611,6 +742,9 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       return;
     }
 
+    if (this->error_log_active_ && this->handle_error_log_response_(index, sub, value))
+      return;
+
     // --- Data parsing for SDO reads ---
 #ifdef USE_SENSOR
     if (index == 0x500F && sub == 0x00 && this->locking_mode_ != nullptr) {
@@ -628,46 +762,46 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     } else
 #endif
 #ifdef USE_NUMBER
-    if (index == 0x3451 && sub == 0x01 && this->room_setpoint_ != nullptr) {
+    if (this->room_setpoint_ != nullptr && this->room_setpoint_->matches(index, sub)) {
       this->room_setpoint_->publish_from_sdo(value);
-    } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
+    } else if (this->dhw_comfort_setpoint_ != nullptr && this->dhw_comfort_setpoint_->matches(index, sub)) {
       this->dhw_comfort_setpoint_->publish_from_sdo(value);
-    } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
+    } else if (this->dhw_reduced_setpoint_ != nullptr && this->dhw_reduced_setpoint_->matches(index, sub)) {
       this->dhw_reduced_setpoint_->publish_from_sdo(value);
-    } else if (index == 0x340B && sub == 0x01 && this->night_setpoint_ != nullptr) {
+    } else if (this->night_setpoint_ != nullptr && this->night_setpoint_->matches(index, sub)) {
       this->night_setpoint_->publish_from_sdo(value);
-    } else if (index == 0x340A && sub == 0x01 && this->holiday_setpoint_ != nullptr) {
+    } else if (this->holiday_setpoint_ != nullptr && this->holiday_setpoint_->matches(index, sub)) {
       this->holiday_setpoint_->publish_from_sdo(value);
-    } else if (index == 0x303A && sub == 0x00 && this->summer_winter_threshold_ != nullptr) {
+    } else if (this->summer_winter_threshold_ != nullptr && this->summer_winter_threshold_->matches(index, sub)) {
       this->summer_winter_threshold_->publish_from_sdo(value);
-    } else if (index == 0x3416 && sub == 0x01 && this->heating_curve_slope_ != nullptr) {
+    } else if (this->heating_curve_slope_ != nullptr && this->heating_curve_slope_->matches(index, sub)) {
       this->heating_curve_slope_->publish_from_sdo(value);
-    } else if (index == 0x3418 && sub == 0x01 && this->room_sensor_calibration_ != nullptr) {
+    } else if (this->room_sensor_calibration_ != nullptr && this->room_sensor_calibration_->matches(index, sub)) {
       this->room_sensor_calibration_->publish_from_sdo(value);
-    } else if (index == 0x365D && sub == 0x01 && this->anti_legionella_setpoint_ != nullptr) {
+    } else if (this->anti_legionella_setpoint_ != nullptr && this->anti_legionella_setpoint_->matches(index, sub)) {
       this->anti_legionella_setpoint_->publish_from_sdo(value);
     } else
 #endif
 #ifdef USE_SELECT
-    if (index == 0x3012 && sub == 0x00 && this->ch_enabled_ != nullptr) {
+    if (this->ch_enabled_ != nullptr && this->ch_enabled_->matches(index, sub)) {
       uint8_t val = value & 0xFF;
       this->ch_enabled_->publish_from_sdo(val);
       ESP_LOGD(TAG, "CH enabled=%d", val);
-    } else if (index == 0x3013 && sub == 0x00 && this->dhw_enabled_ != nullptr) {
+    } else if (this->dhw_enabled_ != nullptr && this->dhw_enabled_->matches(index, sub)) {
       uint8_t val = value & 0xFF;
       this->dhw_enabled_->publish_from_sdo(val);
       ESP_LOGD(TAG, "DHW enabled=%d", val);
-    } else if (index == 0x3604 && sub == 0x00 && this->anti_legionella_mode_ != nullptr) {
+    } else if (this->anti_legionella_mode_ != nullptr && this->anti_legionella_mode_->matches(index, sub)) {
       uint8_t val = value & 0xFF;
       this->anti_legionella_mode_->publish_from_sdo(val);
       ESP_LOGD(TAG, "Anti-legionella mode=%d", val);
-    } else if (index == 0x3455 && sub == 0x01 && this->fireplace_mode_ != nullptr) {
+    } else if (this->fireplace_mode_ != nullptr && this->fireplace_mode_->matches(index, sub)) {
       uint8_t val = value & 0xFF;
       this->fireplace_mode_->publish_from_sdo(val);
       ESP_LOGD(TAG, "Fireplace mode=%d", val);
     } else
 #endif
-    if (index == 0x3458 && sub == 0x01) {
+    if (index == 0x3458) {
       uint8_t program = value & 0xFF;
       ESP_LOGD(TAG, "Time program=%d", program);
 #ifdef USE_SELECT
@@ -681,7 +815,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #endif
     } else
 #ifdef USE_SELECT
-    if (index == 0x341F && sub == 0x01 && this->zone_mode_ != nullptr) {
+    if (this->zone_mode_ != nullptr && this->zone_mode_->matches(index, sub)) {
       uint8_t mode = value & 0xFF;
       this->zone_mode_->publish_from_sdo(mode);
 #ifdef USE_CLIMATE
@@ -904,8 +1038,8 @@ const char *Remeha::get_status_text_(uint8_t status) {
     case 5:   return "Burner off";
     case 6:   return "Pump active";
     case 8:   return "Burner shut down";
-    case 9:   return "Temporary fault";
-    case 10:  return "Permanent fault";
+    case 9:   return "Blocking Mode";
+    case 10:  return "Locking Mode";
     case 11:  return "Test heat min";
     case 12:  return "Test heat max";
     case 13:  return "Test DHW max";

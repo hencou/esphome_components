@@ -91,11 +91,21 @@ How the component talks to the boiler:
 - If the CAN controller goes bus-off, the component requests TWAI recovery, restarts the driver and
   re-runs the boot sequence — ESPHome's `esp32_can` does not recover by itself.
 
+- Zone parameters (room/night/holiday setpoint, heating curve, zone mode, time program, fireplace mode)
+  are arrays of up to ten zones, DHW parameters arrays of up to ten circuits. The `number`, `select` and
+  `climate` platforms take `zone:` and `dhw_circuit:` (both default `1`) to address another zone.
+- Writes are checked against the configured range, step and object size before a frame goes out; the
+  boiler's abort stays as the second line of defence and the write status reports `REJECTED: …`.
+
 Entities: `sensor` (flow/return/outside/DHW temperatures, water pressure, modulation, pump speed, status
-and error codes, appliance type, …), `text_sensor` (status/substatus text, write status), `number`
-(room, DHW comfort/reduced, night, holiday and anti-legionella setpoints, heating curve slope, room
-sensor calibration, summer/winter threshold), `select` (zone mode, time program, CH/DHW enable,
+and error codes, appliance type, …), `text_sensor` (status/substatus text, write status, error history),
+`number` (room, DHW comfort/reduced, night, holiday and anti-legionella setpoints, heating curve slope,
+room sensor calibration, summer/winter threshold), `select` (zone mode, time program, CH/DHW enable,
 anti-legionella, fireplace mode) and `climate`.
+
+The `error_log` text sensor walks the error arrays (`0x1003` holds the entry count in subindex 0 and a
+`{code, category}` struct per entry, `0x2004` the matching customer codes) every fifteen minutes and
+publishes them as `category.code/customer`, newest entry first as the boiler returns them.
 
 ## `itho` - Itho Daalderop ventilation over I²C
 

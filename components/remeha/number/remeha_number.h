@@ -17,6 +17,10 @@ class RemehaNumber : public number::Number, public Component {
   void set_scale(float scale) { this->scale_ = scale; }
   void set_is_signed(bool is_signed) { this->is_signed_ = is_signed; }
 
+  bool matches(uint16_t index, uint8_t subindex) const {
+    return index == this->sdo_index_ && subindex == this->sdo_subindex_;
+  }
+
   void publish_from_sdo(uint32_t raw);
 
   void setup() override {}
