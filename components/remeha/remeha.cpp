@@ -5,6 +5,9 @@
 #ifdef USE_SELECT
 #include "select/remeha_select.h"
 #endif
+#ifdef USE_NUMBER
+#include "number/remeha_number.h"
+#endif
 #include "esphome/core/log.h"
 #ifdef USE_ESP32
 #include <driver/twai.h>
@@ -626,41 +629,23 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
 #endif
 #ifdef USE_NUMBER
     if (index == 0x3451 && sub == 0x01 && this->room_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.1f;
-      this->room_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "Room current=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      this->room_setpoint_->publish_from_sdo(value);
     } else if (index == 0x3654 && sub == 0x01 && this->dhw_comfort_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.01f;
-      this->dhw_comfort_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW comfort setpoint=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      this->dhw_comfort_setpoint_->publish_from_sdo(value);
     } else if (index == 0x3655 && sub == 0x01 && this->dhw_reduced_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.01f;
-      this->dhw_reduced_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "DHW reduced setpoint=%.1f C (raw=%u)", temp, (unsigned) (value & 0xFFFF));
+      this->dhw_reduced_setpoint_->publish_from_sdo(value);
     } else if (index == 0x340B && sub == 0x01 && this->night_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.1f;
-      this->night_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "Night setpoint=%.1f C", temp);
+      this->night_setpoint_->publish_from_sdo(value);
     } else if (index == 0x340A && sub == 0x01 && this->holiday_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.1f;
-      this->holiday_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "Holiday setpoint=%.1f C", temp);
+      this->holiday_setpoint_->publish_from_sdo(value);
     } else if (index == 0x303A && sub == 0x00 && this->summer_winter_threshold_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.01f;
-      this->summer_winter_threshold_->publish_state(temp);
-      ESP_LOGD(TAG, "Summer/winter threshold=%.1f C", temp);
+      this->summer_winter_threshold_->publish_from_sdo(value);
     } else if (index == 0x3416 && sub == 0x01 && this->heating_curve_slope_ != nullptr) {
-      float slope = (value & 0xFF) * 0.1f;
-      this->heating_curve_slope_->publish_state(slope);
-      ESP_LOGD(TAG, "Heating curve slope=%.1f", slope);
+      this->heating_curve_slope_->publish_from_sdo(value);
     } else if (index == 0x3418 && sub == 0x01 && this->room_sensor_calibration_ != nullptr) {
-      float cal = (int8_t)(value & 0xFF) * 0.1f;
-      this->room_sensor_calibration_->publish_state(cal);
-      ESP_LOGD(TAG, "Room sensor calibration=%.1f C", cal);
+      this->room_sensor_calibration_->publish_from_sdo(value);
     } else if (index == 0x365D && sub == 0x01 && this->anti_legionella_setpoint_ != nullptr) {
-      float temp = (value & 0xFFFF) * 0.01f;
-      this->anti_legionella_setpoint_->publish_state(temp);
-      ESP_LOGD(TAG, "Anti-legionella setpoint=%.0f C", temp);
+      this->anti_legionella_setpoint_->publish_from_sdo(value);
     } else
 #endif
 #ifdef USE_SELECT

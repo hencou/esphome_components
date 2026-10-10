@@ -30,6 +30,9 @@ class RemehaClimate;
 #ifdef USE_SELECT
 class RemehaSelect;
 #endif
+#ifdef USE_NUMBER
+class RemehaNumber;
+#endif
 
 class Remeha : public Component {
  public:
@@ -88,15 +91,15 @@ class Remeha : public Component {
 #endif
 
 #ifdef USE_NUMBER
-  void set_room_setpoint_number(number::Number *n) { this->room_setpoint_ = n; }
-  void set_dhw_comfort_setpoint_number(number::Number *n) { this->dhw_comfort_setpoint_ = n; }
-  void set_dhw_reduced_setpoint_number(number::Number *n) { this->dhw_reduced_setpoint_ = n; }
-  void set_night_setpoint_number(number::Number *n) { this->night_setpoint_ = n; }
-  void set_holiday_setpoint_number(number::Number *n) { this->holiday_setpoint_ = n; }
-  void set_summer_winter_threshold_number(number::Number *n) { this->summer_winter_threshold_ = n; }
-  void set_heating_curve_slope_number(number::Number *n) { this->heating_curve_slope_ = n; }
-  void set_room_sensor_calibration_number(number::Number *n) { this->room_sensor_calibration_ = n; }
-  void set_anti_legionella_setpoint_number(number::Number *n) { this->anti_legionella_setpoint_ = n; }
+  void set_room_setpoint_number(RemehaNumber *n) { this->room_setpoint_ = n; }
+  void set_dhw_comfort_setpoint_number(RemehaNumber *n) { this->dhw_comfort_setpoint_ = n; }
+  void set_dhw_reduced_setpoint_number(RemehaNumber *n) { this->dhw_reduced_setpoint_ = n; }
+  void set_night_setpoint_number(RemehaNumber *n) { this->night_setpoint_ = n; }
+  void set_holiday_setpoint_number(RemehaNumber *n) { this->holiday_setpoint_ = n; }
+  void set_summer_winter_threshold_number(RemehaNumber *n) { this->summer_winter_threshold_ = n; }
+  void set_heating_curve_slope_number(RemehaNumber *n) { this->heating_curve_slope_ = n; }
+  void set_room_sensor_calibration_number(RemehaNumber *n) { this->room_sensor_calibration_ = n; }
+  void set_anti_legionella_setpoint_number(RemehaNumber *n) { this->anti_legionella_setpoint_ = n; }
 #endif
 
 #ifdef USE_SELECT
@@ -237,15 +240,15 @@ class Remeha : public Component {
 #endif
 
 #ifdef USE_NUMBER
-  number::Number *room_setpoint_{nullptr};
-  number::Number *dhw_comfort_setpoint_{nullptr};
-  number::Number *dhw_reduced_setpoint_{nullptr};
-  number::Number *night_setpoint_{nullptr};
-  number::Number *holiday_setpoint_{nullptr};
-  number::Number *summer_winter_threshold_{nullptr};
-  number::Number *heating_curve_slope_{nullptr};
-  number::Number *room_sensor_calibration_{nullptr};
-  number::Number *anti_legionella_setpoint_{nullptr};
+  RemehaNumber *room_setpoint_{nullptr};
+  RemehaNumber *dhw_comfort_setpoint_{nullptr};
+  RemehaNumber *dhw_reduced_setpoint_{nullptr};
+  RemehaNumber *night_setpoint_{nullptr};
+  RemehaNumber *holiday_setpoint_{nullptr};
+  RemehaNumber *summer_winter_threshold_{nullptr};
+  RemehaNumber *heating_curve_slope_{nullptr};
+  RemehaNumber *room_sensor_calibration_{nullptr};
+  RemehaNumber *anti_legionella_setpoint_{nullptr};
 #endif
 
 #ifdef USE_SELECT
