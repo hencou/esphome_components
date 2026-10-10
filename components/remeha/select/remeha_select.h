@@ -16,6 +16,10 @@ class RemehaSelect : public select::Select, public Component {
   void set_value_offset(uint8_t offset) { this->value_offset_ = offset; }
   uint8_t get_value_offset() const { return this->value_offset_; }
 
+  bool matches(uint16_t index, uint8_t subindex) const {
+    return index == this->sdo_index_ && subindex == this->sdo_subindex_;
+  }
+
   // Publish state from raw SDO value, applying value_offset
   void publish_from_sdo(uint8_t value) {
     int idx = (int)value - (int)this->value_offset_;

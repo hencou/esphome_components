@@ -19,10 +19,14 @@ CONF_SUMMER_WINTER_THRESHOLD = "summer_winter_threshold"
 CONF_HEATING_CURVE_SLOPE = "heating_curve_slope"
 CONF_ROOM_SENSOR_CALIBRATION = "room_sensor_calibration"
 CONF_ANTI_LEGIONELLA_SETPOINT = "anti_legionella_setpoint"
+CONF_ZONE = "zone"
+CONF_DHW_CIRCUIT = "dhw_circuit"
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
+        cv.Optional(CONF_ZONE, default=1): cv.int_range(min=1, max=10),
+        cv.Optional(CONF_DHW_CIRCUIT, default=1): cv.int_range(min=1, max=10),
         cv.Optional(CONF_ROOM_SETPOINT): number.number_schema(
             RemehaNumber,
             unit_of_measurement=UNIT_CELSIUS,
@@ -71,16 +75,25 @@ CONFIG_SCHEMA = cv.Schema(
 )
 
 # SDO parameters: (index, subindex, size_bytes, scale, min, max, step, is_signed)
+# A subindex of None means the object is an array indexed by zone (CH) or
+# circuit (DHW); the configured index is used instead.
 NUMBER_PARAMS = {
-    CONF_ROOM_SETPOINT: (0x3451, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
-    CONF_DHW_COMFORT_SETPOINT: (0x3654, 0x01, 2, 0.01, 40.0, 65.0, 1.0, False),
-    CONF_DHW_REDUCED_SETPOINT: (0x3655, 0x01, 2, 0.01, 10.0, 60.0, 1.0, False),
-    CONF_NIGHT_SETPOINT: (0x340B, 0x01, 2, 0.1, 5.0, 30.0, 0.5, False),
-    CONF_HOLIDAY_SETPOINT: (0x340A, 0x01, 2, 0.1, 0.5, 20.0, 0.5, False),
-    CONF_SUMMER_WINTER_THRESHOLD: (0x303A, 0x00, 2, 0.1, 15.0, 30.5, 0.5, False),
-    CONF_HEATING_CURVE_SLOPE: (0x3416, 0x01, 1, 0.1, 0.0, 4.0, 0.1, False),
-    CONF_ROOM_SENSOR_CALIBRATION: (0x3418, 0x01, 1, 0.1, -5.0, 5.0, 0.1, True),
-    CONF_ANTI_LEGIONELLA_SETPOINT: (0x365D, 0x01, 1, 1.0, 60.0, 90.0, 1.0, False),
+    CONF_ROOM_SETPOINT: (0x3451, None, 2, 0.1, 5.0, 30.0, 0.5, False),
+    CONF_DHW_COMFORT_SETPOINT: (0x3654, None, 2, 0.01, 40.0, 65.0, 1.0, False),
+    CONF_DHW_REDUCED_SETPOINT: (0x3655, None, 2, 0.01, 10.0, 60.0, 1.0, False),
+    CONF_NIGHT_SETPOINT: (0x340B, None, 2, 0.1, 5.0, 30.0, 0.5, False),
+    CONF_HOLIDAY_SETPOINT: (0x340A, None, 2, 0.1, 5.0, 20.0, 0.5, False),
+    CONF_SUMMER_WINTER_THRESHOLD: (0x303A, 0x00, 2, 0.01, 15.0, 30.5, 0.5, False),
+    CONF_HEATING_CURVE_SLOPE: (0x3416, None, 1, 0.1, 0.0, 4.0, 0.1, False),
+    CONF_ROOM_SENSOR_CALIBRATION: (0x3418, None, 1, 0.1, -5.0, 5.0, 0.1, True),
+    CONF_ANTI_LEGIONELLA_SETPOINT: (0x365D, None, 2, 0.01, 60.0, 70.0, 1.0, False),
+}
+
+# Array objects addressed by the DHW circuit instead of the heating zone
+DHW_PARAMS = {
+    CONF_DHW_COMFORT_SETPOINT,
+    CONF_DHW_REDUCED_SETPOINT,
+    CONF_ANTI_LEGIONELLA_SETPOINT,
 }
 
 # Setter methods on the parent Remeha class
@@ -102,6 +115,8 @@ async def to_code(config):
 
     for conf_key, (sdo_idx, sdo_sub, sdo_size, scale, min_val, max_val, step, is_signed) in NUMBER_PARAMS.items():
         if conf_key in config:
+            if sdo_sub is None:
+                sdo_sub = config[CONF_DHW_CIRCUIT] if conf_key in DHW_PARAMS else config[CONF_ZONE]
             num = await number.new_number(
                 config[conf_key],
                 min_value=min_val,

@@ -232,6 +232,9 @@ text_sensor:
   write_status:
     name: SDO Write Status
     entity_category: DIAGNOSTIC
+  error_log:
+    name: Error History
+    entity_category: DIAGNOSTIC
 
 - platform: version
   name: ESPHome Version

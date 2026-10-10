@@ -13,7 +13,9 @@ void RemehaSelect::control(const std::string &value) {
       return;
     }
   }
-  ESP_LOGW(TAG, "Unknown select option: %s", value.c_str());
+  char reason[64];
+  snprintf(reason, sizeof(reason), "unknown option for 0x%04X: %s", this->sdo_index_, value.c_str());
+  this->parent_->report_write_rejected(reason);
 }
 
 }  // namespace remeha
