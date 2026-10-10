@@ -8,7 +8,8 @@ AUTO_LOAD = ["remeha"]
 CONF_STATUS_TEXT = "status_text"
 CONF_SUBSTATUS_TEXT = "substatus_text"
 CONF_WRITE_STATUS = "write_status"
-CONF_ERROR_LOG = "error_log"
+CONF_LAST_ERROR = "last_error"
+ERROR_SLOT_KEYS = [f"error_{i + 1}" for i in range(5)]
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -22,9 +23,15 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_WRITE_STATUS): text_sensor.text_sensor_schema(
             icon="mdi:clipboard-check-outline",
         ),
-        cv.Optional(CONF_ERROR_LOG): text_sensor.text_sensor_schema(
+        cv.Optional(CONF_LAST_ERROR): text_sensor.text_sensor_schema(
             icon="mdi:alert-circle-outline",
         ),
+        **{
+            cv.Optional(key): text_sensor.text_sensor_schema(
+                icon="mdi:history",
+            )
+            for key in ERROR_SLOT_KEYS
+        },
     }
 )
 
@@ -44,6 +51,11 @@ async def to_code(config):
         sens = await text_sensor.new_text_sensor(config[CONF_WRITE_STATUS])
         cg.add(parent.set_write_status_text_sensor(sens))
 
-    if CONF_ERROR_LOG in config:
-        sens = await text_sensor.new_text_sensor(config[CONF_ERROR_LOG])
-        cg.add(parent.set_error_log_text_sensor(sens))
+    if CONF_LAST_ERROR in config:
+        sens = await text_sensor.new_text_sensor(config[CONF_LAST_ERROR])
+        cg.add(parent.set_last_error_text_sensor(sens))
+
+    for slot, key in enumerate(ERROR_SLOT_KEYS):
+        if key in config:
+            sens = await text_sensor.new_text_sensor(config[key])
+            cg.add(parent.set_error_slot_text_sensor(slot, sens))

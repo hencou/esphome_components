@@ -24,6 +24,8 @@ namespace remeha {
 
 static const char *const TAG = "remeha";
 
+static const int ERROR_LOG_SLOTS = 5;
+
 #ifdef USE_CLIMATE
 class RemehaClimate;
 #endif
@@ -71,8 +73,6 @@ class Remeha : public Component {
   void set_room_temperature_sensor(sensor::Sensor *s) { this->room_temperature_ = s; }
   void set_locking_mode_sensor(sensor::Sensor *s) { this->locking_mode_ = s; }
   void set_blocking_mode_sensor(sensor::Sensor *s) { this->blocking_mode_ = s; }
-  void set_error_history_sensor(sensor::Sensor *s) { this->error_history_ = s; }
-  void set_diagnostics_sensor(sensor::Sensor *s) { this->diagnostics_ = s; }
   void set_appliance_type_sensor(sensor::Sensor *s) { this->appliance_type_ = s; }
   void set_appliance_variant_sensor(sensor::Sensor *s) { this->appliance_variant_ = s; }
   void set_dhw_temperature_sensor(sensor::Sensor *s) { this->dhw_temperature_ = s; }
@@ -91,8 +91,14 @@ class Remeha : public Component {
   void set_status_text_sensor(text_sensor::TextSensor *s) { this->status_text_ = s; }
   void set_substatus_text_sensor(text_sensor::TextSensor *s) { this->substatus_text_ = s; }
   void set_write_status_text_sensor(text_sensor::TextSensor *s) { this->write_status_ = s; }
-  void set_error_log_text_sensor(text_sensor::TextSensor *s) {
-    this->error_log_ = s;
+  void set_last_error_text_sensor(text_sensor::TextSensor *s) {
+    this->last_error_ = s;
+    this->error_log_enabled_ = true;
+  }
+  void set_error_slot_text_sensor(int slot, text_sensor::TextSensor *s) {
+    if (slot < 0 || slot >= ERROR_LOG_SLOTS)
+      return;
+    this->error_slots_[slot] = s;
     this->error_log_enabled_ = true;
   }
 #endif
@@ -209,6 +215,7 @@ class Remeha : public Component {
   void service_error_log_(uint32_t now);
   bool handle_error_log_response_(uint16_t index, uint8_t sub, uint32_t value);
   void publish_error_log_();
+  std::string format_error_entry_(size_t i, bool verbose);
 
   // Reject a write before it reaches the bus
   bool reject_write_(const char *reason);
@@ -241,8 +248,6 @@ class Remeha : public Component {
   sensor::Sensor *room_temperature_{nullptr};
   sensor::Sensor *locking_mode_{nullptr};
   sensor::Sensor *blocking_mode_{nullptr};
-  sensor::Sensor *error_history_{nullptr};
-  sensor::Sensor *diagnostics_{nullptr};
   sensor::Sensor *appliance_type_{nullptr};
   sensor::Sensor *appliance_variant_{nullptr};
   sensor::Sensor *dhw_temperature_{nullptr};
@@ -261,7 +266,8 @@ class Remeha : public Component {
   text_sensor::TextSensor *status_text_{nullptr};
   text_sensor::TextSensor *substatus_text_{nullptr};
   text_sensor::TextSensor *write_status_{nullptr};
-  text_sensor::TextSensor *error_log_{nullptr};
+  text_sensor::TextSensor *last_error_{nullptr};
+  text_sensor::TextSensor *error_slots_[ERROR_LOG_SLOTS]{};
 #endif
 
 #ifdef USE_NUMBER

@@ -98,14 +98,16 @@ How the component talks to the boiler:
   boiler's abort stays as the second line of defence and the write status reports `REJECTED: …`.
 
 Entities: `sensor` (flow/return/outside/DHW temperatures, water pressure, modulation, pump speed, status
-and error codes, appliance type, …), `text_sensor` (status/substatus text, write status, error history),
+and error codes, appliance type, …), `text_sensor` (status/substatus text, write status, last error and
+error history slots),
 `number` (room, DHW comfort/reduced, night, holiday and anti-legionella setpoints, heating curve slope,
 room sensor calibration, summer/winter threshold), `select` (zone mode, time program, CH/DHW enable,
 anti-legionella, fireplace mode) and `climate`.
 
-The `error_log` text sensor walks the error arrays (`0x1003` holds the entry count in subindex 0 and a
-`{code, category}` struct per entry, `0x2004` the matching customer codes) every fifteen minutes and
-publishes them as `category.code/customer`, newest entry first as the boiler returns them.
+The error history walks the error arrays (`0x1003` holds the entry count in subindex 0 and a
+`{code, category}` struct per entry, `0x2004` the matching customer codes) every fifteen minutes. The
+`last_error` text sensor shows the most recent entry as `E:03.52 (customer code 22)`; `error_1` …
+`error_5` hold the same five newest entries in compact form, one per slot, so they can be put in a table.
 
 ## `itho` - Itho Daalderop ventilation over I²C
 
