@@ -20,7 +20,7 @@ CONFIG_SCHEMA = climate.climate_schema(RemehaClimate).extend(
         cv.GenerateID(CONF_REMEHA_ID): cv.use_id(Remeha),
         cv.Optional(CONF_ZONE, default=1): cv.int_range(min=1, max=10),
         cv.Optional(CONF_TIME_PROGRAM_NAMES): cv.All(
-            cv.ensure_list(cv.string), cv.Length(min=3, max=3)
+            cv.ensure_list(cv.string), cv.Length(min=3, max=4)
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)

@@ -15,7 +15,8 @@ void RemehaClimate::setup() {
     this->target_temperature = 20.0f;
   }
   this->publish_state();
-  this->set_supported_custom_presets({this->time_program_names_[0].c_str(), this->time_program_names_[1].c_str(), this->time_program_names_[2].c_str()});
+  this->set_supported_custom_presets({this->time_program_names_[0].c_str(), this->time_program_names_[1].c_str(),
+                                      this->time_program_names_[2].c_str(), this->time_program_names_[3].c_str()});
 }
 
 void RemehaClimate::dump_config() {
@@ -28,7 +29,7 @@ climate::ClimateTraits RemehaClimate::traits() {
   traits.add_feature_flags(climate::CLIMATE_SUPPORTS_ACTION);
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
   traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
-  traits.add_supported_mode(climate::CLIMATE_MODE_HEAT_COOL);
+  traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
   traits.set_visual_min_temperature(5.0f);
   traits.set_visual_max_temperature(30.0f);
   traits.set_visual_temperature_step(0.5f);
@@ -46,7 +47,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       case climate::CLIMATE_MODE_HEAT:
         zone_mode = 1;
         break;
-      case climate::CLIMATE_MODE_HEAT_COOL:
+      case climate::CLIMATE_MODE_AUTO:
         zone_mode = 0;
         break;
       default:
@@ -73,7 +74,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
   if (call.has_custom_preset()) {
     auto custom_preset = call.get_custom_preset();
     if (this->parent_ != nullptr) {
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 4; i++) {
         if (custom_preset == this->time_program_names_[i]) {
           this->parent_->write_sdo(0x3458, this->zone_, i, 1);
           this->set_custom_preset_(this->time_program_names_[i].c_str());
@@ -102,10 +103,11 @@ void RemehaClimate::update_zone_mode(uint8_t mode) {
       this->mode = climate::CLIMATE_MODE_OFF;
       break;
     case 1:
+    case 3:  // Temporary override of the schedule
       this->mode = climate::CLIMATE_MODE_HEAT;
       break;
     case 0:
-      this->mode = climate::CLIMATE_MODE_HEAT_COOL;
+      this->mode = climate::CLIMATE_MODE_AUTO;
       break;
     default:
       break;
@@ -116,31 +118,31 @@ void RemehaClimate::update_zone_mode(uint8_t mode) {
 void RemehaClimate::update_action(uint8_t status_code) {
   switch (status_code) {
     case 0:   // Standby
-    case 5:   // Burner off
-    case 6:   // Pump active
-    case 8:   // Burner shut down
+    case 5:   // Generator stop
+    case 6:   // Pump post run
+    case 8:   // Controlled stop
     case 16:  // Frost protection
       this->action = (this->mode == climate::CLIMATE_MODE_OFF)
                          ? climate::CLIMATE_ACTION_OFF
                          : climate::CLIMATE_ACTION_IDLE;
       break;
-    case 1:   // Heat request
-    case 2:   // Burner ignition
-    case 3:   // Heating mode
-    case 11:  // Test heat min
-    case 12:  // Test heat max
-    case 15:  // Manual heat
+    case 1:   // Heat demand
+    case 2:   // Generator start
+    case 3:   // Generator CH
+    case 11:  // Load test min
+    case 12:  // Load test CH max
+    case 15:  // Manual heat demand
       this->action = climate::CLIMATE_ACTION_HEATING;
       break;
-    case 4:   // DHW mode
-    case 13:  // Test DHW max
+    case 4:   // Generator DHW
+    case 13:  // Load test DHW max
       // DHW is not directly heating the zone, treat as idle
       this->action = (this->mode == climate::CLIMATE_MODE_OFF)
                          ? climate::CLIMATE_ACTION_OFF
                          : climate::CLIMATE_ACTION_IDLE;
       break;
-    case 9:   // Temporary fault
-    case 10:  // Permanent fault
+    case 9:   // Blocking mode
+    case 10:  // Locking mode
       this->action = climate::CLIMATE_ACTION_OFF;
       break;
     default:
@@ -151,7 +153,7 @@ void RemehaClimate::update_action(uint8_t status_code) {
 }
 
 void RemehaClimate::update_time_program(uint8_t program) {
-  if (program < 3) {
+  if (program < 4) {
     this->set_custom_preset_(this->time_program_names_[program].c_str());
   } else {
     this->clear_custom_preset_();

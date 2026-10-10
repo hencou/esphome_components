@@ -16,7 +16,7 @@ class RemehaClimate : public climate::Climate, public Component {
   void set_parent(Remeha *parent) { this->parent_ = parent; }
   void set_zone(uint8_t zone) { this->zone_ = zone; }
   void set_time_program_name(int index, const std::string &name) {
-    if (index >= 0 && index < 3) this->time_program_names_[index] = name;
+    if (index >= 0 && index < 4) this->time_program_names_[index] = name;
   }
 
   // Called by the parent Remeha component when new data arrives
@@ -32,7 +32,7 @@ class RemehaClimate : public climate::Climate, public Component {
 
   Remeha *parent_{nullptr};
   uint8_t zone_{1};
-  std::string time_program_names_[3] = {"Time Program 1", "Time Program 2", "Time Program 3"};
+  std::string time_program_names_[4] = {"Schedule 1", "Schedule 2", "Schedule 3", "Cooling"};
 };
 
 }  // namespace remeha

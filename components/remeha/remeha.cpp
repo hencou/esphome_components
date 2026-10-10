@@ -1031,25 +1031,31 @@ void Remeha::handle_pdo_0x482_(const std::vector<uint8_t> &x) {
 const char *Remeha::get_status_text_(uint8_t status) {
   switch (status) {
     case 0:   return "Standby";
-    case 1:   return "Heat request";
-    case 2:   return "Burner ignition";
-    case 3:   return "Heating mode";
-    case 4:   return "DHW mode";
-    case 5:   return "Burner off";
-    case 6:   return "Pump active";
-    case 8:   return "Burner shut down";
+    case 1:   return "Heat Demand";
+    case 2:   return "Generator start";
+    case 3:   return "Generator CH";
+    case 4:   return "Generator DHW";
+    case 5:   return "Generator stop";
+    case 6:   return "Pump Post Run";
+    case 7:   return "Cooling Active";
+    case 8:   return "Controlled Stop";
     case 9:   return "Blocking Mode";
     case 10:  return "Locking Mode";
-    case 11:  return "Test heat min";
-    case 12:  return "Test heat max";
-    case 13:  return "Test DHW max";
-    case 15:  return "Manual heat";
-    case 16:  return "Frost protection";
-    case 17:  return "Bleed air";
-    case 19:  return "Reset";
-    case 20:  return "Automatic filling";
+    case 11:  return "Load test min";
+    case 12:  return "Load test CH max";
+    case 13:  return "Load test DHW max";
+    case 14:  return "Load test custom";
+    case 15:  return "Manual Heat Demand";
+    case 16:  return "Frost Protection";
+    case 17:  return "Deaeration";
+    case 18:  return "Control unit Cooling";
+    case 19:  return "Reset In Progress";
+    case 20:  return "Auto Filling";
+    case 21:  return "Halted";
     case 22:  return "Forced calibration";
-    case 200: return "Service mode";
+    case 23:  return "Factory test";
+    case 24:  return "Hydronic balancing";
+    case 200: return "Device Mode";
     default:  return "Unknown";
   }
 }
