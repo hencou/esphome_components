@@ -25,8 +25,6 @@ CONF_WATER_PRESSURE = "water_pressure"
 CONF_ROOM_TEMPERATURE = "room_temperature"
 CONF_LOCKING_MODE = "locking_mode"
 CONF_BLOCKING_MODE = "blocking_mode"
-CONF_ERROR_HISTORY = "error_history"
-CONF_DIAGNOSTICS = "diagnostics"
 CONF_APPLIANCE_TYPE = "appliance_type"
 CONF_APPLIANCE_VARIANT = "appliance_variant"
 CONF_RETURN_TEMPERATURE = "return_temperature"
@@ -111,12 +109,6 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=0,
         ),
         cv.Optional(CONF_BLOCKING_MODE): sensor.sensor_schema(
-            accuracy_decimals=0,
-        ),
-        cv.Optional(CONF_ERROR_HISTORY): sensor.sensor_schema(
-            accuracy_decimals=0,
-        ),
-        cv.Optional(CONF_DIAGNOSTICS): sensor.sensor_schema(
             accuracy_decimals=0,
         ),
         cv.Optional(CONF_APPLIANCE_TYPE): sensor.sensor_schema(
@@ -206,8 +198,6 @@ CONFIG_SCHEMA = cv.Schema(
 SDO_POLL_MAP = {
     CONF_LOCKING_MODE: (0x500F, 0x00),
     CONF_BLOCKING_MODE: (0x5011, 0x00),
-    CONF_ERROR_HISTORY: (0x1003, 0x01),
-    CONF_DIAGNOSTICS: (0x2004, 0x01),
     CONF_APPLIANCE_TYPE: (0x502C, 0x00),
     CONF_APPLIANCE_VARIANT: (0x5037, 0x00),
     CONF_WATER_PRESSURE: (0x501D, 0x00),
@@ -243,8 +233,6 @@ async def to_code(config):
         CONF_ROOM_TEMPERATURE: "set_room_temperature_sensor",
         CONF_LOCKING_MODE: "set_locking_mode_sensor",
         CONF_BLOCKING_MODE: "set_blocking_mode_sensor",
-        CONF_ERROR_HISTORY: "set_error_history_sensor",
-        CONF_DIAGNOSTICS: "set_diagnostics_sensor",
         CONF_APPLIANCE_TYPE: "set_appliance_type_sensor",
         CONF_APPLIANCE_VARIANT: "set_appliance_variant_sensor",
         CONF_RETURN_TEMPERATURE: "set_return_temperature_sensor",

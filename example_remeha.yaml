@@ -236,8 +236,23 @@ text_sensor:
   write_status:
     name: SDO Write Status
     entity_category: DIAGNOSTIC
-  error_log:
-    name: Error History
+  last_error:
+    name: Last Error
+    entity_category: DIAGNOSTIC
+  error_1:
+    name: Error History 1
+    entity_category: DIAGNOSTIC
+  error_2:
+    name: Error History 2
+    entity_category: DIAGNOSTIC
+  error_3:
+    name: Error History 3
+    entity_category: DIAGNOSTIC
+  error_4:
+    name: Error History 4
+    entity_category: DIAGNOSTIC
+  error_5:
+    name: Error History 5
     entity_category: DIAGNOSTIC
 
 - platform: version

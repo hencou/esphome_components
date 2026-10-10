@@ -25,7 +25,8 @@ static const uint32_t SDO_READ_GAP_MS = 20;
 static const uint32_t SDO_READ_TIMEOUT_MS = 2000;
 static const uint32_t SDO_KEEPALIVE_MS = 10000;
 static const uint32_t ERROR_LOG_INTERVAL_MS = 900000;
-static const uint8_t ERROR_LOG_MAX_ENTRIES = 32;
+// The boiler keeps up to 32 entries, but only the entries we expose are read.
+static const uint8_t ERROR_LOG_MAX_ENTRIES = ERROR_LOG_SLOTS;
 static const uint32_t BUS_CHECK_INTERVAL_MS = 1000;
 
 // A transmitter that is error passive and gets no acknowledgement does not
@@ -388,29 +389,34 @@ void Remeha::publish_error_log_() {
   this->error_log_customer_phase_ = false;
   this->error_log_last_ms_ = millis();
 
-  std::string out;
-  for (size_t i = 0; i < this->error_log_entries_.size(); i++) {
-    uint8_t code = this->error_log_entries_[i] & 0xFF;
-    uint8_t category = (this->error_log_entries_[i] >> 8) & 0xFF;
-    char buf[32];
-    if (i < this->error_log_customer_codes_.size()) {
-      snprintf(buf, sizeof(buf), "%u.%02u/%u", category, code,
-               (unsigned) this->error_log_customer_codes_[i]);
-    } else {
-      snprintf(buf, sizeof(buf), "%u.%02u", category, code);
-    }
-    if (!out.empty())
-      out += ", ";
-    out += buf;
-  }
-  if (out.empty())
-    out = "No errors";
-
-  ESP_LOGD(TAG, "Error history (%u entries): %s", this->error_log_count_, out.c_str());
+  ESP_LOGD(TAG, "Error history: %u entries", this->error_log_count_);
 #ifdef USE_TEXT_SENSOR
-  if (this->error_log_ != nullptr)
-    this->error_log_->publish_state(out);
+  for (int slot = 0; slot < ERROR_LOG_SLOTS; slot++) {
+    if (this->error_slots_[slot] == nullptr)
+      continue;
+    this->error_slots_[slot]->publish_state(this->format_error_entry_((size_t) slot, false));
+  }
+  if (this->last_error_ != nullptr)
+    this->last_error_->publish_state(this->format_error_entry_(0, true));
 #endif
+}
+
+// Entry 0 is the most recent error. A verbose entry spells out the customer
+// code, a compact one keeps it between parentheses so it fits a table cell.
+std::string Remeha::format_error_entry_(size_t i, bool verbose) {
+  if (i >= this->error_log_entries_.size())
+    return verbose ? "No errors" : "-";
+
+  uint8_t code = this->error_log_entries_[i] & 0xFF;
+  uint8_t category = (this->error_log_entries_[i] >> 8) & 0xFF;
+  char buf[48];
+  if (i < this->error_log_customer_codes_.size()) {
+    snprintf(buf, sizeof(buf), verbose ? "E:%02u.%02u (customer code %u)" : "E:%02u.%02u (%u)", category, code,
+             (unsigned) this->error_log_customer_codes_[i]);
+  } else {
+    snprintf(buf, sizeof(buf), "E:%02u.%02u", category, code);
+  }
+  return buf;
 }
 
 void Remeha::report_write_rejected(const char *reason) {
@@ -751,10 +757,6 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       this->locking_mode_->publish_state(value);
     } else if (index == 0x5011 && sub == 0x00 && this->blocking_mode_ != nullptr) {
       this->blocking_mode_->publish_state(value);
-    } else if (index == 0x1003 && sub == 0x01 && this->error_history_ != nullptr) {
-      this->error_history_->publish_state(value);
-    } else if (index == 0x2004 && sub == 0x01 && this->diagnostics_ != nullptr) {
-      this->diagnostics_->publish_state(value);
     } else if (index == 0x502C && sub == 0x00 && this->appliance_type_ != nullptr) {
       this->appliance_type_->publish_state(value);
     } else if (index == 0x5037 && sub == 0x00 && this->appliance_variant_ != nullptr) {
