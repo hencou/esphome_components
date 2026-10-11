@@ -18,21 +18,20 @@ namespace esphome
     }
 
     //// Detect rising edge of I2C SCL pin
-    uint8_t scl_pin;
-    bool lowSCL = false;
     void IRAM_ATTR gpio_intr(void *arg)
     {
-      lowSCL = true;
-      gpio_isr_handler_remove((gpio_num_t)scl_pin);
+      Itho *itho = static_cast<Itho *>(arg);
+      itho->lowSCL = true;
+      gpio_isr_handler_remove((gpio_num_t)itho->getSCLPin());
     }
     //// End detect rising edge of I2C SCL pin
 
     void Itho::execSystemControlTasks()
     {
       //// Only run once after a 200 msec of inactivity on the I2C bus. Itho queries the bus every 8 seconds
-      if (lowSCL)
+      if (this->lowSCL)
       {
-        lowSCL = false;
+        this->lowSCL = false;
         ESP_LOGD(TAG, "lowSCL triggered");
         this->lastSCLLowTime = millis();
       }
@@ -54,12 +53,12 @@ namespace esphome
 
         if (this->ithoSystem->getIthoFwVersion() > 0)
         {
-          ESP_LOGD(TAG, "I2C init: QueryDevicetype - fw:%d hw:%d", this->ithoSystem->getIthoFwVersion(), this->ithoSystem->getIthoDeviceID());
+          ESP_LOGD(TAG, "I2C init: QueryDevicetype - fw:%d hw:%d", this->ithoSystem->getIthoFwVersion(), this->ithoSystem->getIthoHwVersion());
 
           this->ithoInitResult = 1;
           this->i2cStartCommands = true;
 
-          gpio_set_level((gpio_num_t)ITHOSTATUS, 1);
+          gpio_set_level((gpio_num_t)this->statusOutputPin, 1);
 
           if (this->systemConfig->getSysSHT30() > 0)
           {
@@ -106,22 +105,21 @@ namespace esphome
         }
       }
 
-      if (this->ithoQueue->getIthoSpeedUpdated())
+      if (this->ithoQueue->getIthoSpeedUpdated() && this->speedCommandTime == 0)
       {
-        uint16_t speed = this->ithoQueue->getIthoSpeed();
-
         // //ESP_LOGD(TAG, "Set FanInfo on auto...");
         this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
-
-        vTaskDelay(1000);
-
+        this->speedCommandTime = millis();
+      }
+      else if (this->speedCommandTime > 0 && millis() - this->speedCommandTime >= SPEED_COMMAND_DELAY)
+      {
         uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
-        uint8_t b = (uint8_t)speed;
 
-        command[6] = b;
+        command[6] = (uint8_t)this->ithoQueue->getIthoSpeed();
         command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
 
         this->ithoSystem->i2c_sendBytes(command, sizeof(command));
+        this->speedCommandTime = 0;
         this->ithoQueue->setIthoSpeedUpdated(false);
       }
 
@@ -166,13 +164,13 @@ namespace esphome
         this->ithoSystem->setUpdate2410(false);
         this->ithoSystem->setSettingsHack();
       }
-      gpio_isr_handler_add((gpio_num_t)systemConfig->getI2C_SCL_Pin(), gpio_intr, nullptr);
-      lowSCL = false;
+      gpio_isr_handler_add((gpio_num_t)systemConfig->getI2C_SCL_Pin(), gpio_intr, this);
+      this->lowSCL = false;
     }
 
     bool Itho::ithoInitCheck()
     {
-      if (gpio_get_level((gpio_num_t)STATUSPIN) == 0)
+      if (gpio_get_level((gpio_num_t)this->statusInputPin) == 0)
       {
         return false;
       }
@@ -194,7 +192,7 @@ namespace esphome
       doc["vremotes"][0]["id"][0] = mac[3];
       doc["vremotes"][0]["id"][1] = mac[4];
       doc["vremotes"][0]["id"][2] = mac[5];
-      doc["vremotes"][0]["remtype"] = RFTCVE;
+      doc["vremotes"][0]["remtype"] = this->remoteType;
 
       this->virtualRemotes.setConfigLoaded(this->virtualRemotes.set(doc.as<JsonObject>(), "vremotes"));
       return true;
@@ -313,7 +311,7 @@ namespace esphome
       ESP_LOGD(TAG, "Setup Itho Core start");
 
       gpio_config_t io_conf_in = {};
-      io_conf_in.pin_bit_mask = (1ULL << STATUSPIN);
+      io_conf_in.pin_bit_mask = (1ULL << this->statusInputPin);
       io_conf_in.mode = GPIO_MODE_INPUT;
       io_conf_in.pull_up_en = GPIO_PULLUP_ENABLE;
       io_conf_in.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -321,13 +319,13 @@ namespace esphome
       gpio_config(&io_conf_in);
 
       gpio_config_t io_conf_out = {};
-      io_conf_out.pin_bit_mask = (1ULL << ITHOSTATUS);
+      io_conf_out.pin_bit_mask = (1ULL << this->statusOutputPin);
       io_conf_out.mode = GPIO_MODE_OUTPUT;
       io_conf_out.pull_up_en = GPIO_PULLUP_DISABLE;
       io_conf_out.pull_down_en = GPIO_PULLDOWN_DISABLE;
       io_conf_out.intr_type = GPIO_INTR_DISABLE;
       gpio_config(&io_conf_out);
-      gpio_set_level((gpio_num_t)ITHOSTATUS, 0);
+      gpio_set_level((gpio_num_t)this->statusOutputPin, 0);
 
       static uint8_t mac[6];
       esphome::get_mac_address_raw(mac);
@@ -341,7 +339,7 @@ namespace esphome
       ithoSystem = new IthoSystem(id, systemConfig);
       ithoQueue = new IthoQueue();
 
-      scl_pin = systemConfig->getI2C_SCL_Pin();
+      const uint8_t scl_pin = systemConfig->getI2C_SCL_Pin();
       gpio_config_t io_conf_scl = {};
       io_conf_scl.pin_bit_mask = (1ULL << scl_pin);
       io_conf_scl.mode = GPIO_MODE_INPUT;
@@ -349,8 +347,12 @@ namespace esphome
       io_conf_scl.pull_down_en = GPIO_PULLDOWN_DISABLE;
       io_conf_scl.intr_type = GPIO_INTR_POSEDGE;
       gpio_config(&io_conf_scl);
-      gpio_install_isr_service(0);
-      gpio_isr_handler_add((gpio_num_t)scl_pin, gpio_intr, nullptr);
+      const esp_err_t isr_service = gpio_install_isr_service(0);
+      if (isr_service != ESP_OK && isr_service != ESP_ERR_INVALID_STATE)
+      {
+        ESP_LOGE(TAG, "Setup: installing the GPIO ISR service failed: %s", esp_err_to_name(isr_service));
+      }
+      gpio_isr_handler_add((gpio_num_t)scl_pin, gpio_intr, this);
 
       this->virtualRemotes.setMaxRemotes(1);
       this->loadVirtualRemotesConfig();

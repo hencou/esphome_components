@@ -1,20 +1,90 @@
 #include <driver/i2c.h>
 #include <driver/gpio.h>
 
+#include "esphome/core/hal.h"
+#include "esphome/core/log.h"
+
 #include "IthoI2C.h"
 
 namespace esphome
 {
   namespace itho
   {
+    static const char *const TAG = "itho.i2c";
+
     IthoI2C::IthoI2C(SystemConfig *systemConfig) : systemConfig(systemConfig) {}
+
+    bool IthoI2C::i2c_wait_for_idle()
+    {
+      const gpio_num_t scl = (gpio_num_t)systemConfig->getI2C_SCL_Pin();
+      for (uint32_t waited = 0; waited < I2C_BUS_IDLE_TIMEOUT_MS; waited += 10)
+      {
+        if (gpio_get_level(scl) != 0)
+        {
+          return true;
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+      }
+
+      const int result = i2c_clear_bus();
+      if (result == 0)
+      {
+        ESP_LOGW(TAG, "I2C bus was stuck, recovered by clearing it");
+        return true;
+      }
+      ESP_LOGE(TAG, "I2C bus is stuck and could not be cleared (reason %d)", result);
+      return false;
+    }
+
+    int IthoI2C::i2c_clear_bus()
+    {
+      const gpio_num_t sda = (gpio_num_t)systemConfig->getI2C_SDA_Pin();
+      const gpio_num_t scl = (gpio_num_t)systemConfig->getI2C_SCL_Pin();
+
+      gpio_config_t conf = {};
+      conf.pin_bit_mask = (1ULL << sda) | (1ULL << scl);
+      conf.mode = GPIO_MODE_INPUT_OUTPUT_OD;
+      conf.pull_up_en = GPIO_PULLUP_ENABLE;
+      conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+      conf.intr_type = GPIO_INTR_DISABLE;
+      gpio_config(&conf);
+      gpio_set_level(sda, 1);
+      gpio_set_level(scl, 1);
+      delayMicroseconds(10);
+
+      if (gpio_get_level(scl) == 0)
+      {
+        return 1; // SCL is held low by another device, nothing we can do
+      }
+
+      // clock the bus until the slave releases SDA, then send a stop condition
+      for (int pulses = 0; pulses < 20 && gpio_get_level(sda) == 0; pulses++)
+      {
+        gpio_set_level(scl, 0);
+        delayMicroseconds(10);
+        gpio_set_level(scl, 1);
+        delayMicroseconds(10);
+        if (gpio_get_level(scl) == 0)
+        {
+          return 2; // slave keeps stretching the clock
+        }
+      }
+      if (gpio_get_level(sda) == 0)
+      {
+        return 3; // SDA still held low
+      }
+
+      gpio_set_level(sda, 0);
+      delayMicroseconds(10);
+      gpio_set_level(sda, 1);
+      delayMicroseconds(10);
+
+      return 0;
+    }
 
     void IthoI2C::i2c_master_init()
     {
-      while (gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
-      {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-      }
+      i2c_wait_for_idle();
       
       #ifdef ESPRESSIF32_3_5_0
         i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
@@ -43,10 +113,7 @@ namespace esphome
 
     void IthoI2C::i2c_slave_init()
     {
-       while (gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
-      {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-      }
+      i2c_wait_for_idle();
       
       #ifdef ESPRESSIF32_3_5_0
         i2c_config_t conf_slave = {I2C_MODE_SLAVE, slave_sda_pin, I2C_SLAVE_SDA_PULLUP, slave_scl_pin, I2C_SLAVE_SCL_PULLUP, {.slave = {0, I2C_SLAVE_ADDRESS}}};
