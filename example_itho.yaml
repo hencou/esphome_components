@@ -10,8 +10,8 @@ esp32:
   board: esp32dev
   framework:
     type: esp-idf
-    #type: arduino
     advanced:
+      sram1_as_iram: true
       minimum_chip_revision: "3.0"
     
 external_components:
