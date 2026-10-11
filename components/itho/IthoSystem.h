@@ -99,6 +99,7 @@ namespace esphome
 
       struct ithoDeviceType
       {
+        uint8_t DG;
         uint8_t ID;
         const char *name;
         const uint16_t **settingsMapping;
@@ -2250,28 +2251,200 @@ namespace esphome
       const uint16_t *ithoAutoTempSettingsMap[11] = {nullptr, itho_AutoTempsetting1, itho_AutoTempsetting2_4, itho_AutoTempsetting2_4, itho_AutoTempsetting2_4, itho_AutoTempsetting5, itho_AutoTempsetting6, itho_AutoTempsetting7, itho_AutoTempsetting8, itho_AutoTempsetting9, itho_AutoTempsetting10};
       const uint8_t *ithoAutoTempStatusMap[11] = {nullptr, itho_AutoTempstatus1, itho_AutoTempstatus2_4, itho_AutoTempstatus2_4, itho_AutoTempstatus2_4, itho_AutoTempstatus5, itho_AutoTempstatus6_10, itho_AutoTempstatus6_10, itho_AutoTempstatus6_10, itho_AutoTempstatus6_10, itho_AutoTempstatus6_10};
 
-      const struct ithoDeviceType ithoDevices[20]
+      const uint8_t itho_HRU250_300status1[31]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 255};
+      const uint8_t itho_HRU250_300status2_10[33]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 28, 29, 30, 25, 31, 32, 26, 27, 255};
+
+      const struct ithoLabels ithoHRU250_300StatusLabels[33]{
+          {"Error number", "error-number"},
+          {"Status", "status"},
+          {"Measured outside temperature (°C)", "measured-outside-temperature_c"},
+          {"Measured temperature of mixed outside air (°C)", "measured-temperature-of-mixed-outside-air_c"},
+          {"The flow of the inflated air (M3/h)", "the-flow-of-the-inflated-air_m3h"},
+          {"Inlet temperature (°C)", "inlet-temperature_c"},
+          {"Temperature of the extracted air (°C)", "temperature-of-the-extracted-air_c"},
+          {"Temperature of the blown out air of the house (°C)", "temperature-of-the-blown-out-air-of-the-house_c"},
+          {"The flow of the blown air (m3/h)", "the-flow-of-the-blown-air_m3h"},
+          {"Relative fanspeed (%)", "relative-fanspeed_perc"},
+          {"Absolute speed of the fan (%)", "absolute-speed-of-the-fan_perc"},
+          {"Hysteresis use in control mode (K)", "hysteresis-use-in-control-mode_k"},
+          {"Timer for how long the house is cooled (hour)", "timer-for-how-long-the-house-is-cooled_h"},
+          {"Timer for how long the house is heated (hour)", "timer-for-how-long-the-house-is-heated_h"},
+          {"The mass flow of the air entering the house (kg/h)", "the-mass-flow-of-the-air-entering-the-house_kgh"},
+          {"The mass flow of the air leaving the house (kg/h)", "the-mass-flow-of-the-air-leaving-the-house_kgh"},
+          {"Percentage that the bypass valve is open (%)", "percentage-that-the-bypass-valve-is-open_perc"},
+          {"The desired inlet temperature (°C)", "the-desired-inlet-temperature_c"},
+          {"Hysteresis of the frost (K)", "hysteresis-of-the-frost_k"},
+          {"Number of steps the frost valve is open (steps)", "number-of-steps-the-frost-valve-is-open_steps"},
+          {"Number of hours of too cold air (hour)", "number-of-hours-of-too-cold-air_h"},
+          {"Temporary speed reduction (rpm)", "temporary-speed-reduction_rpm"},
+          {"Sample timer in frost mode (min)", "sample-timer-in-frost-mode_min"},
+          {"RPM of the motor (rpm)", "rpm-of-the-motor_rpm"},
+          {"Measured waste temperature heated NTC (°C)", "measured-waste-temperature-heated-ntc_c"},
+          {"Busy doing adjustments (-)", "busy-doing-adjustments_"},
+          {"Highest measured RH (%)", "highest-measured-rh_perc"},
+          {"Highest measured CO2 (ppm)", "highest-measured-co2_ppm"},
+          {"Measured waste temperature heated NTC (°C)", "measured-waste-temperature-heated-ntc_c"},
+          {"Measured blend temperature heated NTC (°C)", "measured-blend-temperature-heated-ntc_c"},
+          {"Desired capacity (m3/h)", "desired-capacity_mh"},
+          {"Current consumption of fan (mA)", "current-consumption-of-fan_ma"},
+          {"Desired current consumption of fan (mA)", "desired-current-consumption-of-fan_ma"},
+      };
+
+      // NOTE! settings labels manually aligned, script not working
+      const uint16_t itho_HRU250_300setting1[20]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 111, 18, 999};
+      const uint16_t itho_HRU250_300setting2[30]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 111, 18, 19, 20, 21, 22, 23, 24, 112, 26, 27, 28, 999};
+      const uint16_t itho_HRU250_300setting3[31]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 111, 18, 19, 20, 21, 22, 23, 24, 112, 26, 27, 28, 29, 999};
+      const uint16_t itho_HRU250_300setting4[54]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 111, 18, 19, 20, 21, 22, 23, 24, 112, 26, 27, 28, 29, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 999};
+      const uint16_t itho_HRU250_300setting6[102]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 999};
+      const uint16_t itho_HRU250_300setting7[56]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 84, 85, 999};
+      const uint16_t itho_HRU250_300setting8[106]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 999};
+      const uint16_t itho_HRU250_300setting9[110]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 999};
+      const uint16_t itho_HRU250_300setting10[111]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 30, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 999};
+
+      const char *ithoHRU250_300SettingsLabels[113] = {
+          "Min. Speed (rpm)",
+          "Max. Speed (rpm)",
+          "Nominal speed (%)",
+          "Init energy outgoing counter (h)",
+          "Init energy incomming counter (h)",
+          "Desired inside temperature (°C)",
+          "Hysteresis bypass temperature (K)",
+          "Frost protection temperature (°C)",
+          "Frost delay at high speed (h)",
+          "Setpoint heat exchange defrost (h)",
+          "Speed change step size (rpm)",
+          "Extra steps for calibration (steps)",
+          "Commissioning flow rate (m3/hr)",
+          "Resistance position of valve (steps)",
+          "Setup helper",
+          "Speed arrangement",
+          "Desired max speed offset (return) (m³/h)",
+          "Reserved",
+          "Desired max speed offset(supply) (m³/h)",
+          "After ventilation time in phase 1 PIR (s)",
+          "After ventilation time in phase 2 PIR (s)",
+          "Relative speed fan in phase 1 PIR (%)",
+          "Relative speed fan in phase 2 PIR (%)",
+          "Time from phase 1 to phase 2 is passed PIR (s)",
+          "RV Increase value (%)",
+          "Reserved",
+          "Adjusting Factor Blend",
+          "Adjusting Factor Waste",
+          "Enable(1)/Disable(0) Mass balance",
+          "FrostValveOpenTimeFirstStartup (h)",
+          "Setup helper",
+          "FrostValveClosedTimeStartup (m)",
+          "NightMinVent1person (%)",
+          "NightMinVent2persons (%)",
+          "NightMinVent3orMorePersons (%)",
+          "Inhabitants",
+          "MinimumVentilationCO2 (%)",
+          "Return_a2",
+          "Return_a1",
+          "Return_a0",
+          "Return_b2",
+          "Return_b1",
+          "Return_b0",
+          "Return_c2",
+          "Return_c1",
+          "Return_c0",
+          "SignalStrength",
+          "SampleTimeQFBalanceControl (s)",
+          "SetpointEfficiency (%)",
+          "MaxBypassQF (%)",
+          "TblendForMaxBypass (°C)",
+          "MinimumOfMinimumSetting (rpm)",
+          "MaximumOfMinimumSetting (rpm)",
+          "MinimumOfMaximumSetting (rpm)",
+          "MaximumOfMaximumSetting (rpm)",
+          "2ZnominalSupplyFlowLiving (m³/h)",
+          "2ZnominalSupplyFlowSleeping (m³/h)",
+          "2ZnominalWasteFlow (m³/h)",
+          "2Za0livingChannel",
+          "2Za0sleepingChannel",
+          "2Za0commonChannel",
+          "2Za0wasteChannel",
+          "A2supplyFan",
+          "A1supplyFan",
+          "A0supplyFan",
+          "B2supplyFan",
+          "B1supplyFan",
+          "B0supplyFan",
+          "C2supplyFan",
+          "C1supplyFan",
+          "C0supplyFan",
+          "A2exhaustFan",
+          "A1exhaustFan",
+          "A0exhaustFan",
+          "B2exhaustFan",
+          "B1exhaustFan",
+          "B0exhaustFan",
+          "C2exhaustFan",
+          "C1exhaustFan",
+          "C0exhaustFan",
+          "B0zoneValve",
+          "B1zoneValve",
+          "GzoneValve",
+          "MaxTimeNotAuto (min)",
+          "MaximumSteppermotorspeed (#/s)",
+          "steppermotoracceleration (#/s/s)",
+          "AmountOfFloors",
+          "MinimumVentilationMultiFloor (%)",
+          "NightMinVent1personMultiFloorOptima1 (%)",
+          "NightMinVent2personsMultiFloorOptima1 (%)",
+          "NightMinVent3orMorePersonsMultiFloorOptima1 (%)",
+          "NightMinVent1personOneFloorOptima2 (%)",
+          "NightMinVent2personsOneFloorOptima2 (%)",
+          "NightMinVent3orMorePersonsOneFloorOptima2 (%)",
+          "NightMinVent1personMultiFloorOptima2 (%)",
+          "NightMinVent2personsMultiFloorOptima2 (%)",
+          "NightMinVent3orMorePersonsMultiFloorOptima2 (%)",
+          "Summer Night Boost enabled",
+          "Summer Night Boost Fan Speed (%)",
+          "Summer Night Boost Degree Hours (°C*h)",
+          "Summer Night Boost Threshold (°C)",
+          "PoorQuality (ppm)",
+          "GoodQuality (ppm)",
+          "Tolerance frost valve (steps)",
+          "Tolerance bypass valve (steps)",
+          "Tolerance sleepzone valve (steps)",
+          "Tolerance livingzone valve (steps)",
+          "Toutside setpoint (°C)",
+          "Offset temperature (K)",
+          "P-action bypass valve movement (d#/dT)",
+          "Summer Night Boost Increase (%/min)",
+          "Frost Control Enabled(1) Disabled(0)",
+          "Slope angle CO2",
+      };
+
+      const uint16_t *ithoHRU250_300SettingsMap[11] = {nullptr, itho_HRU250_300setting1, itho_HRU250_300setting2, itho_HRU250_300setting3, itho_HRU250_300setting4, nullptr, itho_HRU250_300setting6, itho_HRU250_300setting7, itho_HRU250_300setting8, itho_HRU250_300setting9, itho_HRU250_300setting10};
+      const uint8_t *ithoHRU250_300StatusMap[11] = {nullptr, itho_HRU250_300status1, itho_HRU250_300status2_10, itho_HRU250_300status2_10, itho_HRU250_300status2_10, nullptr, itho_HRU250_300status2_10, itho_HRU250_300status2_10, itho_HRU250_300status2_10, itho_HRU250_300status2_10, itho_HRU250_300status2_10};
+
+      const struct ithoDeviceType ithoDevices[23]
       {
-        {0x01, "Air curtain", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x03, "HRU ECO-fan", ithoHRUecoFanSettingsMap, sizeof(ithoHRUecoFanSettingsMap) / sizeof(ithoHRUecoFanSettingsMap[0]), ithoHRUecoSettingsLabels, ithoHRUecoFanStatusMap, sizeof(ithoHRUecoFanStatusMap) / sizeof(ithoHRUecoFanStatusMap[0]), ithoHRUecoStatusLabels},
-        {0x08, "LoadBoiler", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x0A, "GGBB", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x0B, "DemandFlow", ithoDemandFlowSettingsMap, sizeof(ithoDemandFlowSettingsMap) / sizeof(ithoDemandFlowSettingsMap[0]), ithoDemandFlowSettingsLabels, ithoDemandFlowStatusMap, sizeof(ithoDemandFlowStatusMap) / sizeof(ithoDemandFlowStatusMap[0]), ithoDemandFlowStatusLabels},
-        {0x0C, "CO2 relay", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x0D, "Heatpump", ithoWPUSettingsMap, sizeof(ithoWPUSettingsMap) / sizeof(ithoWPUSettingsMap[0]), ithoWPUSettingsLabels, ithoWPUStatusMap, sizeof(ithoWPUStatusMap) / sizeof(ithoWPUStatusMap[0]), ithoWPUStatusLabels},
-        {0x0E, "OLB Single", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x0F, "AutoTemp", ithoAutoTempSettingsMap, sizeof(ithoAutoTempSettingsMap) / sizeof(ithoAutoTempSettingsMap[0]), ithoAutoTempSettingsLabels, ithoAutoTempStatusMap, sizeof(ithoAutoTempStatusMap) / sizeof(ithoAutoTempStatusMap[0]), ithoAutoTempStatusLabels},
-        {0x10, "OLB Double", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x11, "RF+", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x14, "CVE", itho14SettingsMap, sizeof(itho14SettingsMap) / sizeof(itho14SettingsMap[0]), ithoCVE14SettingsLabels, itho14StatusMap, sizeof(itho14StatusMap) / sizeof(itho14StatusMap[0]), ithoCVE14StatusLabels},
-        {0x15, "Extended", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x16, "Extended Plus", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x1A, "AreaFlow", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x1B, "CVE-Silent", itho1BSettingsMap, sizeof(itho1BSettingsMap) / sizeof(itho1BSettingsMap[0]), ithoCVE1BSettingsLabels, itho1BStatusMap, sizeof(itho1BStatusMap) / sizeof(itho1BStatusMap[0]), ithoCVE1BStatusLabels},
-        {0x1C, "CVE-SilentExt", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x1D, "CVE-SilentExtPlus", ithoHRU200SettingsMap, sizeof(ithoHRU200SettingsMap) / sizeof(ithoHRU200SettingsMap[0]), ithoHRU200SettingsLabels, ithoHRU200StatusMap, sizeof(ithoHRU200StatusMap) / sizeof(ithoHRU200StatusMap[0]), ithoHRU200StatusLabels},
-        {0x20, "RF_CO2", nullptr, 0, nullptr, nullptr, 0, nullptr},
-        {0x2B, "HRU 350", ithoHRU350SettingsMap, sizeof(ithoHRU350SettingsMap) / sizeof(ithoHRU350SettingsMap[0]), ithoHRU350SettingsLabels, ithoHRU350StatusMap, sizeof(ithoHRU350StatusMap) / sizeof(ithoHRU350StatusMap[0]), ithoHRU350StatusLabels}
+        {0x00, 0x01, "Air curtain", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x03, "HRU ECO-fan", ithoHRUecoFanSettingsMap, sizeof(ithoHRUecoFanSettingsMap) / sizeof(ithoHRUecoFanSettingsMap[0]), ithoHRUecoSettingsLabels, ithoHRUecoFanStatusMap, sizeof(ithoHRUecoFanStatusMap) / sizeof(ithoHRUecoFanStatusMap[0]), ithoHRUecoStatusLabels},
+        {0x00, 0x04, "CVE ECO2", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x08, "LoadBoiler", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x0A, "GGBB", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x0B, "DemandFlow", ithoDemandFlowSettingsMap, sizeof(ithoDemandFlowSettingsMap) / sizeof(ithoDemandFlowSettingsMap[0]), ithoDemandFlowSettingsLabels, ithoDemandFlowStatusMap, sizeof(ithoDemandFlowStatusMap) / sizeof(ithoDemandFlowStatusMap[0]), ithoDemandFlowStatusLabels},
+        {0x00, 0x0C, "CO2 relay", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x0D, "Heatpump", ithoWPUSettingsMap, sizeof(ithoWPUSettingsMap) / sizeof(ithoWPUSettingsMap[0]), ithoWPUSettingsLabels, ithoWPUStatusMap, sizeof(ithoWPUStatusMap) / sizeof(ithoWPUStatusMap[0]), ithoWPUStatusLabels},
+        {0x00, 0x0E, "OLB Single", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x0F, "AutoTemp", ithoAutoTempSettingsMap, sizeof(ithoAutoTempSettingsMap) / sizeof(ithoAutoTempSettingsMap[0]), ithoAutoTempSettingsLabels, ithoAutoTempStatusMap, sizeof(ithoAutoTempStatusMap) / sizeof(ithoAutoTempStatusMap[0]), ithoAutoTempStatusLabels},
+        {0x00, 0x10, "OLB Double", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x11, "RF+", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x14, "CVE", itho14SettingsMap, sizeof(itho14SettingsMap) / sizeof(itho14SettingsMap[0]), ithoCVE14SettingsLabels, itho14StatusMap, sizeof(itho14StatusMap) / sizeof(itho14StatusMap[0]), ithoCVE14StatusLabels},
+        {0x00, 0x15, "Extended", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x16, "Extended Plus", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x1A, "AreaFlow", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x1B, "CVE-Silent", itho1BSettingsMap, sizeof(itho1BSettingsMap) / sizeof(itho1BSettingsMap[0]), ithoCVE1BSettingsLabels, itho1BStatusMap, sizeof(itho1BStatusMap) / sizeof(itho1BStatusMap[0]), ithoCVE1BStatusLabels},
+        {0x00, 0x1C, "CVE-SilentExt", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x1D, "CVE-SilentExtPlus", ithoHRU200SettingsMap, sizeof(ithoHRU200SettingsMap) / sizeof(ithoHRU200SettingsMap[0]), ithoHRU200SettingsLabels, ithoHRU200StatusMap, sizeof(ithoHRU200StatusMap) / sizeof(ithoHRU200StatusMap[0]), ithoHRU200StatusLabels},
+        {0x00, 0x20, "RF_CO2", nullptr, 0, nullptr, nullptr, 0, nullptr},
+        {0x00, 0x2B, "HRU 350", ithoHRU350SettingsMap, sizeof(ithoHRU350SettingsMap) / sizeof(ithoHRU350SettingsMap[0]), ithoHRU350SettingsLabels, ithoHRU350StatusMap, sizeof(ithoHRU350StatusMap) / sizeof(ithoHRU350StatusMap[0]), ithoHRU350StatusLabels},
+        {0x00, 0x30, "AutoTemp Basic", ithoAutoTempSettingsMap, sizeof(ithoAutoTempSettingsMap) / sizeof(ithoAutoTempSettingsMap[0]), ithoAutoTempSettingsLabels, ithoAutoTempStatusMap, sizeof(ithoAutoTempStatusMap) / sizeof(ithoAutoTempStatusMap[0]), ithoAutoTempStatusLabels},
+        {0x07, 0x01, "HRU 250-300", ithoHRU250_300SettingsMap, sizeof(ithoHRU250_300SettingsMap) / sizeof(ithoHRU250_300SettingsMap[0]), ithoHRU250_300SettingsLabels, ithoHRU250_300StatusMap, sizeof(ithoHRU250_300StatusMap) / sizeof(ithoHRU250_300StatusMap[0]), ithoHRU250_300StatusLabels}
       };
 
     public:
@@ -2285,8 +2458,13 @@ namespace esphome
       uint16_t getIthoSpeed() { return ithoSpeed; }
       std::string getIthoFanInfo() { return ithoFanInfo; }
 
+      double getIthoMeasurement(const char *name);
+
+      uint8_t getIthoDeviceGroup() { return ithoDeviceGroup; }
       uint8_t getIthoDeviceID() { return ithoDeviceID; }
+      uint8_t getIthoHwVersion() { return itho_hwversion; }
       uint8_t getIthoFwVersion() { return itho_fwversion; }
+      const char *getIthoDeviceName() { return ithoDeviceptr == nullptr ? "unknown" : ithoDeviceptr->name; }
       void getID(uint8_t *id_);
       void setIndex2410(uint8_t value) { index2410 = value; }
       uint8_t getIndex2410() { return index2410; }
@@ -2340,13 +2518,13 @@ namespace esphome
       };
 
       char toHex(uint8_t c);
-      const char *getIthoType(const uint8_t deviceID);
-      int getSettingsLength(const uint8_t deviceID, const uint8_t version);
-      void getSetting(const uint8_t i, const bool updateState, const bool loop, const struct ithoDeviceType *settingsPtr, const uint8_t deviceID, const uint8_t version);
-      int getStatusLabelLength(const uint8_t deviceID, const uint8_t version);
+      const char *getIthoType(const uint8_t deviceGroup, const uint8_t deviceID);
+      int getSettingsLength(const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version);
+      void getSetting(const uint8_t i, const bool updateState, const bool loop, const struct ithoDeviceType *settingsPtr, const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version);
+      int getStatusLabelLength(const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version);
       const char *getStatusLabel(const uint8_t i, const struct ithoDeviceType *statusPtr, const uint8_t version);
       void updateSetting(const uint8_t i, const int32_t value, bool webupdate);
-      void getDevicePtr(const uint8_t deviceID);
+      void getDevicePtr(const uint8_t deviceGroup, const uint8_t deviceID);
       const uint8_t *getRemoteCmd(const RemoteTypes type, const IthoCommand command);
 
       int quick_pow10(int n);
@@ -2362,7 +2540,9 @@ namespace esphome
       uint16_t ithoSpeed = 0;
       std::string ithoFanInfo;
 
+      uint8_t ithoDeviceGroup = 0;
       uint8_t ithoDeviceID = 0;
+      uint8_t itho_hwversion = 0;
       uint8_t itho_fwversion = 0;
       uint8_t id[3] = {0, 0, 0};
       const struct ithoDeviceType *ithoDeviceptr = nullptr;

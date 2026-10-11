@@ -19,6 +19,7 @@
 #define I2C_SLAVE_NUM I2C_NUM_0
 #define I2C_SLAVE_RX_BUF_LEN 512
 #define I2C_SLAVE_ADDRESS 0x40
+#define I2C_BUS_IDLE_TIMEOUT_MS 1000
 
 namespace esphome
 {
@@ -29,6 +30,9 @@ namespace esphome
         public:
             IthoI2C(SystemConfig *systemConfig);
             ~IthoI2C();
+
+            bool i2c_wait_for_idle();
+            int i2c_clear_bus();
 
             void i2c_master_init();
             void i2c_master_deinit();

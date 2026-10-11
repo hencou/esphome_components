@@ -24,8 +24,19 @@ SYSSHT30_VALUES = {
   "disable" : 1,
 }
 
+REMOTE_TYPES = {
+  "RFTCVE": 0x22F1,
+  "RFTAUTO": 0x22F3,
+  "DEMANDFLOW": 0x22F8,
+  "RFTRV": 0x12A0,
+  "RFTCO2": 0x1298,
+}
+
 CONF_SYSSHT30_VALUE = "syssht30"
 CONF_SYSSHT30_ADDRESS = "syssht30_address"
+CONF_REMOTE_TYPE = "remote_type"
+CONF_STATUS_INPUT_PIN = "status_input_pin"
+CONF_STATUS_OUTPUT_PIN = "status_output_pin"
 
 CONF_ITHO_ID = "itho_id"
 CONFIG_SCHEMA = (
@@ -36,6 +47,9 @@ CONFIG_SCHEMA = (
         cv.Optional(CONF_SYSSHT30_ADDRESS) : cv.i2c_address,
         cv.Optional(CONF_SDA, default="SDA"): pins.internal_gpio_pin_number,
         cv.Optional(CONF_SCL, default="SCL"): pins.internal_gpio_pin_number,
+        cv.Optional(CONF_REMOTE_TYPE, default="RFTCVE"): cv.enum(REMOTE_TYPES, upper=True),
+        cv.Optional(CONF_STATUS_INPUT_PIN, default=16): pins.internal_gpio_pin_number,
+        cv.Optional(CONF_STATUS_OUTPUT_PIN, default=13): pins.internal_gpio_pin_number,
     }
   )
   .extend(cv.COMPONENT_SCHEMA)
@@ -59,3 +73,6 @@ async def to_code(config):
     
   cg.add(var.setI2C_SDA_Pin(config[CONF_SDA]))
   cg.add(var.setI2C_SCL_Pin(config[CONF_SCL]))
+  cg.add(var.setRemoteType(config[CONF_REMOTE_TYPE]))
+  cg.add(var.setStatusInputPin(config[CONF_STATUS_INPUT_PIN]))
+  cg.add(var.setStatusOutputPin(config[CONF_STATUS_OUTPUT_PIN]))

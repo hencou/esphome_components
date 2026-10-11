@@ -37,6 +37,9 @@ ota:
 
 itho:
   syssht30: disable
+  #remote_type: RFTCVE #RFTCVE, RFTAUTO, DEMANDFLOW, RFTRV or RFTCO2
+  #status_input_pin: 16
+  #status_output_pin: 13
 
 fan:
 - platform: itho
@@ -267,6 +270,47 @@ sensor:
     - or:
       - delta: 1.0
       - heartbeat: 60s
+  #Values below are only reported by units that send them (mainly HRU/DemandFlow):
+  #air_quality:
+  #  name: Luchtkwaliteit
+  #co2:
+  #  name: CO2
+  #indoor_humidity:
+  #  name: Luchtvochtigheid binnen
+  #outdoor_humidity:
+  #  name: Luchtvochtigheid buiten
+  #exhaust_temperature:
+  #  name: Afvoertemperatuur
+  #supply_temperature:
+  #  name: Toevoertemperatuur
+  #indoor_temperature:
+  #  name: Binnentemperatuur
+  #outdoor_temperature:
+  #  name: Buitentemperatuur
+  #speed_cap:
+  #  name: Speed cap
+  #bypass_position:
+  #  name: Bypass stand
+  #exhaust_fan_speed:
+  #  name: Afvoerventilator
+  #supply_fan_speed:
+  #  name: Toevoerventilator
+  #remaining_time:
+  #  name: Resterende tijd
+  #post_heat:
+  #  name: Naverwarming
+  #pre_heat:
+  #  name: Voorverwarming
+  #supply_flow:
+  #  name: Toevoerdebiet
+  #exhaust_flow:
+  #  name: Afvoerdebiet
+  #internal_fault:
+  #  name: Interne fout
+  #frost_cycle:
+  #  name: Vorstcyclus
+  #filter_dirty:
+  #  name: Filter vervuild
 
 - platform: template
   name: Gem. luchtvochtigheid

@@ -36,7 +36,7 @@ namespace esphome
       return nullptr;
     }
 
-    const char *IthoSystem::getIthoType(const uint8_t deviceID)
+    const char *IthoSystem::getIthoType(const uint8_t deviceGroup, const uint8_t deviceID)
     {
       static char ithoDeviceType[32] = "Unkown device type";
 
@@ -44,7 +44,7 @@ namespace esphome
       const struct ithoDeviceType *ithoDevicesendPtr = ithoDevices + sizeof(ithoDevices) / sizeof(ithoDevices[0]);
       while (ithoDevicesptr < ithoDevicesendPtr)
       {
-        if (ithoDevicesptr->ID == deviceID)
+        if (ithoDevicesptr->DG == deviceGroup && ithoDevicesptr->ID == deviceID)
         {
           strcpy(ithoDeviceType, ithoDevicesptr->name);
         }
@@ -53,14 +53,14 @@ namespace esphome
       return ithoDeviceType;
     }
 
-    int IthoSystem::getSettingsLength(const uint8_t deviceID, const uint8_t version)
+    int IthoSystem::getSettingsLength(const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version)
     {
 
       const struct ithoDeviceType *ithoDevicesptr = ithoDevices;
       const struct ithoDeviceType *ithoDevicesendPtr = ithoDevices + sizeof(ithoDevices) / sizeof(ithoDevices[0]);
       while (ithoDevicesptr < ithoDevicesendPtr)
       {
-        if (ithoDevicesptr->ID == deviceID)
+        if (ithoDevicesptr->DG == deviceGroup && ithoDevicesptr->ID == deviceID)
         {
           if (ithoDevicesptr->settingsMapping == nullptr)
           {
@@ -89,13 +89,13 @@ namespace esphome
 
     void IthoSystem::getSetting(const uint8_t i, const bool updateState, const bool loop)
     {
-      getSetting(i, updateState, loop, ithoDeviceptr, ithoDeviceID, itho_fwversion);
+      getSetting(i, updateState, loop, ithoDeviceptr, ithoDeviceGroup, ithoDeviceID, itho_fwversion);
     }
 
-    void IthoSystem::getSetting(const uint8_t i, const bool updateState, const bool loop, const struct ithoDeviceType *settingsPtr, const uint8_t deviceID, const uint8_t version)
+    void IthoSystem::getSetting(const uint8_t i, const bool updateState, const bool loop, const struct ithoDeviceType *settingsPtr, const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version)
     {
 
-      int settingsLen = getSettingsLength(deviceID, version);
+      int settingsLen = getSettingsLength(deviceGroup, deviceID, version);
       if (settingsLen < 0)
       {
         return;
@@ -106,14 +106,14 @@ namespace esphome
       updated2410 = true;
     }
 
-    int IthoSystem::getStatusLabelLength(const uint8_t deviceID, const uint8_t version)
+    int IthoSystem::getStatusLabelLength(const uint8_t deviceGroup, const uint8_t deviceID, const uint8_t version)
     {
 
       const struct ithoDeviceType *ithoDevicesptr = ithoDevices;
       const struct ithoDeviceType *ithoDevicesendPtr = ithoDevices + sizeof(ithoDevices) / sizeof(ithoDevices[0]);
       while (ithoDevicesptr < ithoDevicesendPtr)
       {
-        if (ithoDevicesptr->ID == deviceID)
+        if (ithoDevicesptr->DG == deviceGroup && ithoDevicesptr->ID == deviceID)
         {
           if (ithoDevicesptr->statusLabelMapping == nullptr)
           {
@@ -171,14 +171,38 @@ namespace esphome
       update2410 = true;
     }
 
-    void IthoSystem::getDevicePtr(const uint8_t deviceID)
+    double IthoSystem::getIthoMeasurement(const char *name)
+    {
+      for (const auto *list : {&ithoMeasurements, &ithoInternalMeasurements})
+      {
+        for (const auto &measurement : *list)
+        {
+          if (strcmp(measurement.name, name) != 0)
+          {
+            continue;
+          }
+          if (measurement.type == ithoDeviceMeasurements::is_int)
+          {
+            return measurement.value.intval;
+          }
+          if (measurement.type == ithoDeviceMeasurements::is_float)
+          {
+            return measurement.value.floatval;
+          }
+          return NAN;
+        }
+      }
+      return NAN;
+    }
+
+    void IthoSystem::getDevicePtr(const uint8_t deviceGroup, const uint8_t deviceID)
     {
 
       const struct ithoDeviceType *ithoDevicesptr = ithoDevices;
       const struct ithoDeviceType *ithoDevicesendPtr = ithoDevices + sizeof(ithoDevices) / sizeof(ithoDevices[0]);
       while (ithoDevicesptr < ithoDevicesendPtr)
       {
-        if (ithoDevicesptr->ID == deviceID)
+        if (ithoDevicesptr->DG == deviceGroup && ithoDevicesptr->ID == deviceID)
         {
           ithoDeviceptr = ithoDevicesptr;
         }
@@ -363,10 +387,13 @@ namespace esphome
       if (len > 1 && i2cbuf[len - 1] == checksum(i2cbuf, len - 1))
       {
         // ESP_LOGD(TAG, "I2C sendRemoteCmd response: %s", i2cbuf2string(i2cbuf, len).c_str());
+        ithoDeviceGroup = i2cbuf[8];
         ithoDeviceID = i2cbuf[9];
+        itho_hwversion = i2cbuf[10];
         itho_fwversion = i2cbuf[11];
-        getDevicePtr(ithoDeviceID);
-        ithoSettingsLength = getSettingsLength(ithoDeviceID, itho_fwversion);
+        getDevicePtr(ithoDeviceGroup, ithoDeviceID);
+        ithoSettingsLength = getSettingsLength(ithoDeviceGroup, ithoDeviceID, itho_fwversion);
+        ESP_LOGI(TAG, "Itho device: %s (group 0x%02X, id 0x%02X, hw %d, fw %d)", getIthoDeviceName(), ithoDeviceGroup, ithoDeviceID, itho_hwversion, itho_fwversion);
       }
     }
 
@@ -387,7 +414,7 @@ namespace esphome
         }
         if (!(itho_fwversion > 0))
           return;
-        ithoStatusLabelLength = getStatusLabelLength(ithoDeviceID, itho_fwversion);
+        ithoStatusLabelLength = getStatusLabelLength(ithoDeviceGroup, ithoDeviceID, itho_fwversion);
         const uint8_t endPos = i2cbuf[5];
         for (uint8_t i = 0; i < endPos; i++)
         {
