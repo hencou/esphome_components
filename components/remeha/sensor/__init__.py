@@ -33,6 +33,7 @@ CONF_CONTROL_TEMPERATURE = "control_temperature"
 CONF_INTERNAL_SETPOINT = "internal_setpoint"
 CONF_OUTSIDE_TEMP_BOILER = "outside_temp_boiler"
 CONF_CALCULATED_TEMPERATURE = "calculated_temperature"
+CONF_ACTIVE_ROOM_SETPOINT = "active_room_setpoint"
 CONF_BOILER_TEMPERATURE = "boiler_temperature"
 CONF_FLUE_GAS_TEMPERATURE = "flue_gas_temperature"
 CONF_ACTUAL_MODULATION = "actual_modulation"
@@ -152,6 +153,13 @@ CONFIG_SCHEMA = cv.Schema(
             state_class=STATE_CLASS_MEASUREMENT,
             icon="mdi:thermometer",
         ),
+        cv.Optional(CONF_ACTIVE_ROOM_SETPOINT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:home-thermometer",
+        ),
         cv.Optional(CONF_CALCULATED_TEMPERATURE): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=2,
@@ -208,6 +216,7 @@ SDO_POLL_MAP = {
     CONF_INTERNAL_SETPOINT: (0x501D, 0x00),
     CONF_OUTSIDE_TEMP_BOILER: (0x501D, 0x00),
     CONF_CALCULATED_TEMPERATURE: (0x501D, 0x00),
+    CONF_ACTIVE_ROOM_SETPOINT: (0x501D, 0x00),
     CONF_BOILER_TEMPERATURE: (0x501D, 0x00),
     CONF_FLUE_GAS_TEMPERATURE: (0x501D, 0x00),
     CONF_ACTUAL_MODULATION: (0x501D, 0x00),
@@ -241,6 +250,7 @@ async def to_code(config):
         CONF_INTERNAL_SETPOINT: "set_internal_setpoint_sensor",
         CONF_OUTSIDE_TEMP_BOILER: "set_outside_temp_boiler_sensor",
         CONF_CALCULATED_TEMPERATURE: "set_calculated_temperature_sensor",
+        CONF_ACTIVE_ROOM_SETPOINT: "set_active_room_setpoint_sensor",
         CONF_BOILER_TEMPERATURE: "set_boiler_temperature_sensor",
         CONF_FLUE_GAS_TEMPERATURE: "set_flue_gas_temperature_sensor",
         CONF_ACTUAL_MODULATION: "set_actual_modulation_sensor",

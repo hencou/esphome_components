@@ -55,6 +55,9 @@ class Remeha : public Component {
   // Register an SDO object for periodic polling
   void add_sdo_poll(uint16_t index, uint8_t subindex);
 
+  // Publish a room setpoint (0x3451) to both the number and the climate entity of that zone
+  void publish_room_setpoint(uint8_t zone, float value);
+
   // Report a write rejected by client side validation
   void report_write_rejected(const char *reason);
 
@@ -80,6 +83,7 @@ class Remeha : public Component {
   void set_internal_setpoint_sensor(sensor::Sensor *s) { this->internal_setpoint_ = s; }
   void set_outside_temp_boiler_sensor(sensor::Sensor *s) { this->outside_temp_boiler_ = s; }
   void set_calculated_temperature_sensor(sensor::Sensor *s) { this->calculated_temperature_ = s; }
+  void set_active_room_setpoint_sensor(sensor::Sensor *s) { this->active_room_setpoint_ = s; }
   void set_boiler_temperature_sensor(sensor::Sensor *s) { this->boiler_temperature_ = s; }
   void set_flue_gas_temperature_sensor(sensor::Sensor *s) { this->flue_gas_temperature_ = s; }
   void set_actual_modulation_sensor(sensor::Sensor *s) { this->actual_modulation_ = s; }
@@ -255,6 +259,7 @@ class Remeha : public Component {
   sensor::Sensor *internal_setpoint_{nullptr};
   sensor::Sensor *outside_temp_boiler_{nullptr};
   sensor::Sensor *calculated_temperature_{nullptr};
+  sensor::Sensor *active_room_setpoint_{nullptr};
   sensor::Sensor *boiler_temperature_{nullptr};
   sensor::Sensor *flue_gas_temperature_{nullptr};
   sensor::Sensor *actual_modulation_{nullptr};
