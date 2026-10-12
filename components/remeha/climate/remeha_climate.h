@@ -15,6 +15,7 @@ class RemehaClimate : public climate::Climate, public Component {
 
   void set_parent(Remeha *parent) { this->parent_ = parent; }
   void set_zone(uint8_t zone) { this->zone_ = zone; }
+  uint8_t get_zone() const { return this->zone_; }
   void set_time_program_name(int index, const std::string &name) {
     if (index >= 0 && index < 4) this->time_program_names_[index] = name;
   }

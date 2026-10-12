@@ -41,3 +41,6 @@ async def to_code(config):
  
     # Poll time program selection (0x3458) to display active time program
     cg.add(parent.add_sdo_poll(0x3458, config[CONF_ZONE]))
+
+    # Poll the room setpoint (0x3451) so the target temperature follows the boiler
+    cg.add(parent.add_sdo_poll(0x3451, config[CONF_ZONE]))

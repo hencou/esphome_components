@@ -67,6 +67,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
       // Write room setpoint via SDO (0x3451, uint16, scale x10)
       uint16_t raw = (uint16_t)(target * 10.0f);
       this->parent_->write_sdo(0x3451, this->zone_, raw, 2);
+      this->parent_->publish_room_setpoint(this->zone_, target);
     }
     this->target_temperature = target;
   }

@@ -127,6 +127,8 @@ sensor:
   calculated_temperature:
     name: Berekende temperatuur
     entity_category: DIAGNOSTIC
+  active_room_setpoint:
+    name: Actief ruimte setpunt
   boiler_temperature:
     name: T aanvoer (trending)
   flue_gas_temperature:

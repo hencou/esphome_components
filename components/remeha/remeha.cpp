@@ -235,6 +235,17 @@ void Remeha::add_sdo_poll(uint16_t index, uint8_t subindex) {
   this->sdo_poll_list_.push_back({index, subindex});
 }
 
+void Remeha::publish_room_setpoint(uint8_t zone, float value) {
+#ifdef USE_NUMBER
+  if (this->room_setpoint_ != nullptr && this->room_setpoint_->matches(0x3451, zone))
+    this->room_setpoint_->publish_state(value);
+#endif
+#ifdef USE_CLIMATE
+  if (this->climate_ != nullptr && this->climate_->get_zone() == zone)
+    this->climate_->update_target_temperature(value);
+#endif
+}
+
 void Remeha::start_auth_() {
   ESP_LOGI(TAG, "Attempting authentication (level %u)...", this->user_level_);
   // Read serial number from 0x2001 sub 0x0A
@@ -752,6 +763,11 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       return;
 
     // --- Data parsing for SDO reads ---
+#ifdef USE_CLIMATE
+    if (index == 0x3451 && this->climate_ != nullptr && this->climate_->get_zone() == sub)
+      this->climate_->update_target_temperature((uint16_t) value * 0.1f);
+#endif
+
 #ifdef USE_SENSOR
     if (index == 0x500F && sub == 0x00 && this->locking_mode_ != nullptr) {
       this->locking_mode_->publish_state(value);
@@ -936,6 +952,13 @@ void Remeha::process_trending_data_() {
     ESP_LOGD(TAG, "Room temperature=%.1f C", room_temp);
   }
 
+  // Active room setpoint (varZoneTRoomSetpoint): bytes 75-76, uint16 LE × 0.1
+  if (len > 76 && this->active_room_setpoint_ != nullptr) {
+    float active_setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
+    this->active_room_setpoint_->publish_state(active_setpoint);
+    ESP_LOGD(TAG, "Active room setpoint=%.1f C", active_setpoint);
+  }
+
   // Calculated temperature (Berekende): bytes 79-80, int16 LE × 0.01
   if (len > 80 && this->calculated_temperature_ != nullptr) {
     float val = (int16_t)(d[79] | (d[80] << 8)) * 0.01f;
@@ -950,12 +973,6 @@ void Remeha::process_trending_data_() {
     float room_temp2 = (uint16_t)(d[71] | (d[72] << 8)) * 0.1f;
     if (room_temp2 > 0.0f && room_temp2 < 50.0f)
       this->climate_->update_current_temperature(room_temp2);
-  }
-  // Update climate entity with active setpoint from bytes 75-76 (varZoneTRoomSetpoint)
-  if (this->climate_ != nullptr && len > 76) {
-    float active_setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
-    if (active_setpoint > 0.0f && active_setpoint < 50.0f)
-      this->climate_->update_target_temperature(active_setpoint);
   }
 #endif
 }

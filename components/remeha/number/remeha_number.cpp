@@ -45,6 +45,8 @@ void RemehaNumber::control(float value) {
   int32_t scaled = (int32_t) lroundf(value / this->scale_);
   uint32_t raw = (uint32_t) scaled;
   this->parent_->write_sdo(this->sdo_index_, this->sdo_subindex_, raw, this->sdo_size_);
+  if (this->sdo_index_ == 0x3451)
+    this->parent_->publish_room_setpoint(this->sdo_subindex_, value);
 }
 
 }  // namespace remeha
