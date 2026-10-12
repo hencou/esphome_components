@@ -82,9 +82,12 @@ namespace esphome
       return 0;
     }
 
-    void IthoI2C::i2c_master_init()
+    bool IthoI2C::i2c_master_init()
     {
-      i2c_wait_for_idle();
+      if (!i2c_wait_for_idle())
+      {
+        return false;
+      }
       
       #ifdef ESPRESSIF32_3_5_0
         i2c_config_t conf = {I2C_MODE_MASTER, (gpio_num_t)systemConfig->getI2C_SDA_Pin(), I2C_MASTER_SDA_PULLUP, (gpio_num_t)systemConfig->getI2C_SCL_Pin(), I2C_MASTER_SCL_PULLUP, {.master = {I2C_MASTER_FREQ_HZ}}};
@@ -102,8 +105,17 @@ namespace esphome
         };
       #endif
       
-      i2c_param_config(I2C_MASTER_NUM, &conf);
-      i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
+      esp_err_t rc = i2c_param_config(I2C_MASTER_NUM, &conf);
+      if (rc == ESP_OK)
+      {
+        rc = i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
+      }
+      if (rc != ESP_OK)
+      {
+        ESP_LOGE(TAG, "I2C master init failed: %s", esp_err_to_name(rc));
+        return false;
+      }
+      return true;
     }
 
     void IthoI2C::i2c_master_deinit()
@@ -111,9 +123,12 @@ namespace esphome
       i2c_driver_delete(I2C_MASTER_NUM);
     }
 
-    void IthoI2C::i2c_slave_init()
+    bool IthoI2C::i2c_slave_init()
     {
-      i2c_wait_for_idle();
+      if (!i2c_wait_for_idle())
+      {
+        return false;
+      }
       
       #ifdef ESPRESSIF32_3_5_0
         i2c_config_t conf_slave = {I2C_MODE_SLAVE, slave_sda_pin, I2C_SLAVE_SDA_PULLUP, slave_scl_pin, I2C_SLAVE_SCL_PULLUP, {.slave = {0, I2C_SLAVE_ADDRESS}}};
@@ -133,11 +148,19 @@ namespace esphome
         };
       #endif
       
-      i2c_param_config(I2C_SLAVE_NUM, &conf_slave);
-
-      i2c_driver_install(I2C_SLAVE_NUM, conf_slave.mode, I2C_SLAVE_RX_BUF_LEN, 0, 0);
+      esp_err_t rc = i2c_param_config(I2C_SLAVE_NUM, &conf_slave);
+      if (rc == ESP_OK)
+      {
+        rc = i2c_driver_install(I2C_SLAVE_NUM, conf_slave.mode, I2C_SLAVE_RX_BUF_LEN, 0, 0);
+      }
+      if (rc != ESP_OK)
+      {
+        ESP_LOGE(TAG, "I2C slave init failed: %s", esp_err_to_name(rc));
+        return false;
+      }
 
       i2c_set_timeout(I2C_SLAVE_NUM, 0xFFFFF);
+      return true;
     }
 
 
@@ -148,7 +171,10 @@ namespace esphome
 
     esp_err_t IthoI2C::i2c_master_send(const char *buf, uint32_t len)
     {
-      i2c_master_init();
+      if (!i2c_master_init())
+      {
+        return ESP_ERR_INVALID_STATE;
+      }
 
       esp_err_t rc;
       i2c_set_timeout(I2C_MASTER_NUM, 0xFFFFF);
@@ -167,7 +193,10 @@ namespace esphome
 
     esp_err_t IthoI2C::i2c_master_send_command(uint8_t addr, const uint8_t *cmd, uint32_t len)
     {
-      i2c_master_init();
+      if (!i2c_master_init())
+      {
+        return ESP_ERR_INVALID_STATE;
+      }
 
       esp_err_t rc;
       i2c_set_timeout(I2C_MASTER_NUM, 0xFFFFF);
@@ -187,7 +216,10 @@ namespace esphome
 
     esp_err_t IthoI2C::i2c_master_read_slave(uint8_t addr, uint8_t *data_rd, size_t size)
     {
-      i2c_master_init();
+      if (!i2c_master_init())
+      {
+        return ESP_ERR_INVALID_STATE;
+      }
 
       esp_err_t rc;
       i2c_set_timeout(I2C_MASTER_NUM, 0xFFFFF);
@@ -211,7 +243,10 @@ namespace esphome
 
     size_t IthoI2C::i2c_slave_receive(uint8_t i2c_receive_buf[])
     {
-      i2c_slave_init();
+      if (!i2c_slave_init())
+      {
+        return 0;
+      }
 
       uint8_t i2cbuf[I2C_SLAVE_RX_BUF_LEN];
       size_t buflen;

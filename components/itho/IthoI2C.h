@@ -29,18 +29,17 @@ namespace esphome
         {
         public:
             IthoI2C(SystemConfig *systemConfig);
-            ~IthoI2C();
 
             bool i2c_wait_for_idle();
             int i2c_clear_bus();
 
-            void i2c_master_init();
+            bool i2c_master_init();
             void i2c_master_deinit();
             esp_err_t i2c_master_send(const char *buf, uint32_t len);
             esp_err_t i2c_master_send_command(uint8_t addr, const uint8_t *cmd, uint32_t len);
             esp_err_t i2c_master_read_slave(uint8_t addr, uint8_t *data_rd, size_t size);
             
-            void i2c_slave_init();
+            bool i2c_slave_init();
             void i2c_slave_deinit();
             size_t i2c_slave_receive(uint8_t i2c_receive_buf[]);
 

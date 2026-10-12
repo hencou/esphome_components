@@ -4,6 +4,8 @@
 #include "esphome.h"
 #include "esphome/core/component.h"
 #include <driver/gpio.h>
+#include <hal/gpio_ll.h>
+#include <soc/gpio_struct.h>
 
 namespace esphome
 {
@@ -12,17 +14,12 @@ namespace esphome
 
     static const char *const TAG = "itho";
 
-    Itho::Itho()
-    {
-      systemConfig = new SystemConfig();
-    }
-
     //// Detect rising edge of I2C SCL pin
     void IRAM_ATTR gpio_intr(void *arg)
     {
       Itho *itho = static_cast<Itho *>(arg);
       itho->lowSCL = true;
-      gpio_isr_handler_remove((gpio_num_t)itho->getSCLPin());
+      gpio_ll_intr_disable(&GPIO, itho->sclPin);
     }
     //// End detect rising edge of I2C SCL pin
 
@@ -35,7 +32,7 @@ namespace esphome
         ESP_LOGD(TAG, "lowSCL triggered");
         this->lastSCLLowTime = millis();
       }
-      if (millis() - lastSCLLowTime < 200 || gpio_get_level((gpio_num_t)systemConfig->getI2C_SCL_Pin()) == 0)
+      if (millis() - lastSCLLowTime < 200 || gpio_get_level((gpio_num_t)systemConfig.getI2C_SCL_Pin()) == 0)
       {
         loopSystemControlTasks = true;
         return;
@@ -49,55 +46,55 @@ namespace esphome
 
       if (!this->i2cStartCommands && millis() > 15000UL && (millis() - this->lastI2CinitRequest > 5000))
       {
-        this->ithoSystem->sendQueryDevicetype();
+        this->ithoSystem.sendQueryDevicetype();
 
-        if (this->ithoSystem->getIthoFwVersion() > 0)
+        if (this->ithoSystem.getIthoFwVersion() > 0)
         {
-          ESP_LOGD(TAG, "I2C init: QueryDevicetype - fw:%d hw:%d", this->ithoSystem->getIthoFwVersion(), this->ithoSystem->getIthoHwVersion());
+          ESP_LOGD(TAG, "I2C init: QueryDevicetype - fw:%d hw:%d", this->ithoSystem.getIthoFwVersion(), this->ithoSystem.getIthoHwVersion());
 
           this->ithoInitResult = 1;
           this->i2cStartCommands = true;
 
           gpio_set_level((gpio_num_t)this->statusOutputPin, 1);
 
-          if (this->systemConfig->getSysSHT30() > 0)
+          if (this->systemConfig.getSysSHT30() > 0)
           {
-            if (this->ithoSystem->getIthoDeviceID() == 27)
+            if (this->ithoSystem.getIthoDeviceID() == 27)
             {
               uint8_t index2410 = 0;
               int32_t value2410 = 0;
-              if (this->systemConfig->getSysSHT30() == 1)
+              if (this->systemConfig.getSysSHT30() == 1)
               {
                 value2410 = 0;
               }
-              else if (this->systemConfig->getSysSHT30() == 2)
+              else if (this->systemConfig.getSysSHT30() == 2)
               {
                 value2410 = 1;
               }
-              if (this->ithoSystem->getIthoFwVersion() == 25)
+              if (this->ithoSystem.getIthoFwVersion() == 25)
               {
                 index2410 = 63;
               }
-              else if (this->ithoSystem->getIthoFwVersion() == 26 || this->ithoSystem->getIthoFwVersion() == 27)
+              else if (this->ithoSystem.getIthoFwVersion() == 26 || this->ithoSystem.getIthoFwVersion() == 27)
               {
                 index2410 = 71;
               }
               if (index2410 > 0)
               {
-                this->ithoSystem->setIndex2410(index2410);
-                this->ithoSystem->setValue2410(value2410);
-                this->ithoSystem->sendQuery2410();
-                this->ithoSystem->setSetting2410();
+                this->ithoSystem.setIndex2410(index2410);
+                this->ithoSystem.setValue2410(value2410);
+                this->ithoSystem.sendQuery2410();
+                this->ithoSystem.setSetting2410();
                 ESP_LOGD(TAG, "I2C init: set hum sensor in itho firmware to: %s", value2410 ? "on" : "off");
               }
             }
-            if (this->systemConfig->getSysSHT30() == 2)
+            if (this->systemConfig.getSysSHT30() == 2)
             {
-              this->systemConfig->setSysSHT30(0);
+              this->systemConfig.setSysSHT30(0);
             }
           }
-          this->ithoSystem->sendQueryStatusFormat();
-          this->ithoSystem->sendQueryStatus();
+          this->ithoSystem.sendQueryStatusFormat();
+          this->ithoSystem.sendQueryStatus();
         }
         else
         {
@@ -105,37 +102,44 @@ namespace esphome
         }
       }
 
-      if (this->ithoQueue->getIthoSpeedUpdated() && this->speedCommandTime == 0)
+      if (this->ithoQueue.getIthoSpeedUpdated() && this->speedCommandTime == 0)
       {
         // //ESP_LOGD(TAG, "Set FanInfo on auto...");
-        this->ithoSystem->sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(0, IthoMedium, this->virtualRemotes);
         this->speedCommandTime = millis();
       }
       else if (this->speedCommandTime > 0 && millis() - this->speedCommandTime >= SPEED_COMMAND_DELAY)
       {
         uint8_t command[] = {0x00, 0x60, 0xC0, 0x20, 0x01, 0x02, 0xFF, 0x00, 0xFF};
 
-        command[6] = (uint8_t)this->ithoQueue->getIthoSpeed();
-        command[sizeof(command) - 1] = this->ithoSystem->checksum(command, sizeof(command) - 1);
+        command[6] = (uint8_t)this->ithoQueue.getIthoSpeed();
+        command[sizeof(command) - 1] = this->ithoSystem.checksum(command, sizeof(command) - 1);
 
-        this->ithoSystem->i2c_sendBytes(command, sizeof(command));
-        this->speedCommandTime = 0;
-        this->ithoQueue->setIthoSpeedUpdated(false);
+        if (this->ithoSystem.i2c_sendBytes(command, sizeof(command)))
+        {
+          this->speedCommandTime = 0;
+          this->ithoQueue.setIthoSpeedUpdated(false);
+        }
+        else
+        {
+          ESP_LOGW(TAG, "Speed command failed, retrying");
+          this->speedCommandTime = millis();
+        }
       }
 
       if (!this->joinSend && this->ithoInitResult == 1)
       {
         this->joinSend = true;
-        this->ithoSystem->sendRemoteCmd(0, IthoJoin, virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(0, IthoJoin, virtualRemotes);
         uint8_t id[3];
-        this->ithoSystem->getID(id);
+        this->ithoSystem.getID(id);
         ESP_LOGD(TAG, "I2C init: Virtual remote join command send with id: %d, %d, %d", id[0], id[1], id[2]);
       }
 
-      if (!(this->ithoSystem->getIthoFwVersion() > 0) && millis() - lastVersionCheck > 60000)
+      if (!(this->ithoSystem.getIthoFwVersion() > 0) && millis() - lastVersionCheck > 60000)
       {
         lastVersionCheck = millis();
-        this->ithoSystem->sendQueryDevicetype();
+        this->ithoSystem.sendQueryDevicetype();
       }
 
       if (!loopSystemControlTasks && millis() - loopSystemControlTasksTime < 10000UL)
@@ -147,24 +151,24 @@ namespace esphome
 
       if (this->i2cStartCommands)
       {
-        this->ithoSystem->sendQueryStatus();
-        this->ithoSystem->sendQuery31DA();
-        this->ithoSystem->sendQuery31D9();
+        this->ithoSystem.sendQueryStatus();
+        this->ithoSystem.sendQuery31DA();
+        this->ithoSystem.sendQuery31D9();
       }
 
-      if (this->ithoSystem->getUpdated2410())
+      if (this->ithoSystem.getUpdated2410())
       {
-        this->ithoSystem->setUpdated2410(false);
-        this->ithoSystem->sendQuery2410();
+        this->ithoSystem.setUpdated2410(false);
+        this->ithoSystem.sendQuery2410();
       }
 
-      if (this->ithoSystem->getUpdate2410())
+      if (this->ithoSystem.getUpdate2410())
       {
-        this->ithoSystem->setSetting2410();
-        this->ithoSystem->setUpdate2410(false);
-        this->ithoSystem->setSettingsHack();
+        this->ithoSystem.setSetting2410();
+        this->ithoSystem.setUpdate2410(false);
+        this->ithoSystem.setSettingsHack();
       }
-      gpio_isr_handler_add((gpio_num_t)systemConfig->getI2C_SCL_Pin(), gpio_intr, this);
+      gpio_intr_enable((gpio_num_t)this->sclPin);
       this->lowSCL = false;
     }
 
@@ -174,7 +178,7 @@ namespace esphome
       {
         return false;
       }
-      this->ithoSystem->sendI2CPWMinit();
+      this->ithoSystem.sendI2CPWMinit();
       return false;
     }
 
@@ -204,79 +208,79 @@ namespace esphome
 
       if (command == "away")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAway, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoAway, this->virtualRemotes);
       }
       else if (command == "low")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLow, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoLow, this->virtualRemotes);
       }
       else if (command == "medium")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoMedium, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoMedium, this->virtualRemotes);
       }
       else if (command == "high")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoHigh, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoHigh, this->virtualRemotes);
       }
       else if (command == "timer1")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer1, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoTimer1, this->virtualRemotes);
       }
       else if (command == "timer2")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer2, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoTimer2, this->virtualRemotes);
       }
       else if (command == "timer3")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoTimer3, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoTimer3, this->virtualRemotes);
       }
       else if (command == "cook30")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook30, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoCook30, this->virtualRemotes);
       }
       else if (command == "cook60")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoCook60, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoCook60, this->virtualRemotes);
       }
       else if (command == "auto")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAuto, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoAuto, this->virtualRemotes);
       }
       else if (command == "autonight")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoAutoNight, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoAutoNight, this->virtualRemotes);
       }
       else if (command == "join")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoJoin, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoJoin, this->virtualRemotes);
       }
       else if (command == "leave")
       {
-        this->ithoSystem->sendRemoteCmd(remoteIndex, IthoLeave, this->virtualRemotes);
+        this->ithoSystem.sendRemoteCmd(remoteIndex, IthoLeave, this->virtualRemotes);
       }
       else if (command == "type")
       {
-        this->ithoSystem->sendQueryDevicetype();
+        this->ithoSystem.sendQueryDevicetype();
       }
       else if (command == "status")
       {
-        this->ithoSystem->sendQueryStatus();
+        this->ithoSystem.sendQueryStatus();
       }
       else if (command == "statusformat")
       {
-        this->ithoSystem->sendQueryStatusFormat();
+        this->ithoSystem.sendQueryStatusFormat();
       }
       else if (command == "31DA")
       {
-        this->ithoSystem->sendQuery31DA();
+        this->ithoSystem.sendQuery31DA();
       }
       else if (command == "31D9")
       {
-        this->ithoSystem->sendQuery31D9();
+        this->ithoSystem.sendQuery31D9();
       }
       else if (command == "10D0")
       {
-        this->ithoSystem->filterReset();
+        this->ithoSystem.filterReset();
       }
       else
       {
@@ -290,11 +294,11 @@ namespace esphome
       value += 13; //Correct diff between input and output values
       if (value > 254)
         value = 254;
-      if (this->ithoSystem->getIthoSpeed() != value)
+      if (this->ithoSystem.getIthoSpeed() != value)
       {
 
         ESP_LOGD(TAG, "setIthoSpeed: %d", value);
-        this->ithoQueue->add2queue(value, 0, 0);
+        this->ithoQueue.add2queue(value, 0, 0);
         return true;
       }
       return false;
@@ -336,10 +340,10 @@ namespace esphome
       id[2] = mac[5];
       ESP_LOGD(TAG, "Setup: Virtual remote ID: %d,%d,%d", id[0], id[1], id[2]);
 
-      ithoSystem = new IthoSystem(id, systemConfig);
-      ithoQueue = new IthoQueue();
+      this->ithoSystem.begin(id);
 
-      const uint8_t scl_pin = systemConfig->getI2C_SCL_Pin();
+      const uint8_t scl_pin = this->systemConfig.getI2C_SCL_Pin();
+      this->sclPin = scl_pin;
       gpio_config_t io_conf_scl = {};
       io_conf_scl.pin_bit_mask = (1ULL << scl_pin);
       io_conf_scl.mode = GPIO_MODE_INPUT;
