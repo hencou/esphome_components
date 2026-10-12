@@ -134,3 +134,9 @@ async def to_code(config):
             cg.add(getattr(parent, PARENT_SETTERS[conf_key])(num))
             # Register SDO poll for read-back
             cg.add(parent.add_sdo_poll(sdo_idx, sdo_sub))
+            if conf_key == CONF_ROOM_SETPOINT:
+                # The room setpoint is held in the manual setpoint (0x3413) in
+                # manual mode and in the temporary setpoint (0x3451) otherwise,
+                # so both objects and the zone mode have to be polled
+                cg.add(parent.add_sdo_poll(0x3413, sdo_sub))
+                cg.add(parent.add_sdo_poll(0x341F, sdo_sub))

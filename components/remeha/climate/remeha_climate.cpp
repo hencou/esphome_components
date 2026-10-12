@@ -57,6 +57,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
     if (this->parent_ != nullptr) {
       // Write zone mode via SDO (0x341F, uint8)
       this->parent_->write_sdo(0x341F, this->zone_, zone_mode, 1);
+      this->parent_->set_zone_mode_cache(this->zone_, zone_mode);
     }
     this->mode = mode;
   }
@@ -64,10 +65,7 @@ void RemehaClimate::control(const climate::ClimateCall &call) {
   if (call.get_target_temperature().has_value()) {
     float target = *call.get_target_temperature();
     if (this->parent_ != nullptr) {
-      // Write room setpoint via SDO (0x3451, uint16, scale x10)
-      uint16_t raw = (uint16_t)(target * 10.0f);
-      this->parent_->write_sdo(0x3451, this->zone_, raw, 2);
-      this->parent_->publish_room_setpoint(this->zone_, target);
+      this->parent_->write_room_setpoint(this->zone_, target);
     }
     this->target_temperature = target;
   }

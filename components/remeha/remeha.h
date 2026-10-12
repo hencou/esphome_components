@@ -55,8 +55,18 @@ class Remeha : public Component {
   // Register an SDO object for periodic polling
   void add_sdo_poll(uint16_t index, uint8_t subindex);
 
-  // Publish a room setpoint (0x3451) to both the number and the climate entity of that zone
+  // Publish a room setpoint to both the number and the climate entity of that zone
   void publish_room_setpoint(uint8_t zone, float value);
+
+  // Write the room setpoint of a zone to the object that the current zone mode uses
+  void write_room_setpoint(uint8_t zone, float value);
+
+  // Object holding the room setpoint for the current mode of a zone:
+  // 0x3413 (manual setpoint) in manual mode, 0x3451 (temporary setpoint) otherwise
+  uint16_t room_setpoint_object(uint8_t zone) const;
+
+  // Remember the zone mode (0x341F) so the room setpoint targets the right object
+  void set_zone_mode_cache(uint8_t zone, uint8_t mode);
 
   // Report a write rejected by client side validation
   void report_write_rejected(const char *reason);
@@ -165,6 +175,9 @@ class Remeha : public Component {
   uint8_t user_level_{2};
   uint32_t auth_key_{0};
   uint8_t min_write_level_{2};
+
+  // Zone mode (0x341F) per zone, 0xFF while unknown
+  uint8_t zone_modes_[11] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   // Boot state
   uint32_t boot_time_ms_{0};
