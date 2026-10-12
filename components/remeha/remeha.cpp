@@ -1,5 +1,6 @@
 #include "remeha.h"
 #include <algorithm>
+#include <cmath>
 #ifdef USE_CLIMATE
 #include "climate/remeha_climate.h"
 #endif
@@ -244,6 +245,25 @@ void Remeha::publish_room_setpoint(uint8_t zone, float value) {
   if (this->climate_ != nullptr && this->climate_->get_zone() == zone)
     this->climate_->update_target_temperature(value);
 #endif
+}
+
+uint16_t Remeha::room_setpoint_object(uint8_t zone) const {
+  if (zone < 11 && this->zone_modes_[zone] == 1)
+    return 0x3413;  // manual mode uses the manual room setpoint
+  return 0x3451;    // scheduling uses the temporary room setpoint
+}
+
+void Remeha::set_zone_mode_cache(uint8_t zone, uint8_t mode) {
+  if (zone < 11)
+    this->zone_modes_[zone] = mode;
+}
+
+void Remeha::write_room_setpoint(uint8_t zone, float value) {
+  uint16_t index = this->room_setpoint_object(zone);
+  uint16_t raw = (uint16_t) lroundf(value * 10.0f);
+  ESP_LOGD(TAG, "Room setpoint %.1f C -> 0x%04X sub %u", value, index, zone);
+  this->write_sdo(index, zone, raw, 2);
+  this->publish_room_setpoint(zone, value);
 }
 
 void Remeha::start_auth_() {
@@ -763,10 +783,16 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
       return;
 
     // --- Data parsing for SDO reads ---
-#ifdef USE_CLIMATE
-    if (index == 0x3451 && this->climate_ != nullptr && this->climate_->get_zone() == sub)
-      this->climate_->update_target_temperature((uint16_t) value * 0.1f);
-#endif
+    if (index == 0x341F)
+      this->set_zone_mode_cache(sub, value & 0xFF);
+
+    // The room setpoint lives in a different object per zone mode; only the
+    // object that is active right now drives the number and climate entity.
+    if (index == 0x3451 || index == 0x3413) {
+      if (index == this->room_setpoint_object(sub))
+        this->publish_room_setpoint(sub, (uint16_t) value * 0.1f);
+      return;
+    }
 
 #ifdef USE_SENSOR
     if (index == 0x500F && sub == 0x00 && this->locking_mode_ != nullptr) {
