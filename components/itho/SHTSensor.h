@@ -21,10 +21,11 @@ namespace esphome
       static const uint8_t SHT3X_ACCURACY_MEDIUM_DURATION = 6;
       static const uint8_t SHT3X_ACCURACY_LOW_DURATION = 4;
 
-      SHTSensor(IthoI2C*& ithoI2C, uint8_t i2cAddress);
-      ~SHTSensor();
+      SHTSensor(IthoI2C &ithoI2C, uint8_t i2cAddress);
 
       bool readSample();
+
+      void setAddress(uint8_t i2cAddress) { mI2cAddress = i2cAddress; }
 
       float getHumidity() { return mHumidity; }
       float getTemperature() { return mTemperature; }
@@ -42,7 +43,7 @@ namespace esphome
       const uint8_t CMD_SIZE = 2;
       const uint8_t EXPECTED_DATA_SIZE = 6;
 
-      IthoI2C*& mIthoI2C;
+      IthoI2C &mIthoI2C;
 
       float mTemperature;
       float mHumidity;
@@ -52,7 +53,7 @@ namespace esphome
                               uint8_t commandLength, uint8_t *data,
                               uint8_t dataLength, uint8_t duration);
 
-      const uint8_t mI2cAddress = 0x44;
+      uint8_t mI2cAddress = 0x44;
       uint16_t mI2cCommand = SHT3X_ACCURACY_MEDIUM;
       uint8_t mDuration = SHT3X_ACCURACY_MEDIUM_DURATION;
       float mA = -45;

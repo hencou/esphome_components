@@ -23,11 +23,9 @@ namespace esphome
     {
     public:
 
-      IthoSystem(
-          uint8_t *id_,
-          SystemConfig *systemConfig
-          );
-      ~IthoSystem();
+      IthoSystem(SystemConfig *systemConfig);
+
+      void begin(const uint8_t *id_);
 
       struct ithoDeviceStatus
       {
@@ -2494,8 +2492,8 @@ namespace esphome
 
     private:
       SystemConfig* systemConfig;
-      IthoI2C* ithoI2C = NULL;
-      SHTSensor* shtSensor = NULL;
+      IthoI2C ithoI2C;
+      SHTSensor shtSensor;
 
       struct ithoSettings
       {
@@ -2551,7 +2549,7 @@ namespace esphome
       std::vector<ithoDeviceStatus> ithoStatus;
       std::vector<ithoDeviceMeasurements> ithoMeasurements;
       std::vector<ithoDeviceMeasurements> ithoInternalMeasurements;
-      ithoSettings *ithoSettingsArray = nullptr;
+      std::vector<ithoSettings> ithoSettingsArray;
 
       bool updated2410 = false;
       bool update2410 = false;

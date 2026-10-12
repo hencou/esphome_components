@@ -9,7 +9,7 @@ namespace esphome
   {
     static const char *const TAG = "itho.sensor";
 
-    SHTSensor::SHTSensor(IthoI2C *&ithoI2C, uint8_t i2cAddress)
+    SHTSensor::SHTSensor(IthoI2C &ithoI2C, uint8_t i2cAddress)
         : mIthoI2C(ithoI2C), mI2cAddress(i2cAddress) {}
 
     bool SHTSensor::readFromI2c(const uint8_t *i2cCommand,
@@ -19,12 +19,12 @@ namespace esphome
     {
 
       esp_err_t rc;
-      rc = mIthoI2C->i2c_master_send_command(mI2cAddress, i2cCommand, commandLength);
+      rc = mIthoI2C.i2c_master_send_command(mI2cAddress, i2cCommand, commandLength);
       if (rc) {return false;}
 
       vTaskDelay(duration);
 
-      rc = mIthoI2C->i2c_master_read_slave(mI2cAddress, data, dataLength);
+      rc = mIthoI2C.i2c_master_read_slave(mI2cAddress, data, dataLength);
       if (rc) {return false;}
 
       return true;
