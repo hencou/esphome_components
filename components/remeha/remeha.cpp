@@ -264,6 +264,25 @@ void Remeha::publish_room_setpoint(uint8_t zone, float value) {
 #endif
 }
 
+// The trending block carries the setpoint the boiler holds right now, which in
+// scheduling mode comes from the time program; 0x3451 keeps the last override
+// and does not follow the schedule, so it cannot drive the entities there.
+void Remeha::publish_active_room_setpoint_(float value) {
+#ifdef USE_SENSOR
+  if (this->active_room_setpoint_ != nullptr)
+    this->active_room_setpoint_->publish_state(value);
+#endif
+#ifdef USE_NUMBER
+  if (this->room_setpoint_ != nullptr && this->room_setpoint_->get_sdo_subindex() == 1 &&
+      this->room_setpoint_object(1) == 0x3451)
+    this->room_setpoint_->publish_state(value);
+#endif
+#ifdef USE_CLIMATE
+  if (this->climate_ != nullptr && this->climate_->get_zone() == 1 && this->room_setpoint_object(1) == 0x3451)
+    this->climate_->update_target_temperature(value);
+#endif
+}
+
 uint16_t Remeha::room_setpoint_object(uint8_t zone) const {
   if (zone < 11 && this->zone_modes_[zone] == 1)
     return 0x3413;  // manual mode uses the manual room setpoint
@@ -808,7 +827,7 @@ void Remeha::handle_0x1c1_(const std::vector<uint8_t> &x) {
     // The room setpoint lives in a different object per zone mode; only the
     // object that is active right now drives the number and climate entity.
     if (index == 0x3451 || index == 0x3413) {
-      if (index == this->room_setpoint_object(sub))
+      if (index == 0x3413 && this->room_setpoint_object(sub) == 0x3413)
         this->publish_room_setpoint(sub, (uint16_t) value * 0.1f);
       return;
     }
@@ -998,9 +1017,9 @@ void Remeha::process_trending_data_() {
   }
 
   // Active room setpoint (varZoneTRoomSetpoint): bytes 75-76, uint16 LE × 0.1
-  if (len > 76 && this->active_room_setpoint_ != nullptr) {
+  if (len > 76) {
     float active_setpoint = (uint16_t)(d[75] | (d[76] << 8)) * 0.1f;
-    this->active_room_setpoint_->publish_state(active_setpoint);
+    this->publish_active_room_setpoint_(active_setpoint);
     ESP_LOGD(TAG, "Active room setpoint=%.1f C", active_setpoint);
   }
 
