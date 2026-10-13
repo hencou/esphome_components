@@ -34,10 +34,14 @@ static const uint32_t BUS_CHECK_INTERVAL_MS = 1000;
 // increase its error counter any further, so the controller never reaches
 // bus-off: it keeps retrying the same frame and the TX queue stays full.
 static const uint32_t TX_STALL_TIMEOUT_MS = 15000;
+// The boiler transmits PDOs continuously, so silence for this long means the
+// link is down even while the controller reports itself as running.
+static const uint32_t RX_SILENCE_TIMEOUT_MS = 60000;
 
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
   this->boot_phase_ = 0;
+  this->last_rx_ms_ = millis();
 
   // Register CAN frame callback
   this->canbus_->add_callback([this](uint32_t can_id, bool use_extended_id, bool remote_transmission_request,
@@ -154,54 +158,61 @@ void Remeha::dump_config() {
                 (unsigned) this->sdo_rx_id_);
 }
 
-// The TWAI controller stops transmitting once it goes bus-off and stays there
-// until recovery is requested and the driver is started again.
+// Transmissions that keep failing and a bus that goes silent both mean the
+// link is down; the controller state only tells how to get it back.
 void Remeha::service_bus_recovery_() {
 #ifdef USE_ESP32
+  uint32_t now = millis();
+  bool tx_stalled = this->tx_fail_since_ms_ != 0 && (now - this->tx_fail_since_ms_) >= TX_STALL_TIMEOUT_MS;
+  bool rx_silent =
+      this->boot_phase_ >= 4 && this->last_rx_ms_ != 0 && (now - this->last_rx_ms_) >= RX_SILENCE_TIMEOUT_MS;
+
   twai_status_info_t status;
-  if (twai_get_status_info(&status) != ESP_OK)
+  if (twai_get_status_info(&status) != ESP_OK) {
+    if (tx_stalled || rx_silent)
+      ESP_LOGW(TAG, "CAN link down but the controller status is unavailable");
+    return;
+  }
+
+  // Bus-off never clears by itself, so it is handled without waiting.
+  if (!tx_stalled && !rx_silent && status.state == TWAI_STATE_RUNNING)
     return;
 
-  if (status.state == TWAI_STATE_BUS_OFF) {
-    ESP_LOGW(TAG, "CAN bus-off detected, starting recovery");
-    twai_initiate_recovery();
-    this->bus_recovering_ = true;
-  } else if (status.state == TWAI_STATE_STOPPED && this->bus_recovering_) {
-    if (twai_start() != ESP_OK) {
-      ESP_LOGW(TAG, "CAN restart after recovery failed");
-      return;
-    }
-    ESP_LOGI(TAG, "CAN bus recovered, restarting boot sequence");
-    this->bus_recovering_ = false;
-    this->restart_bus_session_();
-  } else if (status.state == TWAI_STATE_RUNNING) {
-    this->bus_recovering_ = false;
+  ESP_LOGW(TAG, "CAN link down (%s%sstate %u, TEC %u, REC %u, %u queued, %u bus errors)",
+           tx_stalled ? "transmit stalled, " : "", rx_silent ? "no frames received, " : "", (unsigned) status.state,
+           (unsigned) status.tx_error_counter, (unsigned) status.rx_error_counter, (unsigned) status.msgs_to_tx,
+           (unsigned) status.bus_error_count);
 
-    bool stalled = status.msgs_to_tx > 0 && status.tx_error_counter >= 128;
-    if (!stalled) {
-      this->tx_stall_since_ms_ = 0;
+  switch (status.state) {
+    case TWAI_STATE_BUS_OFF:
+      twai_initiate_recovery();
+      ESP_LOGW(TAG, "CAN bus-off, recovery requested");
       return;
-    }
-
-    uint32_t now = millis();
-    if (this->tx_stall_since_ms_ == 0) {
-      this->tx_stall_since_ms_ = now;
+    case TWAI_STATE_RECOVERING:
       return;
-    }
-    if (now - this->tx_stall_since_ms_ < TX_STALL_TIMEOUT_MS)
+    case TWAI_STATE_STOPPED:
+      if (twai_start() != ESP_OK) {
+        ESP_LOGW(TAG, "CAN start failed");
+        return;
+      }
+      break;
+    case TWAI_STATE_RUNNING:
+      // Stopping and starting aborts the pending frame and clears the error
+      // counters, which is what a reboot of the module does today.
+      twai_clear_transmit_queue();
+      if (twai_stop() != ESP_OK || twai_start() != ESP_OK) {
+        ESP_LOGW(TAG, "CAN controller restart failed");
+        return;
+      }
+      break;
+    default:
       return;
-
-    ESP_LOGW(TAG, "CAN transmit stalled (TEC %u, %u queued), restarting controller",
-             (unsigned) status.tx_error_counter, (unsigned) status.msgs_to_tx);
-    this->tx_stall_since_ms_ = 0;
-    // Stopping and starting aborts the pending frame and clears the error
-    // counters, which is what a reboot of the module does today.
-    if (twai_stop() != ESP_OK || twai_start() != ESP_OK) {
-      ESP_LOGW(TAG, "CAN controller restart failed");
-      return;
-    }
-    this->restart_bus_session_();
   }
+
+  ESP_LOGI(TAG, "CAN controller running again, restarting boot sequence");
+  this->tx_fail_since_ms_ = 0;
+  this->last_rx_ms_ = now;
+  this->restart_bus_session_();
 #endif
 }
 
@@ -222,8 +233,14 @@ void Remeha::restart_bus_session_() {
 }
 
 void Remeha::send_can_(uint32_t can_id, const uint8_t *data, size_t len) {
-  if (this->canbus_ != nullptr) {
-    this->canbus_->send_data(can_id, false, false, std::vector<uint8_t>(data, data + len));
+  if (this->canbus_ == nullptr)
+    return;
+
+  canbus::Error error = this->canbus_->send_data(can_id, false, false, std::vector<uint8_t>(data, data + len));
+  if (error == canbus::ERROR_OK) {
+    this->tx_fail_since_ms_ = 0;
+  } else if (this->tx_fail_since_ms_ == 0) {
+    this->tx_fail_since_ms_ = millis();
   }
 }
 
@@ -539,6 +556,8 @@ void Remeha::tea_encrypt_(uint32_t v[2], const uint32_t k[4]) {
 // --- CAN frame dispatcher ---
 void Remeha::handle_frame_(uint32_t can_id, bool use_extended_id, bool remote_transmission_request,
                            const std::vector<uint8_t> &data) {
+  this->last_rx_ms_ = millis();
+
   if (can_id == this->sdo_rx_id_) {
     this->handle_0x1c1_(data);
     return;
