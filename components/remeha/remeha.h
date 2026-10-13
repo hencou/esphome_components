@@ -65,6 +65,10 @@ class Remeha : public Component {
   // 0x3413 (manual setpoint) in manual mode, 0x3451 (temporary setpoint) otherwise
   uint16_t room_setpoint_object(uint8_t zone) const;
 
+  // Publishes the setpoint the boiler currently holds, and lets it drive the
+  // room setpoint entities while they cannot track their own object.
+  void publish_active_room_setpoint_(float value);
+
   // Remember the zone mode (0x341F) so the room setpoint targets the right object
   void set_zone_mode_cache(uint8_t zone, uint8_t mode);
 
