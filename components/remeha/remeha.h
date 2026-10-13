@@ -186,8 +186,8 @@ class Remeha : public Component {
   // Timing
   uint32_t last_poll_ms_{0};
   uint32_t last_bus_check_ms_{0};
-  uint32_t tx_stall_since_ms_{0};
-  bool bus_recovering_{false};
+  uint32_t tx_fail_since_ms_{0};
+  uint32_t last_rx_ms_{0};
 
   // Gateway state: the boiler hands out a channel number via 0x4004 and the
   // request/response CAN ids follow from it (1 = 0x241/0x1C1, 2 = 0x341/0x2C1).
