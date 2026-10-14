@@ -10,6 +10,7 @@
 #ifdef USE_NUMBER
 #include "number/remeha_number.h"
 #endif
+#include "esphome/core/application.h"
 #include "esphome/core/log.h"
 #ifdef USE_ESP32
 #include <driver/twai.h>
@@ -37,6 +38,13 @@ static const uint32_t TX_STALL_TIMEOUT_MS = 15000;
 // The boiler transmits PDOs continuously, so silence for this long means the
 // link is down even while the controller reports itself as running.
 static const uint32_t RX_SILENCE_TIMEOUT_MS = 60000;
+
+// Bus recovery completes once the controller sees an idle bus; when it does not
+// complete the driver refuses both a stop and an uninstall, so the controller
+// can only be reinitialised by restarting the module.
+static const uint32_t BUS_RECOVERY_TIMEOUT_MS = 120000;
+
+static const uint32_t LINK_DOWN_LOG_INTERVAL_MS = 30000;
 
 void Remeha::setup() {
   this->boot_time_ms_ = millis();
@@ -178,10 +186,16 @@ void Remeha::service_bus_recovery_() {
   if (!tx_stalled && !rx_silent && status.state == TWAI_STATE_RUNNING)
     return;
 
-  ESP_LOGW(TAG, "CAN link down (%s%sstate %u, TEC %u, REC %u, %u queued, %u bus errors)",
-           tx_stalled ? "transmit stalled, " : "", rx_silent ? "no frames received, " : "", (unsigned) status.state,
-           (unsigned) status.tx_error_counter, (unsigned) status.rx_error_counter, (unsigned) status.msgs_to_tx,
-           (unsigned) status.bus_error_count);
+  if (this->last_link_down_log_ms_ == 0 || (now - this->last_link_down_log_ms_) >= LINK_DOWN_LOG_INTERVAL_MS) {
+    this->last_link_down_log_ms_ = now;
+    ESP_LOGW(TAG, "CAN link down (%s%sstate %u, TEC %u, REC %u, %u queued, %u bus errors)",
+             tx_stalled ? "transmit stalled, " : "", rx_silent ? "no frames received, " : "", (unsigned) status.state,
+             (unsigned) status.tx_error_counter, (unsigned) status.rx_error_counter, (unsigned) status.msgs_to_tx,
+             (unsigned) status.bus_error_count);
+  }
+
+  if (status.state != TWAI_STATE_RECOVERING)
+    this->recovering_since_ms_ = 0;
 
   switch (status.state) {
     case TWAI_STATE_BUS_OFF:
@@ -189,6 +203,15 @@ void Remeha::service_bus_recovery_() {
       ESP_LOGW(TAG, "CAN bus-off, recovery requested");
       return;
     case TWAI_STATE_RECOVERING:
+      if (this->recovering_since_ms_ == 0) {
+        this->recovering_since_ms_ = now;
+        return;
+      }
+      if ((now - this->recovering_since_ms_) < BUS_RECOVERY_TIMEOUT_MS)
+        return;
+      ESP_LOGE(TAG, "CAN bus recovery stuck for %u s, restarting the module",
+               (unsigned) ((now - this->recovering_since_ms_) / 1000));
+      App.safe_reboot();
       return;
     case TWAI_STATE_STOPPED:
       if (twai_start() != ESP_OK) {
@@ -212,6 +235,7 @@ void Remeha::service_bus_recovery_() {
   ESP_LOGI(TAG, "CAN controller running again, restarting boot sequence");
   this->tx_fail_since_ms_ = 0;
   this->last_rx_ms_ = now;
+  this->last_link_down_log_ms_ = 0;
   this->restart_bus_session_();
 #endif
 }
