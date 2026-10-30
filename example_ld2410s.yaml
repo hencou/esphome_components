@@ -1,0 +1,129 @@
+## Let op: voor calibratie eerst minimal output mode uitzetten!! Anders geen voortgang
+
+substitutions:
+  device_name: ld2410s
+  friendly_name: ld2410s
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  
+esp8266:
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi_ssidC
+  password: !secret wifi_passwordC
+  min_auth_mode: WPA2
+  #use_address: 192.168.178.83
+
+# Enable logging
+logger:
+  level: DEBUG
+  baud_rate: 0  # <-- voeg dit toe, schakelt seriële logger uit
+
+# Enable Home Assistant API
+api:
+ reboot_timeout: 480min
+
+ota:
+  platform: esphome
+
+external_components:
+- source: github://hencou/esphome_components
+  components: ld2410s
+  refresh: 0s
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 115200
+  #parity: NONE
+  #stop_bits: 1
+
+ld2410s:
+  uart_id: uart_bus
+
+sensor:
+  - platform: ld2410s
+    target_distance:
+      name: Target Distance
+    calibration_progress:
+      name: Calibration  progress
+
+binary_sensor:
+  - platform: ld2410s
+    has_target:
+      name: Presence
+    has_calibration_running:
+      name: Calibration running
+  - platform: gpio
+    pin: GPIO5
+    name: GPIO Out pin presence
+    device_class: presence
+
+text_sensor:
+  - platform: ld2410s
+    fw_version:
+      name: Firmware version
+    threshold_triggers:
+      name: Triggers
+    threshold_holds:
+      name: Holds
+    threshold_snrs:
+      name: SNRs
+    energy_values:
+      name: Energy
+
+number:
+  - platform: ld2410s
+    max_distance:
+      name: Max detect distance
+    min_distance:
+      name: Min detect distance
+    no_delay:
+      name: No detect report delay
+    status_reporting_frequency:
+      name: Status reporting frequency
+    distance_reporting_frequency:
+      name: Distance reporting frequency
+
+    threshold_trigger:
+      name: TTrigger
+    threshold_hold:
+      name: THold
+    threshold_snr:
+      name: TSNR
+    threshold_selected_gate:
+      name: TSelected Gate
+
+button:
+  - platform: ld2410s
+    calibration:
+      name: Start auto calibration
+    factory_reset:
+      name: Factory reset sensor
+  - platform: factory_reset
+    name: Factory reset ESP
+    id: ${device_name}_factory_restart
+    entity_category: config
+  - platform: restart
+    name: Restart
+    id: ${device_name}_restart
+    entity_category: config
+  - platform: safe_mode
+    entity_category: config
+    name: Safemode
+    id: ${device_name}_safemode
+
+select:
+  - platform: ld2410s
+    response_speed:
+      name: Response speed
+
+switch:
+  - platform: ld2410s
+    minimal_output:
+      name: Minimal output
+ 

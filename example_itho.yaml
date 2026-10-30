@@ -1,0 +1,403 @@
+substitutions:
+  device_name: doucheventilatie
+  friendly_name: Douche ventilatie
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    advanced:
+      sram1_as_iram: true
+      minimum_chip_revision: "3.0"
+      flash_chip: generic
+    
+external_components:
+- source: github://hencou/esphome_components
+  components: [itho]
+  refresh: 0s
+    
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  min_auth_mode: WPA2
+  enable_btm: True
+  enable_rrm: True
+
+logger:
+  level: WARN
+
+api:
+ reboot_timeout: 480min
+
+ota:
+  platform: esphome
+
+itho:
+  syssht30: disable
+  #remote_type: RFTCVE #RFTCVE, RFTAUTO, DEMANDFLOW, RFTRV or RFTCO2
+  #status_input_pin: 16
+  #status_output_pin: 13
+
+fan:
+- platform: itho
+  id: ${device_name}_fan
+  name: Fan
+  
+select:
+- platform: itho
+  id: ${device_name}_stand
+  name: Stand
+  on_value:
+    then:
+    - globals.set:
+        id: faninfo
+        value: !lambda |-
+          return x.c_str();
+
+globals:
+- id: humidity_mean
+  type: float
+
+- id: humidity_count
+  type: int
+
+- id: max_speed
+  type: bool
+
+- id: old_e_term
+  type: float
+
+- id: e_term
+  type: float
+  
+- id: p_term
+  type: float
+  
+- id: i_term
+  type: float
+  
+- id: d_term
+  type: float
+  
+- id: o_term
+  type: float
+  
+- id: faninfo
+  type: std::string
+  
+number:
+- platform: template
+  name: Minimum output
+  id: ${device_name}_minimal_output
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 15.0
+  optimistic: true
+  min_value: 10
+  max_value: 30
+  step: 1
+  
+- platform: template
+  name: Kp
+  id: ${device_name}_kp
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 5.0
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+
+- platform: template
+  name: Ki
+  id: ${device_name}_ki
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 0.0125
+  optimistic: true
+  min_value: 0
+  max_value: 0.05
+  step: 0.0001
+
+- platform: template
+  name: Max I-term
+  id: ${device_name}_max_i_term
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 30
+  optimistic: true
+  min_value: 0
+  max_value: 50
+  step: 1
+
+- platform: template
+  name: Kd
+  id: ${device_name}_kd
+  entity_category: config
+  icon: mdi:chart-bell-curve
+  restore_value: true
+  initial_value: 4.0
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  
+sensor:
+- platform: itho
+  update_interval: 8s
+  error:
+    name: Error
+    id: ${device_name}_error
+  startup_counter:
+    name: Startup counter
+    id: ${device_name}_startup_counter
+  operation_time:
+    name: Operation time
+    id: ${device_name}_operation_time
+  temperature:
+    name: Temperatuur
+    id: ${device_name}_temperature
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+  humidity:
+    name: Luchtvochtigheid
+    id: ${device_name}_humidity
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+    on_raw_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: ${device_name}_humidity
+            above: 0.1
+            below: 120.0
+        then:
+        - globals.set:
+            id: humidity_mean
+            value:  !lambda |-
+              id(humidity_count) = id(humidity_count) + 1;
+              if (id(humidity_count) > 1000) { id(humidity_count) = 1000;}
+              return (((id(humidity_count)-1) * id(humidity_mean)) + x) / id(humidity_count);
+        - globals.set:
+            id: e_term
+            value: !lambda |-
+              return x - id(humidity_mean) - 2.0;
+        - globals.set:
+            id: p_term
+            value: !lambda |-
+              return id(e_term) * id(${device_name}_kp).state;
+        - globals.set:
+            id: i_term
+            value: !lambda |-
+              float value = id(i_term) + (id(e_term) * id(${device_name}_ki).state);
+              if (value > id(${device_name}_max_i_term).state) {value = id(${device_name}_max_i_term).state;}
+              if (value < 0) {value = 0;}
+              return value;
+        - globals.set:
+            id: d_term
+            value: !lambda |-
+              float value = (id(e_term) - id(old_e_term)) * id(${device_name}_kd).state;
+              return value;
+        - globals.set:
+            id: old_e_term
+            value: !lambda |-
+              return id(e_term);
+        - globals.set:
+            id: o_term
+            value: !lambda |-
+              float value = id(p_term) + id(i_term) + ((id(d_term) < 0)? 0 : id(d_term));
+              value = (id(o_term) < value) ? value : id(o_term) -1; //Fast speed up, slow speed down
+              return (value < id(${device_name}_minimal_output).state) ? id(${device_name}_minimal_output).state : value;
+        - lambda: !lambda |-
+            if (id(faninfo) == "auto") {
+              int speed = 0;
+
+              if (x > 87.00 && id(max_speed) == false) {
+                id(max_speed) = true;
+                speed = 254;
+
+                auto call = id(${device_name}_fan).make_call();
+                call.set_speed(speed);
+                call.perform();
+              }
+
+              if (x <= 87.00) {
+                if (x < 80.00) {
+                  id(max_speed) = false;
+                  speed = int(id(o_term) * 2.54);
+                } else {
+                  if (id(max_speed) == true) {
+                    speed = 254;
+                  } else {
+                    speed = int(id(o_term) * 2.54);
+                  }
+                }
+
+                if (speed > 254) {speed = 254;}
+                auto call = id(${device_name}_fan).make_call();
+                call.set_speed(speed);
+                call.perform();
+              }
+            }
+  fan_setpoint:
+    name: Fan setpoint
+    id: ${device_name}_fan_setpoint
+    unit_of_measurement: "rpm"
+    icon: mdi:rotate-right
+    entity_category: "diagnostic"
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+  fan_speed:
+    name: Fan speed
+    id: ${device_name}_fan_speed
+    unit_of_measurement: "rpm"
+    icon: mdi:rotate-right
+    entity_category: "diagnostic"
+    filters:
+    - or:
+      - delta: 1.0
+      - heartbeat: 60s
+  #Values below are only reported by units that send them (mainly HRU/DemandFlow):
+  #air_quality:
+  #  name: Luchtkwaliteit
+  #co2:
+  #  name: CO2
+  #indoor_humidity:
+  #  name: Luchtvochtigheid binnen
+  #outdoor_humidity:
+  #  name: Luchtvochtigheid buiten
+  #exhaust_temperature:
+  #  name: Afvoertemperatuur
+  #supply_temperature:
+  #  name: Toevoertemperatuur
+  #indoor_temperature:
+  #  name: Binnentemperatuur
+  #outdoor_temperature:
+  #  name: Buitentemperatuur
+  #speed_cap:
+  #  name: Speed cap
+  #bypass_position:
+  #  name: Bypass stand
+  #exhaust_fan_speed:
+  #  name: Afvoerventilator
+  #supply_fan_speed:
+  #  name: Toevoerventilator
+  #remaining_time:
+  #  name: Resterende tijd
+  #post_heat:
+  #  name: Naverwarming
+  #pre_heat:
+  #  name: Voorverwarming
+  #supply_flow:
+  #  name: Toevoerdebiet
+  #exhaust_flow:
+  #  name: Afvoerdebiet
+  #internal_fault:
+  #  name: Interne fout
+  #frost_cycle:
+  #  name: Vorstcyclus
+  #filter_dirty:
+  #  name: Filter vervuild
+
+- platform: template
+  name: Gem. luchtvochtigheid
+  id: ${device_name}_gem_luchtvochtigheid
+  unit_of_measurement: "%"
+  lambda: !lambda |-
+    return id(humidity_mean);
+
+- platform: template
+  name: Error value
+  id: ${device_name}_error_value
+  lambda: !lambda |-
+    return id(e_term);
+  
+- platform: template
+  name: P term
+  id: ${device_name}_p_term
+  lambda: !lambda |-
+    return id(p_term);
+
+- platform: template
+  name: I term
+  id: ${device_name}_i_term
+  lambda: !lambda |-
+    return id(i_term);
+
+- platform: template
+  name: D term
+  id: ${device_name}_d_term
+  lambda: !lambda |-
+    return id(d_term);
+
+- platform: template
+  name: Output term
+  id: ${device_name}_output_term
+  lambda: !lambda |-
+    return id(o_term);
+        
+- platform: uptime
+  name: Uptime
+  id: ${device_name}_uptime
+  filters:
+    - throttle: 300s
+
+- platform: wifi_signal
+  name: WiFi signal
+  id: ${device_name}_wifi_signal
+  filters:
+    - delta: 0.01
+    - throttle: 300s
+    
+binary_sensor:
+- platform: analog_threshold
+  name: Aan het douchen
+  id: ${device_name}_douchen
+  sensor_id: ${device_name}_d_term
+  threshold:
+    upper: 5
+    lower: -1.4
+        
+button:
+- platform: factory_reset
+  name: Factory reset
+  id: ${device_name}_factory_restart
+  entity_category: config
+- platform: restart
+  name: Restart
+  id: ${device_name}_restart
+  entity_category: config
+- platform: safe_mode
+  entity_category: config
+  name: Safemode
+  id: ${device_name}_safemode
+
+text_sensor:
+- platform: version
+  id: ${device_name}_esphome_versie
+  name: ESPHome versie
+- platform: wifi_info
+  ip_address:
+    name: IP address
+    id: ${device_name}_ipaddress
+  ssid:
+    name: SSID
+    id: ${device_name}_ssid
+  bssid:
+    name: BSSID
+    id: ${device_name}_bssid
+
