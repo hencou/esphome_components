@@ -1,7 +1,7 @@
 # ESPHome custom components
 
 A collection of ESPHome external components for hardware that has no (complete) support in ESPHome itself:
-Remeha boilers over CAN bus, Itho ventilation boxes over I²C, MiLight/MiBoxer lights over 2.4 GHz radio,
+Itho ventilation boxes over I²C, MiLight/MiBoxer lights over 2.4 GHz radio,
 LD2410S mmWave presence sensors, DCF77 radio clocks and an I²C sniffer for reverse engineering.
 
 Every component ships with a complete, working example configuration.
