@@ -1,0 +1,105 @@
+#include "esphome.h"
+#include "esphome/core/log.h"
+#include "mi_light.h"
+#include "../MiLightCommands.h"
+#include "esphome/core/helpers.h"
+
+namespace esphome {
+namespace mi {
+
+static const char *const TAG = "mi.light";
+
+MiLight::MiLight() {}
+
+void MiLight::set_bulb_id(uint16_t deviceId, uint8_t groupId, std::string remoteType) {
+  MiLight::bulbId = {
+    deviceId,
+    groupId,
+    MiLightRemoteConfig::fromType(remoteType)->type
+  };
+}
+
+void MiLight::setup() {}
+
+void MiLight::dump_config() {
+  ESP_LOGCONFIG(TAG, "MiLight:");
+  ESP_LOGCONFIG(TAG, " Name: %s", state_->get_name().c_str());
+  ESP_LOGCONFIG(TAG, " bulbId.deviceType: %s", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType).c_str());
+  ESP_LOGCONFIG(TAG, " bulbId.deviceId: %04X", bulbId.deviceId);
+  ESP_LOGCONFIG(TAG, " bulbId.groupId: %i", bulbId.groupId);
+
+  const auto &effects = state_->get_effects();
+  for (size_t i = 0; i < effects.size(); i++) {
+    ESP_LOGCONFIG(TAG, " Registered effect: %s", effects[i]->get_name().c_str());
+  }
+}
+
+light::LightTraits MiLight::get_traits() {
+  auto traits = light::LightTraits();
+  switch (MiLight::bulbId.deviceType) {
+    case REMOTE_TYPE_RGB_CCT:
+      traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    case REMOTE_TYPE_RGB:
+      traits.set_supported_color_modes({light::ColorMode::RGB});
+      break;
+    case REMOTE_TYPE_RGBW:
+      traits.set_supported_color_modes({light::ColorMode::RGB_WHITE});
+      break;
+    case REMOTE_TYPE_CCT:
+      traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    case REMOTE_TYPE_FUT089:
+      traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    case REMOTE_TYPE_FUT091:
+      traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    case REMOTE_TYPE_FUT020:
+      traits.set_supported_color_modes({light::ColorMode::RGB});
+      break;
+    case REMOTE_TYPE_FUT022:
+      traits.set_supported_color_modes({light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    case REMOTE_TYPE_S2:
+      traits.set_supported_color_modes({light::ColorMode::RGB, light::ColorMode::COLOR_TEMPERATURE});
+      traits.set_max_mireds(warm_white_temperature_);
+      traits.set_min_mireds(cold_white_temperature_);
+      break;
+    default:
+      traits.set_supported_color_modes({light::ColorMode::ON_OFF});
+      break;
+  }
+  return traits;
+}
+
+void MiLight::setup_state(light::LightState *state) {
+  state_ = state;
+
+#ifdef USE_DEVICES
+  parent_->add_child(state_->get_object_id_hash(), state_->get_device_id(), bulbId);
+#else
+  parent_->add_child(state_->get_object_id_hash(), 0, bulbId);
+#endif
+
+}
+
+void MiLight::write_state(light::LightState *state) {
+  state->current_values.set_color_temperature(
+    mi_color_temperature(state->current_values.get_color_temperature())
+  );
+  parent_->write_state(bulbId, state);
+}
+
+}  // namespace mi
+}  // namespace esphome

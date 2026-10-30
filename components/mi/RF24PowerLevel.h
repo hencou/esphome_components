@@ -1,0 +1,27 @@
+#include <RF24.h>
+// RF24 defines `printf_P` as `Serial.printf` on the ESP32 Arduino core, which
+// collides with ESPAsyncWebServer's AsyncWebSocket::printf_P. Drop it here.
+#ifdef printf_P
+#undef printf_P
+#endif
+#include <string>
+
+#ifndef _RF24_POWER_LEVEL_H
+#define _RF24_POWER_LEVEL_H
+
+enum class RF24PowerLevel {
+  RF24_MIN  = RF24_PA_MIN,  // -18 dBm
+  RF24_LOW  = RF24_PA_LOW,  // -12 dBm
+  RF24_HIGH = RF24_PA_HIGH, //  -6 dBm
+  RF24_MAX  = RF24_PA_MAX   //   0 dBm
+};
+
+class RF24PowerLevelHelpers {
+public:
+  static std::string nameFromValue(const RF24PowerLevel& value);
+  static RF24PowerLevel valueFromName(const std::string& name);
+  static RF24PowerLevel defaultValue();
+  static uint8_t rf24ValueFromValue(const RF24PowerLevel& vlaue);
+};
+
+#endif
