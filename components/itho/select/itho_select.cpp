@@ -34,7 +34,7 @@ void Itho_Select::setup() {
 
 void Itho_Select::loop() {
   if (parent_->getIthoFanInfo() != ithoFanInfo) {
-    ESP_LOGD(TAG, "Updated ithoFanInfo this->state: %s", this->state.c_str());
+    ESP_LOGD(TAG, "Updated ithoFanInfo current option: %s", this->has_state() ? this->current_option().c_str() : "");
     ESP_LOGD(TAG, "Updated ithoFanInfo parent_->getIthoFanInfo(): %s", parent_->getIthoFanInfo().c_str());
     ithoFanInfo = parent_->getIthoFanInfo();
     if (this->current_option() == "manual" && parent_->getIthoFanInfo() == "auto") {

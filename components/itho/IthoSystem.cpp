@@ -501,7 +501,7 @@ namespace esphome
             if (ithoStat.type == ithoDeviceStatus::is_uint)
             {
               ithoStat.value.uintval = tempVal;
-              ESP_LOGD(TAG, "I2C ithoStat.name: %s, intvalue: %i", ithoStat.name, ithoStat.value.intval);
+              ESP_LOGD(TAG, "I2C ithoStat.name: %s, uintvalue: %u", ithoStat.name, (unsigned) ithoStat.value.uintval);
             }
             if (ithoStat.type == ithoDeviceStatus::is_int)
             {
@@ -986,7 +986,7 @@ namespace esphome
           }
           if (ithoMeasurement.type == ithoDeviceMeasurements::is_int)
           {
-            ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, intval: %i", ithoMeasurement.name, ithoMeasurement.value.intval);
+            ESP_LOGD(TAG, "I2C ithoMeasurement.name: %s, intval: %i", ithoMeasurement.name, (int) ithoMeasurement.value.intval);
           }
           if (ithoMeasurement.type == ithoDeviceMeasurements::is_float)
           {
@@ -1085,7 +1085,7 @@ namespace esphome
           }
           if (internalMeasurement.type == ithoDeviceMeasurements::is_int)
           {
-            ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, intval: %i", internalMeasurement.name, internalMeasurement.value.intval);
+            ESP_LOGD(TAG, "I2C internalMeasurement.name: %s, intval: %i", internalMeasurement.name, (int) internalMeasurement.value.intval);
           }
           if (internalMeasurement.type == ithoDeviceMeasurements::is_float)
           {
